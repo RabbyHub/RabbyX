@@ -4,10 +4,10 @@ import { Drawer, Tabs, Tooltip } from 'antd';
 import { unionBy } from 'lodash';
 import {
   WALLET_BRAND_CONTENT,
-  KEYRING_ICONS,
   KEYRING_TYPE_TEXT,
   BRAND_ALIAN_TYPE_TEXT,
 } from 'consts';
+import { KEYRING_ICONS } from 'ui/assets-const';
 import { useWallet, useWalletOld } from 'ui/utils';
 import { AddressViewer, FieldCheckbox } from '..';
 import {

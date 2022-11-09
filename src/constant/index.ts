@@ -1,51 +1,4 @@
 import { CHAINS, CHAINS_ENUM } from '@debank/common';
-import IconEN from 'ui/assets/langs/en.svg';
-import IconAmber from 'ui/assets/walletlogo/amber.svg';
-import LogoAmber from 'ui/assets/walletlogo/amber.svg';
-import {
-  default as IconBitBox02,
-  default as IconBitBox02WithBorder,
-} from 'ui/assets/walletlogo/bitbox.svg';
-import IconCobo from 'ui/assets/walletlogo/cobo.svg';
-import LogoCobo from 'ui/assets/walletlogo/cobo.svg';
-import IconFireblocksWithBorder from 'ui/assets/walletlogo/fireblocks.svg';
-import IconFireblocks from 'ui/assets/walletlogo/fireblocks.svg';
-import IconGnosis from 'ui/assets/walletlogo/gnosis.svg';
-import IconGridPlus from 'ui/assets/walletlogo/gridplus.svg';
-import IconImtoken from 'ui/assets/walletlogo/imtoken.svg';
-import LogoImtoken from 'ui/assets/walletlogo/imtoken.svg';
-import IconJade from 'ui/assets/walletlogo/jade.svg';
-import LogoJade from 'ui/assets/walletlogo/jade.svg';
-import LogoKeystone from 'ui/assets/walletlogo/keystone.svg';
-import LogoAirGap from 'ui/assets/walletlogo/airgap.svg';
-import LogoLedgerDark from 'ui/assets/walletlogo/ledger.svg';
-import LogoLedgerWhite from 'ui/assets/walletlogo/ledger.svg';
-import IconMath from 'ui/assets/walletlogo/math.svg';
-import LogoMath from 'ui/assets/walletlogo/math.svg';
-import IconMetaMask from 'ui/assets/walletlogo/metamask.svg';
-import IconMnemonicInk from 'ui/assets/walletlogo/mnemonic-ink.svg';
-import IconMnemonicWhite from 'ui/assets/walletlogo/IconMnemonic-white.svg';
-import LogoMnemonic from 'ui/assets/walletlogo/mnemoniclogo.svg';
-import IconOnekey from 'ui/assets/walletlogo/onekey.svg';
-import IconOneKey18 from 'ui/assets/walletlogo/onekey.svg';
-import LogoOnekey from 'ui/assets/walletlogo/onekey.svg';
-import IconPrivateKeyWhite from 'ui/assets/walletlogo/private-key-white.svg';
-import IconPrivateKeyInk from 'ui/assets/walletlogo/privatekey-ink.svg';
-import LogoPrivateKey from 'ui/assets/walletlogo/privatekeylogo.svg';
-import LogoTp from 'ui/assets/walletlogo/tp.svg';
-import IconTokenpocket from 'ui/assets/walletlogo/tp.svg';
-import IconTrezor from 'ui/assets/walletlogo/trezor.svg';
-import IconTrezor24Border from 'ui/assets/walletlogo/trezor.svg';
-import IconTrezor24 from 'ui/assets/walletlogo/trezor.svg';
-import LogoTrezor from 'ui/assets/walletlogo/trezor.svg';
-import LogoTrust from 'ui/assets/walletlogo/trust.svg';
-import IconTrust from 'ui/assets/walletlogo/trust.svg';
-import LogoCoolWallet from 'ui/assets/walletlogo/coolwallet.svg';
-import IconWatchPurple from 'ui/assets/walletlogo/watch-purple.svg';
-import LogoWatch from 'ui/assets/walletlogo/watchlogo.svg';
-import IconWatchWhite from 'ui/assets/walletlogo/IconWatch-white.svg';
-import LogoDefiant from 'ui/assets/walletlogo/defiant.svg';
-import LogoDefiantWhite from 'ui/assets/walletlogo/defiant.svg';
 
 export { CHAINS, CHAINS_ENUM };
 
@@ -175,14 +128,6 @@ export const GAS_LEVEL_TEXT = {
 };
 
 export const IS_WINDOWS = /windows/i.test(global.navigator?.userAgent);
-
-export const LANGS = [
-  {
-    value: 'en',
-    label: 'English',
-    icon: IconEN,
-  },
-];
 
 export const CHECK_METAMASK_INSTALLED_URL = {
   Chrome: 'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/phishing.html',
@@ -330,8 +275,8 @@ export type IWalletBrandContent = {
   id: number;
   name: string;
   brand: WALLET_BRAND_TYPES;
-  icon: string;
-  image: string;
+  icon?: string;
+  image?: string;
   connectType: BRAND_WALLET_CONNECT_TYPE;
   category: WALLET_BRAND_CATEGORY;
 };
@@ -343,8 +288,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 0,
     name: 'Amber',
     brand: WALLET_BRAND_TYPES.AMBER,
-    icon: IconAmber,
-    image: LogoAmber,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -352,8 +295,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 10,
     name: 'BitBox02',
     brand: WALLET_BRAND_TYPES.BITBOX02,
-    icon: IconBitBox02,
-    image: IconBitBox02WithBorder,
     connectType: BRAND_WALLET_CONNECT_TYPE.BitBox02Connect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -361,8 +302,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 1,
     name: 'Cobo Wallet',
     brand: WALLET_BRAND_TYPES.COBO,
-    icon: IconCobo,
-    image: LogoCobo,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -370,8 +309,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 16,
     name: 'CoolWallet',
     brand: WALLET_BRAND_TYPES.COOLWALLET,
-    icon: LogoCoolWallet,
-    image: LogoCoolWallet,
     connectType: BRAND_WALLET_CONNECT_TYPE.QRCodeBase,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -379,8 +316,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 17,
     name: 'Defiant',
     brand: WALLET_BRAND_TYPES.DEFIANT,
-    icon: LogoDefiant,
-    image: LogoDefiantWhite,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -388,8 +323,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 11,
     name: 'FireBlocks',
     brand: WALLET_BRAND_TYPES.FIREBLOCKS,
-    icon: IconFireblocks,
-    image: IconFireblocksWithBorder,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -397,8 +330,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 13,
     name: 'Gnosis Safe',
     brand: WALLET_BRAND_TYPES.GNOSIS,
-    icon: IconGnosis,
-    image: IconGnosis,
     connectType: BRAND_WALLET_CONNECT_TYPE.GnosisConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -406,8 +337,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 12,
     name: 'GridPlus',
     brand: WALLET_BRAND_TYPES.GRIDPLUS,
-    icon: IconGridPlus,
-    image: IconGridPlus,
     connectType: BRAND_WALLET_CONNECT_TYPE.GridPlusConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -415,8 +344,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 2,
     name: 'imToken',
     brand: WALLET_BRAND_TYPES.IMTOKEN,
-    icon: IconImtoken,
-    image: LogoImtoken,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -424,8 +351,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 3,
     name: 'Jade Wallet',
     brand: WALLET_BRAND_TYPES.JADE,
-    icon: IconJade,
-    image: LogoJade,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -433,8 +358,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 15,
     name: 'Keystone',
     brand: WALLET_BRAND_TYPES.KEYSTONE,
-    icon: LogoKeystone,
-    image: LogoKeystone,
     connectType: BRAND_WALLET_CONNECT_TYPE.QRCodeBase,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -442,8 +365,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 18,
     name: 'AirGap Vault',
     brand: WALLET_BRAND_TYPES.AIRGAP,
-    icon: LogoAirGap,
-    image: LogoAirGap,
     connectType: BRAND_WALLET_CONNECT_TYPE.QRCodeBase,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -451,8 +372,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 4,
     name: 'Ledger',
     brand: WALLET_BRAND_TYPES.LEDGER,
-    icon: LogoLedgerWhite,
-    image: LogoLedgerDark,
     connectType: BRAND_WALLET_CONNECT_TYPE.LedgerConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -460,8 +379,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 5,
     name: 'Math Wallet',
     brand: WALLET_BRAND_TYPES.MATHWALLET,
-    icon: IconMath,
-    image: LogoMath,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -469,8 +386,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 14,
     name: 'MetaMask Mobile',
     brand: WALLET_BRAND_TYPES.METAMASK,
-    icon: IconMetaMask,
-    image: IconMetaMask,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -478,8 +393,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 6,
     name: 'OneKey',
     brand: WALLET_BRAND_TYPES.ONEKEY,
-    icon: IconOnekey,
-    image: LogoOnekey,
     connectType: BRAND_WALLET_CONNECT_TYPE.OneKeyConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -487,8 +400,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 7,
     name: 'TokenPocket',
     brand: WALLET_BRAND_TYPES.TP,
-    icon: IconTokenpocket,
-    image: LogoTp,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -496,8 +407,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 8,
     name: 'Trezor',
     brand: WALLET_BRAND_TYPES.TREZOR,
-    icon: IconTrezor,
-    image: LogoTrezor,
     connectType: BRAND_WALLET_CONNECT_TYPE.TrezorConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -505,52 +414,9 @@ export const WALLET_BRAND_CONTENT: {
     id: 9,
     name: 'Trust Wallet',
     brand: WALLET_BRAND_TYPES.TRUSTWALLET,
-    icon: IconTrust,
-    image: LogoTrust,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
-};
-
-export const KEYRING_ICONS = {
-  [KEYRING_CLASS.MNEMONIC]: IconMnemonicInk,
-  [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyInk,
-  [KEYRING_CLASS.WATCH]: IconWatchPurple,
-  [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02,
-  [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
-  [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
-  [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
-  [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
-  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
-};
-
-export const KEYRING_ICONS_WHITE = {
-  [KEYRING_CLASS.MNEMONIC]: IconMnemonicWhite,
-  [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyWhite,
-  [KEYRING_CLASS.WATCH]: IconWatchWhite,
-  [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02,
-  [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
-  [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
-  [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
-  [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
-  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
-};
-export const KEYRING_PURPLE_LOGOS = {
-  [KEYRING_CLASS.MNEMONIC]: IconMnemonicInk,
-  [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyInk,
-  [KEYRING_CLASS.WATCH]: IconWatchPurple,
-};
-
-export const KEYRINGS_LOGOS = {
-  [KEYRING_CLASS.MNEMONIC]: LogoMnemonic,
-  [KEYRING_CLASS.PRIVATE_KEY]: LogoPrivateKey,
-  [KEYRING_CLASS.WATCH]: LogoWatch,
-  [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02WithBorder,
-  [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
-  [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
-  [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
-  [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
-  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const NOT_CLOSE_UNFOCUS_LIST: string[] = [

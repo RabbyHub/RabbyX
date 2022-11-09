@@ -2,10 +2,12 @@ import { Input, Tooltip } from 'antd';
 import clsx from 'clsx';
 import {
   BRAND_ALIAN_TYPE_TEXT,
-  KEYRING_ICONS,
   KEYRING_TYPE_TEXT,
   WALLET_BRAND_CONTENT,
 } from 'consts';
+import { 
+  KEYRING_ICONS,
+} from 'ui/assets-const';
 import React, {
   memo,
   MouseEventHandler,

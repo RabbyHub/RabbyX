@@ -5,9 +5,11 @@ import ClipboardJS from 'clipboard';
 import {
   CHAINS,
   KEYRING_CLASS,
-  KEYRING_ICONS_WHITE,
   WALLET_BRAND_CONTENT,
 } from 'consts';
+import { 
+  KEYRING_ICONS_WHITE,
+} from 'ui/assets-const';
 import QRCode from 'qrcode.react';
 import React, {
   useEffect,

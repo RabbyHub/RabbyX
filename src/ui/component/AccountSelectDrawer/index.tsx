@@ -13,10 +13,12 @@ import {
 } from 'ui/utils';
 import {
   KEYRING_TYPE,
-  KEYRING_ICONS,
   WALLET_BRAND_CONTENT,
   CHAINS,
 } from 'consts';
+import {
+  KEYRING_ICONS,
+} from 'ui/assets-const';
 import './style.less';
 
 interface AccountSelectDrawerProps {
