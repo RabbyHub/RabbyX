@@ -321,14 +321,15 @@ const Settings = ({ visible, onClose }: SettingsProps) => {
       },
       rightIcon: <img src={IconArrowRight} className="icon icon-arrow-right" />,
     },
-    {
-      leftIcon: IconDiscord,
-      content: t('Contact us on Discord'),
-      onClick: () => {
-        reportSettings('discord');
-        window.open('https://discord.com/invite/seFBCWmUre');
-      },
-    },
+    // {
+    //   leftIcon: IconDiscord,
+    //   content: t('Contact us on Discord'),
+    //   onClick: () => {
+    //     reportSettings('discord');
+    //     // TODO: open on external browser
+    //     // window.open('https://discord.com/invite/seFBCWmUre');
+    //   },
+    // },
   ];
 
   if (process.env.DEBUG) {

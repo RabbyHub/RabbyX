@@ -197,18 +197,18 @@ const config = {
       chunks: ['ui'],
       filename: 'popup.html',
     }),
-    new HtmlWebpackPlugin({
-      inject: true,
-      template: paths.notificationHtml,
-      chunks: ['ui'],
-      filename: 'notification.html',
-    }),
-    new HtmlWebpackPlugin({
-      inject: true,
-      template: paths.indexHtml,
-      chunks: ['ui'],
-      filename: 'index.html',
-    }),
+    // new HtmlWebpackPlugin({
+    //   inject: true,
+    //   template: paths.notificationHtml,
+    //   chunks: ['ui'],
+    //   filename: 'notification.html',
+    // }),
+    // new HtmlWebpackPlugin({
+    //   inject: true,
+    //   template: paths.indexHtml,
+    //   chunks: ['ui'],
+    //   filename: 'index.html',
+    // }),
     new HtmlWebpackPlugin({
       inject: true,
       template: paths.backgroundHtml,

@@ -234,7 +234,7 @@ const AddAddressOptions = () => {
       ))}
 
       <div className="bg-white rounded-[6px] mb-[20px]">
-        {renderList.map((item) => {
+        {/* {renderList.map((item) => {
           const isSelected = selectedWalletType === item.key;
           return (
             <div key={item.key} className={clsx(isSelected && 'pb-[16px]')}>
@@ -311,7 +311,7 @@ const AddAddressOptions = () => {
               </div>
             </div>
           );
-        })}
+        })} */}
       </div>
 
       <div className="bg-white rounded-[6px] mb-[20px]">

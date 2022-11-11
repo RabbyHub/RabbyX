@@ -4,6 +4,7 @@ export interface CacheState {
   path: string;
   params: Record<string, string>;
   states: Record<string, any>;
+  search?: string;
 }
 
 interface CacheStore {

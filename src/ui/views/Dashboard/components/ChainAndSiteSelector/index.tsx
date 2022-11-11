@@ -284,25 +284,24 @@ export default ({
   if (isGnosis) {
     pickedPanelKeys = [
       // 'swap',
-      'send',
-      'receive',
-      'gasTopUp',
-      'queue',
-      'transactions',
+      // 'send',
+      // 'receive',
+      // 'gasTopUp',
+      // 'queue',
+      // 'transactions',
       'dapps',
-      'security',
       'address',
       'settings',
     ];
   } else {
     pickedPanelKeys = [
       // 'swap',
-      'send',
-      'receive',
-      'gasTopUp',
-      'transactions',
+      // 'send',
+      // 'receive',
+      // 'gasTopUp',
+      // 'activities',
+      // 'transactions',
       'dapps',
-      'security',
       'address',
       'settings',
     ];
