@@ -4,24 +4,20 @@ import { ethErrors } from 'eth-rpc-errors';
 import { v4 as uuidv4 } from 'uuid';
 import * as Sentry from '@sentry/browser';
 import { EthereumProviderError } from 'eth-rpc-errors/dist/classes';
-import { winMgr } from 'background/webapi';
 import { CHAINS, KEYRING_CATEGORY_MAP, IS_LINUX, IS_CHROME } from 'consts';
 import transactionHistoryService from './transactionHistory';
 import preferenceService from './preference';
 import stats from '@/stats';
 import BigNumber from 'bignumber.js';
 
-type IApprovalComponents = typeof import('@/ui/views/Approval/components');
-type IApprovalComponent = IApprovalComponents[keyof IApprovalComponents];
-
 export interface Approval {
   id: string;
   taskId: number | null;
   signingTxId?: string;
   data: {
-    params?: import('react').ComponentProps<IApprovalComponent>['params'];
+    params?: any;
     origin?: string;
-    approvalComponent: keyof IApprovalComponents;
+    approvalComponent: string;
     requestDefer?: Promise<any>;
     approvalType?: string;
   };
@@ -44,7 +40,7 @@ const QUEUE_APPROVAL_COMPONENTS_WHITELIST = [
 class NotificationService extends Events {
   currentApproval: Approval | null = null;
   _approvals: Approval[] = [];
-  notifiWindowId: null | number = null;
+  // notifiWindowId: null | number = null;
   isLocked = false;
 
   get approvals() {
@@ -70,45 +66,34 @@ class NotificationService extends Events {
   constructor() {
     super();
 
-    winMgr.event.on('windowRemoved', (winId: number) => {
-      if (winId === this.notifiWindowId) {
-        this.notifiWindowId = null;
-        this.rejectAllApprovals();
-      }
-    });
+    // winMgr.event.on('windowRemoved', (winId: number) => {
+    //   if (winId === this.notifiWindowId) {
+    //     this.notifiWindowId = null;
+    //     this.rejectAllApprovals();
+    //   }
+    // });
 
-    winMgr.event.on('windowFocusChange', (winId: number) => {
-      if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
-        // When sign on Linux, will focus on -1 first then focus on sign window
-        return;
-      }
+    // winMgr.event.on('windowFocusChange', (winId: number) => {
+    //   if (IS_CHROME && winId === chrome.windows.WINDOW_ID_NONE && IS_LINUX) {
+    //     // When sign on Linux, will focus on -1 first then focus on sign window
+    //     return;
+    //   }
 
-      if (this.notifiWindowId !== null && winId !== this.notifiWindowId) {
-        if (
-          this.currentApproval &&
-          !QUEUE_APPROVAL_COMPONENTS_WHITELIST.includes(
-            this.currentApproval.data.approvalComponent
-          )
-        ) {
-          this.rejectApproval();
-        }
-      }
-    });
+    //   if (this.notifiWindowId !== null && winId !== this.notifiWindowId) {
+    //     if (
+    //       this.currentApproval &&
+    //       !QUEUE_APPROVAL_COMPONENTS_WHITELIST.includes(
+    //         this.currentApproval.data.approvalComponent
+    //       )
+    //     ) {
+    //       this.rejectApproval();
+    //     }
+    //   }
+    // });
   }
 
   activeFirstApproval = async () => {
     try {
-      const windows = await browser.windows.getAll();
-      const existWindow = windows.find(
-        (window) => window.id === this.notifiWindowId
-      );
-      if (this.notifiWindowId !== null && !!existWindow) {
-        browser.windows.update(this.notifiWindowId, {
-          focused: true,
-        });
-        return;
-      }
-
       if (this.approvals.length < 0) return;
 
       const approval = this.approvals[0];
@@ -286,27 +271,13 @@ class NotificationService extends Events {
         }
       }
 
-      if (this.notifiWindowId !== null) {
-        browser.windows.update(this.notifiWindowId, {
-          focused: true,
-        });
-      } else {
-        this.openNotification(approval.winProps);
-      }
+      this.openNotification(approval.winProps);
     });
   };
 
   clear = async (stay = false) => {
     this.approvals = [];
     this.currentApproval = null;
-    if (this.notifiWindowId !== null && !stay) {
-      try {
-        await winMgr.remove(this.notifiWindowId);
-      } catch (e) {
-        // ignore error
-      }
-      this.notifiWindowId = null;
-    }
   };
 
   rejectAllApprovals = () => {
@@ -335,12 +306,14 @@ class NotificationService extends Events {
       if (this.isLocked) return;
       this.lock();
     }
-    if (this.notifiWindowId !== null) {
-      winMgr.remove(this.notifiWindowId);
-      this.notifiWindowId = null;
-    }
-    winMgr.openNotification(winProps).then((winId) => {
-      this.notifiWindowId = winId!;
+    // if (this.notifiWindowId !== null) {
+    //   winMgr.remove(this.notifiWindowId);
+    //   this.notifiWindowId = null;
+    // }
+
+    browser.runtime.sendMessage({
+      type: 'rabbyx-openNotification',
+      data: winProps,
     });
   };
 }

@@ -1,58 +1,59 @@
 import React, { useEffect } from 'react';
-import { Switch, Route, Redirect } from 'react-router-dom';
+import { Switch, Route, Redirect, useHistory } from 'react-router-dom';
 import ReactGA, { ga } from 'react-ga';
 import { PrivateRoute } from 'ui/component';
 
-import Welcome from './Welcome';
-import NoAddress from './NoAddress';
-import CreatePassword from './CreatePassword';
-import ImportMode from './ImportMode';
-import ImportPrivateKey from './ImportPrivateKey';
-import ImportJson from './ImportJson';
+import Welcome from 'ui/views/Welcome';
+import NoAddress from 'ui/views/NoAddress';
+import CreatePassword from 'ui/views/CreatePassword';
+import ImportMode from 'ui/views/ImportMode';
+import ImportPrivateKey from 'ui/views/ImportPrivateKey';
+import ImportJson from 'ui/views/ImportJson';
 
-import InputMnemonics from './ImportMnemonics/InputMnemonics';
-import EntryImportAddress from './ImportMnemonics/EntryImportAddress';
-import ConfirmMnemonics from './ImportMnemonics/ConfirmMnemonics';
+import InputMnemonics from 'ui/views/ImportMnemonics/InputMnemonics';
+import EntryImportAddress from 'ui/views/ImportMnemonics/EntryImportAddress';
+import ConfirmMnemonics from 'ui/views/ImportMnemonics/ConfirmMnemonics';
 
-import ImportWatchAddress from './ImportWatchAddress';
-import ImportQRCodeBase from './ImportQRCodeBase';
-import SelectAddress from './SelectAddress';
-import ImportMoreAddress from './ImportMoreAddress';
-import ImportSuccess from './ImportSuccess';
-import ImportHardware from './ImportHardware';
-import ImportLedgerPathSelect from './ImportHardware/LedgerHdPath';
-import ImportGnosis from './ImportGnosisAddress';
-import ConnectLedger from './ImportHardware/LedgerConnect';
-import Settings from './Settings';
-import ConnectedSites from './ConnectedSites';
-import Approval from './Approval';
-import TokenApproval from './TokenApproval';
-import NFTApproval from './NFTApproval';
-import CreateMnemonics from './CreateMnemonics';
-import AddAddress from './AddAddress';
-import ChainManagement, { StartChainManagement } from './ChainManagement';
-import ChainList from './ChainList';
-import AddressManagement from './AddressManagement';
-import SwitchLang from './SwitchLang';
-import Activities from './Activities';
-import History from './History';
-import GnosisTransactionQueue from './GnosisTransactionQueue';
-import QRCodeReader from './QRCodeReader';
-import AdvancedSettings from './AdvanceSettings';
-import RequestPermission from './RequestPermission';
-import SendToken from './SendToken';
-import SendNFT from './SendNFT';
-import Receive from './Receive/index';
-import WalletConnectTemplate from './WalletConnect';
-import AddressDetail from './AddressDetail';
-import AddressBackupMnemonics from './AddressBackup/Mnemonics';
-import AddressBackupPrivateKey from './AddressBackup/PrivateKey';
-import Swap from './Swap';
-import { getUiType, useWallet } from '../utils';
-import SwapQuotes from './SwapQuote';
-import GasTopUp from './GasTopUp';
-import ApprovalManage from './ApprovalManage';
-import { ImportMyMetaMaskAccount } from './ImportMyMetaMaskAccount';
+import ImportWatchAddress from 'ui/views/ImportWatchAddress';
+import ImportQRCodeBase from 'ui/views/ImportQRCodeBase';
+import SelectAddress from 'ui/views/SelectAddress';
+import ImportMoreAddress from 'ui/views/ImportMoreAddress';
+import ImportSuccess from 'ui/views/ImportSuccess';
+import ImportHardware from 'ui/views/ImportHardware';
+import ImportLedgerPathSelect from 'ui/views/ImportHardware/LedgerHdPath';
+import ImportGnosis from 'ui/views/ImportGnosisAddress';
+import ConnectLedger from 'ui/views/ImportHardware/LedgerConnect';
+import Settings from 'ui/views/Settings';
+import ConnectedSites from 'ui/views/ConnectedSites';
+import Approval from 'ui/views/Approval';
+import TokenApproval from 'ui/views/TokenApproval';
+import NFTApproval from 'ui/views/NFTApproval';
+import CreateMnemonics from 'ui/views/CreateMnemonics';
+import AddAddress from 'ui/views/AddAddress';
+import ChainManagement, { StartChainManagement } from 'ui/views/ChainManagement';
+import ChainList from 'ui/views/ChainList';
+import AddressManagement from 'ui/views/AddressManagement';
+import SwitchLang from 'ui/views/SwitchLang';
+import Activities from 'ui/views/Activities';
+// import History from 'ui/views/History';
+// import GnosisTransactionQueue from 'ui/views/GnosisTransactionQueue';
+// import QRCodeReader from 'ui/views/QRCodeReader';
+import AdvancedSettings from 'ui/views/AdvanceSettings';
+// import RequestPermission from 'ui/views/RequestPermission';
+// import SendToken from 'ui/views/SendToken';
+// import SendNFT from 'ui/views/SendNFT';
+// import Receive from 'ui/views/Receive/index';
+import WalletConnectTemplate from 'ui/views/WalletConnect';
+import AddressDetail from 'ui/views/AddressDetail';
+import AddressBackupMnemonics from 'ui/views/AddressBackup/Mnemonics';
+import AddressBackupPrivateKey from 'ui/views/AddressBackup/PrivateKey';
+// import Swap from 'ui/views/Swap';
+import { getUiType, useApproval, useWallet } from '../utils';
+import { browser, Runtime } from 'webextension-polyfill-ts';
+// import SwapQuotes from 'ui/views/SwapQuote';
+// import GasTopUp from 'ui/views/GasTopUp';
+// import ApprovalManage from 'ui/views/ApprovalManage';
+// import { ImportMyMetaMaskAccount } from 'ui/views/ImportMyMetaMaskAccount';
 
 ReactGA.initialize('UA-199755108-1');
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -95,6 +96,24 @@ const Main = () => {
       }
     })();
   }, []);
+  
+  const history = useHistory();
+  const [getApproval] = useApproval();
+  useEffect(() => {
+    const listener = async (message: any, sender: Runtime.MessageSender) => {
+      const approval = await getApproval();
+      if (message.type !== 'rabbyx-openNotification') return ;
+
+      if (approval) {
+        history.push('/approval');
+      }
+    };
+    browser.runtime.onMessage.addListener(listener);
+
+    return () => {
+      browser.runtime.onMessage.removeListener(listener);
+    }
+  }, [ getApproval, history ]);
 
   return (
     <>
@@ -177,18 +196,18 @@ const Main = () => {
         <PrivateRoute exact path="/import/success">
           <ImportSuccess />
         </PrivateRoute>
-        <PrivateRoute exact path="/history">
+        {/* <PrivateRoute exact path="/history">
           <History />
-        </PrivateRoute>
+        </PrivateRoute> */}
         <PrivateRoute exact path="/activities">
           <Activities />
         </PrivateRoute>
-        <PrivateRoute exact path="/gnosis-queue">
+        {/* <PrivateRoute exact path="/gnosis-queue">
           <GnosisTransactionQueue />
         </PrivateRoute>
         <PrivateRoute exact path="/import/gnosis">
           <ImportGnosis />
-        </PrivateRoute>
+        </PrivateRoute> */}
         <PrivateRoute exact path="/add-address">
           <AddAddress />
         </PrivateRoute>
@@ -216,6 +235,7 @@ const Main = () => {
         <PrivateRoute exact path="/settings/address-backup/mneonics">
           <AddressBackupMnemonics />
         </PrivateRoute>
+        {/* 
         <PrivateRoute exact path="/settings/sites">
           <ConnectedSites />
         </PrivateRoute>
@@ -255,16 +275,15 @@ const Main = () => {
 
         <PrivateRoute exact path="/gas-top-up">
           <GasTopUp />
-        </PrivateRoute>
-
-        <PrivateRoute exact path="/approval-manage">
+        </PrivateRoute> */}
+        {/* <PrivateRoute exact path="/approval-manage">
           <ApprovalManage />
         </PrivateRoute>
 
         <PrivateRoute exact path="/import/metamask">
           <ImportMyMetaMaskAccount />
-        </PrivateRoute>
-
+        </PrivateRoute> */}
+        
         <PrivateRoute exact path="/switch-address">
           <AddressManagement />
         </PrivateRoute>

@@ -344,16 +344,16 @@ export class WalletController extends BaseController {
         Sentry.captureException(
           new Error(
             'postGasStationOrder failed, params: ' +
-              JSON.stringify({
-                userAddr: account.address,
-                fromChainId: others.chainServerId,
-                fromTxId: txId,
-                toChainId: toChainId,
-                toTokenAmount,
-                fromTokenId: others.tokenId,
-                fromTokenAmount: fromTokenAmount,
-                fromUsdValue,
-              })
+            JSON.stringify({
+              userAddr: account.address,
+              fromChainId: others.chainServerId,
+              fromTxId: txId,
+              toChainId: toChainId,
+              toTokenAmount,
+              fromTokenId: others.tokenId,
+              fromTokenAmount: fromTokenAmount,
+              fromUsdValue,
+            })
           )
         );
       }
@@ -500,11 +500,11 @@ export class WalletController extends BaseController {
       $ctx:
         needApprove && pay_token_id !== chain.nativeTokenAddress
           ? {
-              ga: {
-                ...$ctx?.ga,
-                source: 'approvalAndSwap|swap',
-              },
-            }
+            ga: {
+              ...$ctx?.ga,
+              source: 'approvalAndSwap|swap',
+            },
+          }
           : $ctx,
       method: 'eth_sendTransaction',
       params: [swapParam],
@@ -2279,18 +2279,18 @@ export class WalletController extends BaseController {
   }: {
     list: (
       | {
-          chainServerId: string;
-          contractId: string;
-          spender: string;
-          abi: 'ERC721' | 'ERC1155' | '';
-          tokenId: string | null | undefined;
-          isApprovedForAll: boolean;
-        }
+        chainServerId: string;
+        contractId: string;
+        spender: string;
+        abi: 'ERC721' | 'ERC1155' | '';
+        tokenId: string | null | undefined;
+        isApprovedForAll: boolean;
+      }
       | {
-          chainServerId: string;
-          id: string;
-          spender: string;
-        }
+        chainServerId: string;
+        id: string;
+        spender: string;
+      }
     )[];
   }) => {
     const queue = new PQueue({
@@ -2325,4 +2325,54 @@ export class WalletController extends BaseController {
   };
 }
 
-export default new WalletController();
+const walletController = new WalletController();
+
+export default walletController;
+
+window.rabbyDesktop.ipcRenderer.on('rabbyx-rpc-query', (payload) => {
+  if (!payload.rpcId) {
+    throw new Error('[rabbyx-rpc-query] rpcId is required');
+  }
+
+  switch (payload.method) {
+    case 'walletController.boot': {
+      const [password] = payload.params;
+      window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-rpc-respond', {
+        rpcId: payload.rpcId,
+        result: walletController.boot(password),
+      });
+      break;
+    }
+    case 'walletController.isBooted': {
+      window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-rpc-respond', {
+        rpcId: payload.rpcId,
+        result: walletController.isBooted(),
+      });
+      break;
+    }
+    case 'walletController.isUnlocked': {
+      window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-rpc-respond', {
+        rpcId: payload.rpcId,
+        result: walletController.isUnlocked(),
+      });
+      break;
+    }
+    case 'walletController.lockWallet': {
+      window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-rpc-respond', {
+        rpcId: payload.rpcId,
+        result: walletController.lockWallet(),
+      });
+      break;
+    }
+    case 'walletController.getConnectedSites': {
+      window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-rpc-respond', {
+        rpcId: payload.rpcId,
+        result: walletController.getConnectedSites(),
+      });
+      break;
+    }
+    default: {
+      throw new Error(`[rabbyx-rpc-query] method ${payload.method} is not supported`);
+    }
+  }
+});

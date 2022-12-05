@@ -11,10 +11,12 @@ import { isValidAddress } from 'ethereumjs-util';
 import { providers } from 'ethers';
 import {
   CHAINS,
-  KEYRING_PURPLE_LOGOS,
   KEYRING_CLASS,
   CHAINS_ENUM,
 } from 'consts';
+import { 
+  KEYRING_PURPLE_LOGOS,
+} from 'ui/assets-const';
 import { useRabbyDispatch, useRabbySelector, connectStore } from 'ui/store';
 import { Account } from 'background/service/preference';
 import { NFTItem } from '@/background/service/openapi';

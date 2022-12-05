@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, message } from 'antd';
+import clsx from 'clsx';
 import styled from 'styled-components';
 import { useRabbyDispatch, useRabbySelector, connectStore } from 'ui/store';
 import { IDisplayedAccountWithBalance } from 'ui/models/accountToDisplay';
@@ -11,12 +12,11 @@ import { UIContactBookItem } from 'background/service/contactBook';
 import { isSameAddress, useWallet } from 'ui/utils';
 import IconSuccess from 'ui/assets/success.svg';
 import './style.less';
-import clsx from 'clsx';
 
 interface ListModalProps {
   address?: string;
   visible: boolean;
-  onOk(account: UIContactBookItem): void;
+  onOk(data: UIContactBookItem): void;
   onCancel(): void;
 }
 
@@ -37,7 +37,7 @@ const ListFooterWrapper = styled.div`
 `;
 
 const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
-  const [editWhitelistVisible, setEditWhitelistVisible] = useState(false);
+  const [editWhitelistVsible, setEditWhitelistVisible] = useState(false);
   const dispatch = useRabbyDispatch();
   const wallet = useWallet();
 
@@ -49,23 +49,6 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
       whitelistEnabled: s.whitelist.enabled,
     })
   );
-
-  const sortedAccountsList = useMemo(() => {
-    if (!whitelistEnabled) {
-      return accountsList;
-    }
-    return [...accountsList].sort((a, b) => {
-      let an = 0,
-        bn = 0;
-      if (whitelist?.some((w) => isSameAddress(w, a.address))) {
-        an = 1;
-      }
-      if (whitelist?.some((w) => isSameAddress(w, b.address))) {
-        bn = 1;
-      }
-      return bn - an;
-    });
-  }, [accountsList, whitelist]);
 
   const handleSelectAddress = (account: IDisplayedAccountWithBalance) => {
     onOk({
@@ -120,13 +103,12 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
 
   return (
     <Popup
-      className="whitelist-selector"
+      className="list-contact-modal"
       visible={visible}
       onClose={onCancel}
-      title="Select Address"
+      title={null}
       placement="bottom"
-      height={580}
-      closable
+      height="580px"
     >
       <div
         className={clsx('flex flex-col pb-80 h-full', {
@@ -135,11 +117,11 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
       >
         <div className="text-center mb-16 text-14 text-gray-content">
           {whitelistEnabled
-            ? 'Whitelist is enabled. You can only send assets to a whitelisted address or you can disable it in "Settings"'
-            : 'Whitelist is disabled. You can send assets to any address'}
+            ? 'Whitelist is enabled.You can only send to the addresses in the whitelist within Rabby or disable it in "Settings".'
+            : 'Whitelist is disabled. You can send to any address.'}
         </div>
         <ListScrollWrapper>
-          {sortedAccountsList.map((account) => (
+          {accountsList.map((account) => (
             <AccountItem
               account={account}
               key={`${account.brandName}-${account.address}`}
@@ -167,7 +149,7 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
           </ListFooterWrapper>
         )}
       </div>
-      {editWhitelistVisible && (
+      {editWhitelistVsible && (
         <EditWhitelist
           onCancel={() => setEditWhitelistVisible(false)}
           onConfirm={handleSaveWhitelist}
@@ -179,4 +161,4 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
   );
 };
 
-export default connectStore()(ListModal);
+export default ListModal;
