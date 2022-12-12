@@ -4,7 +4,7 @@
   "description": "A browser plugin for DeFi users",
   "scripts": {
     "postinstall": "patch-package",
-    "clean": "./scripts/clean-assets.sh",
+    "clean": "sh ./scripts/clean-assets.sh",
     "make-vars": "node scripts/make-vars.js",
     "build:dev": "npm run clean && TAILWIND_MODE=watch webpack --progress --env config=dev",
     "build:pro": "npm run clean && webpack --progress --env config=pro",
