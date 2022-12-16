@@ -6,7 +6,6 @@ import { keyringService, sessionService, i18n } from './index';
 import { TotalBalanceResponse, TokenItem, fetchPhishingList } from './openapi';
 import { HARDWARE_KEYRING_TYPES, EVENTS, CHAINS_ENUM } from 'consts';
 import { browser } from 'webextension-polyfill-ts';
-import { DEX_ENUM } from '@rabby-wallet/rabby-swap';
 
 const version = process.env.release || '0';
 

@@ -4,12 +4,12 @@
   "description": "A browser plugin for DeFi users",
   "scripts": {
     "postinstall": "patch-package",
-    "clean": "mkdir -p dist && rm -rf dist/* && cp -r _raw/* dist",
+    "clean": "./scripts/clean-assets.sh",
     "make-vars": "node scripts/make-vars.js",
-    "build:dev": "npm run clean && npm run make-vars && TAILWIND_MODE=watch webpack --progress --env config=dev",
-    "build:pro": "npm run clean && npm run make-vars && webpack --progress --env config=pro",
-    "build:debug": "npm run clean && npm run make-vars && webpack --progress --env config=debug",
-    "build:sourcemap": "npm run clean && npm run make-vars && webpack --progress --env config=sourcemap",
+    "build:dev": "npm run clean && TAILWIND_MODE=watch webpack --progress --env config=dev",
+    "build:pro": "npm run clean && webpack --progress --env config=pro",
+    "build:debug": "npm run clean && webpack --progress --env config=debug",
+    "build:sourcemap": "npm run clean && webpack --progress --env config=sourcemap",
     "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx ./src",
     "test": "jest",
     "pub": "node build/release.js"
@@ -17,7 +17,7 @@
   "dependencies": {
     "@debank/common": "^0.2.22",
     "@debank/festats": "1.0.0",
-    "@debank/rabby-api": "^0.5.15",
+    "@debank/rabby-api": "^0.5.16",
     "@dnd-kit/core": "^5.0.1",
     "@dnd-kit/sortable": "^6.0.0",
     "@dnd-kit/utilities": "^3.0.2",

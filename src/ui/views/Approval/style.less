@@ -1870,6 +1870,38 @@
   }
 }
 
+html.page-notification.__rabbyx-shell-page {
+  @account-card-h: 64px;
+  background: transparent;
+
+  &.os-win32 body {
+    max-width: 399px;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: transparent;
+  
+    #root {
+      width: 400px !important;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+  }
+
+  .account-card {
+    background: none;
+    background-color: #626775;
+    height: @account-card-h;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    .account-detail {
+      background-color: #8697ff;
+    }
+  }
+}
+
 .account-card {
   background: @primary-linear;
   width: 100%;
