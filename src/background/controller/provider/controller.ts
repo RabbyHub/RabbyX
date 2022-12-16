@@ -581,6 +581,7 @@ class ProviderController extends BaseController {
           i18n.t('Transaction push failed'),
           errMsg
         );
+        sessionService.broadcastEvent('transactionChanged', { type: 'push-failed', errMsg });
         transactionHistoryService.removeSigningTx(signingTxId!);
         throw new Error(errMsg);
       }
