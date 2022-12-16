@@ -11,17 +11,14 @@ import preferenceService from './preference';
 import stats from '@/stats';
 import BigNumber from 'bignumber.js';
 
-type IApprovalComponents = typeof import('@/ui/views/Approval/components');
-type IApprovalComponent = IApprovalComponents[keyof IApprovalComponents];
-
 export interface Approval {
   id: string;
   taskId: number | null;
   signingTxId?: string;
   data: {
-    params?: import('react').ComponentProps<IApprovalComponent>['params'];
+    params?: any;
     origin?: string;
-    approvalComponent: keyof IApprovalComponents;
+    approvalComponent: string;
     requestDefer?: Promise<any>;
     approvalType?: string;
   };
@@ -342,6 +339,10 @@ class NotificationService extends Events {
     winMgr.openNotification(winProps).then((winId) => {
       this.notifiWindowId = winId!;
     });
+    // browser.runtime.sendMessage({
+    //   type: 'rabbyx-openNotification',
+    //   data: winProps,
+    // });
   };
 }
 

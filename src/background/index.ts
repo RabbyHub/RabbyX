@@ -1,3 +1,5 @@
+/// <reference path="desktop-inject/type.d.ts" />
+
 import { groupBy } from 'lodash';
 import 'reflect-metadata';
 import * as Sentry from '@sentry/browser';
