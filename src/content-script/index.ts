@@ -12,7 +12,11 @@ const ele = document.createElement('script');
 // seperate content assignment to two line
 // use AssetReplacePlugin to replace pageprovider content
 let content = `var channelName = '${channelName}';`;
+content += `if (!window.__RD_isDappSafeView) {
+;`;
 content += '#PAGEPROVIDER#';
+content += `
+};`;
 ele.textContent = content;
 container.insertBefore(ele, container.children[0]);
 container.removeChild(ele);
