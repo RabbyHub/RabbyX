@@ -119,3 +119,5 @@ if (window.rabbyDesktop?.ipcRenderer.on) {
 
 (window as any)._walletController = walletController;
 (window as any)._permissionService = permissionService;
+(window as any)._sessionService = sessionService;
+(window as any)._openApi = openapiService;

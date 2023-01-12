@@ -305,11 +305,6 @@ declare global {
   }
 }
 
-if (process.env.NODE_ENV === 'development') {
-  (window as any)._walletController = walletController;
-  (window as any)._sessionService = sessionService;
-}
-
 storage
   .byteInUse()
   .then((byte) => {
