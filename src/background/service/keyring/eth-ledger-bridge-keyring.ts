@@ -210,7 +210,7 @@ class LedgerBridgeKeyring extends EventEmitter {
   async makeApp(signing = false) {
     if (!this.app && this.isWebHID) {
       try {
-        this.transport = await TransportWebHID.create();
+        this.transport = await TransportWebHID.request();
         this.app = new LedgerEth(this.transport);
       } catch (e: any) {
         if (signing) {
