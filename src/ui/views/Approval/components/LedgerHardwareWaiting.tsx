@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Button, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { matomoRequestEvent } from '@/utils/matomo-request';
@@ -187,6 +187,14 @@ const LedgerHardwareWaiting = ({ params }: { params: ApprovalParams }) => {
 
   useEffect(() => {
     init();
+  }, []);
+
+  useLayoutEffect(() => {
+    document.body.classList.add('page-LedgerHardwareWaiting');
+
+    return () => {
+      document.body.classList.remove('page-LedgerHardwareWaiting');
+    }
   }, []);
   const currentHeader = statusHeaders[connectStatus];
 
