@@ -31,9 +31,11 @@ export const useLedgerDeviceConnected = () => {
   };
 
   const detectDevice = async () => {
-    hasConnectedLedgerDevice().then((state) => {
-      setConnected(state);
-    });
+    // TODO
+    // hasConnectedLedgerDevice().then((state) => {
+    //   setConnected(state);
+    // });
+    setConnected(true);
   };
 
   useEffect(() => {
