@@ -1,4 +1,10 @@
-import { HARDWARE_KEYRING_TYPES, IWalletBrandContent, KEYRING_CLASS, WALLET_BRAND_CONTENT, WALLET_BRAND_TYPES } from "../constant";
+import {
+  HARDWARE_KEYRING_TYPES,
+  IWalletBrandContent,
+  KEYRING_CLASS,
+  WALLET_BRAND_CONTENT,
+  WALLET_BRAND_TYPES,
+} from '../constant';
 
 import IconEN from 'ui/assets/langs/en.svg';
 import IconAmber from 'ui/assets/walletlogo/amber.svg';
@@ -46,140 +52,150 @@ import IconWatchPurple from 'ui/assets/walletlogo/watch-purple.svg';
 import IconWatchWhite from 'ui/assets/walletlogo/IconWatch-white.svg';
 import LogoDefiant from 'ui/assets/walletlogo/defiant.svg';
 import LogoDefiantWhite from 'ui/assets/walletlogo/defiant.svg';
+import LogoWalletConnect from 'ui/assets/walletlogo/walletconnect28.svg';
+import IconWalletConnect from 'ui/assets/walletlogo/walletconnect28.svg';
 
 const WALLET_BRAND_ASSETS: {
-    [K in WALLET_BRAND_TYPES]: Required<Pick<IWalletBrandContent, 'icon' | 'image'>>;
+  [K in WALLET_BRAND_TYPES]: Required<
+    Pick<IWalletBrandContent, 'icon' | 'image'>
+  >;
 } = {
-    [WALLET_BRAND_TYPES.AMBER]: {
-        icon: IconAmber,
-        image: LogoAmber,
-    },
-    [WALLET_BRAND_TYPES.BITBOX02]: {
-        icon: IconBitBox02,
-        image: IconBitBox02WithBorder,
-    },
-    [WALLET_BRAND_TYPES.COBO]: {
-        icon: IconCobo,
-        image: LogoCobo,
-    },
-    [WALLET_BRAND_TYPES.COOLWALLET]: {
-        icon: LogoCoolWallet,
-        image: LogoCoolWallet,
-    },
-    [WALLET_BRAND_TYPES.DEFIANT]: {
-        icon: LogoDefiant,
-        image: LogoDefiantWhite,
-    },
-    [WALLET_BRAND_TYPES.FIREBLOCKS]: {
-        icon: IconFireblocks,
-        image: IconFireblocksWithBorder,
-    },
-    [WALLET_BRAND_TYPES.GNOSIS]: {
-        icon: IconGnosis,
-        image: IconGnosis,
-    },
-    [WALLET_BRAND_TYPES.GRIDPLUS]: {
-        icon: IconGridPlus,
-        image: IconGridPlus,
-    },
-    [WALLET_BRAND_TYPES.IMTOKEN]: {
-        icon: IconImtoken,
-        image: LogoImtoken,
-    },
-    [WALLET_BRAND_TYPES.JADE]: {
-        icon: IconJade,
-        image: LogoJade,
-    },
-    [WALLET_BRAND_TYPES.KEYSTONE]: {
-        icon: LogoKeystone,
-        image: LogoKeystone,
-    },
-    [WALLET_BRAND_TYPES.AIRGAP]: {
-        icon: LogoAirGap,
-        image: LogoAirGap,
-    },
-    [WALLET_BRAND_TYPES.LEDGER]: {
-        icon: LogoLedgerWhite,
-        image: LogoLedgerDark,
-    },
-    [WALLET_BRAND_TYPES.MATHWALLET]: {
-        icon: IconMath,
-        image: LogoMath,
-    },
-    [WALLET_BRAND_TYPES.METAMASK]: {
-        icon: IconMetaMask,
-        image: IconMetaMask,
-    },
-    [WALLET_BRAND_TYPES.ONEKEY]: {
-        icon: IconOnekey,
-        image: LogoOnekey,
-    },
-    [WALLET_BRAND_TYPES.TP]: {
-        icon: IconTokenpocket,
-        image: LogoTp,
-    },
-    [WALLET_BRAND_TYPES.TREZOR]: {
-        icon: IconTrezor,
-        image: LogoTrezor,
-    },
-    [WALLET_BRAND_TYPES.TRUSTWALLET]: {
-        icon: IconTrust,
-        image: LogoTrust,
-    },
-}
+  [WALLET_BRAND_TYPES.AMBER]: {
+    icon: IconAmber,
+    image: LogoAmber,
+  },
+  [WALLET_BRAND_TYPES.BITBOX02]: {
+    icon: IconBitBox02,
+    image: IconBitBox02WithBorder,
+  },
+  [WALLET_BRAND_TYPES.COBO]: {
+    icon: IconCobo,
+    image: LogoCobo,
+  },
+  [WALLET_BRAND_TYPES.COOLWALLET]: {
+    icon: LogoCoolWallet,
+    image: LogoCoolWallet,
+  },
+  [WALLET_BRAND_TYPES.DEFIANT]: {
+    icon: LogoDefiant,
+    image: LogoDefiantWhite,
+  },
+  [WALLET_BRAND_TYPES.FIREBLOCKS]: {
+    icon: IconFireblocks,
+    image: IconFireblocksWithBorder,
+  },
+  [WALLET_BRAND_TYPES.GNOSIS]: {
+    icon: IconGnosis,
+    image: IconGnosis,
+  },
+  [WALLET_BRAND_TYPES.GRIDPLUS]: {
+    icon: IconGridPlus,
+    image: IconGridPlus,
+  },
+  [WALLET_BRAND_TYPES.IMTOKEN]: {
+    icon: IconImtoken,
+    image: LogoImtoken,
+  },
+  [WALLET_BRAND_TYPES.JADE]: {
+    icon: IconJade,
+    image: LogoJade,
+  },
+  [WALLET_BRAND_TYPES.KEYSTONE]: {
+    icon: LogoKeystone,
+    image: LogoKeystone,
+  },
+  [WALLET_BRAND_TYPES.AIRGAP]: {
+    icon: LogoAirGap,
+    image: LogoAirGap,
+  },
+  [WALLET_BRAND_TYPES.LEDGER]: {
+    icon: LogoLedgerWhite,
+    image: LogoLedgerDark,
+  },
+  [WALLET_BRAND_TYPES.MATHWALLET]: {
+    icon: IconMath,
+    image: LogoMath,
+  },
+  [WALLET_BRAND_TYPES.METAMASK]: {
+    icon: IconMetaMask,
+    image: IconMetaMask,
+  },
+  [WALLET_BRAND_TYPES.ONEKEY]: {
+    icon: IconOnekey,
+    image: LogoOnekey,
+  },
+  [WALLET_BRAND_TYPES.TP]: {
+    icon: IconTokenpocket,
+    image: LogoTp,
+  },
+  [WALLET_BRAND_TYPES.TREZOR]: {
+    icon: IconTrezor,
+    image: LogoTrezor,
+  },
+  [WALLET_BRAND_TYPES.TRUSTWALLET]: {
+    icon: IconTrust,
+    image: LogoTrust,
+  },
+  [WALLET_BRAND_TYPES.WalletConnect]: {
+    icon: IconWalletConnect,
+    image: LogoWalletConnect,
+  },
+};
 
 export const LANGS = [
-    {
-      value: 'en',
-      label: 'English',
-      icon: IconEN,
-    },
+  {
+    value: 'en',
+    label: 'English',
+    icon: IconEN,
+  },
 ];
 
-export function getBrandContent<T extends keyof typeof WALLET_BRAND_ASSETS>(k: T): Required<IWalletBrandContent> {
-    return {
-        ...WALLET_BRAND_ASSETS[k],
-        ...WALLET_BRAND_CONTENT[k],
-    };
+export function getBrandContent<T extends keyof typeof WALLET_BRAND_ASSETS>(
+  k: T
+): Required<IWalletBrandContent> {
+  return {
+    ...WALLET_BRAND_ASSETS[k],
+    ...WALLET_BRAND_CONTENT[k],
+  };
 }
 
 export const KEYRING_ICONS = {
-    [KEYRING_CLASS.MNEMONIC]: IconMnemonicInk,
-    [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyInk,
-    [KEYRING_CLASS.WATCH]: IconWatchPurple,
-    [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02,
-    [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
-    [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
-    [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
-    [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
-    [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
-  };
-  
-  export const KEYRING_ICONS_WHITE = {
-    [KEYRING_CLASS.MNEMONIC]: IconMnemonicWhite,
-    [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyWhite,
-    [KEYRING_CLASS.WATCH]: IconWatchWhite,
-    [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02,
-    [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
-    [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
-    [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
-    [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
-    [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
-  };
-  export const KEYRING_PURPLE_LOGOS = {
-    [KEYRING_CLASS.MNEMONIC]: IconMnemonicInk,
-    [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyInk,
-    [KEYRING_CLASS.WATCH]: IconWatchPurple,
-  };
-  
-  export const KEYRINGS_LOGOS = {
-    [KEYRING_CLASS.MNEMONIC]: LogoMnemonic,
-    [KEYRING_CLASS.PRIVATE_KEY]: LogoPrivateKey,
-    [KEYRING_CLASS.WATCH]: IconWatchWhite,
-    [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02WithBorder,
-    [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
-    [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
-    [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
-    [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
-    [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
-  };
+  [KEYRING_CLASS.MNEMONIC]: IconMnemonicInk,
+  [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyInk,
+  [KEYRING_CLASS.WATCH]: IconWatchPurple,
+  [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02,
+  [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
+  [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
+  [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
+  [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
+};
+
+export const KEYRING_ICONS_WHITE = {
+  [KEYRING_CLASS.MNEMONIC]: IconMnemonicWhite,
+  [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyWhite,
+  [KEYRING_CLASS.WATCH]: IconWatchWhite,
+  [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02,
+  [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
+  [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
+  [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
+  [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
+};
+export const KEYRING_PURPLE_LOGOS = {
+  [KEYRING_CLASS.MNEMONIC]: IconMnemonicInk,
+  [KEYRING_CLASS.PRIVATE_KEY]: IconPrivateKeyInk,
+  [KEYRING_CLASS.WATCH]: IconWatchPurple,
+};
+
+export const KEYRINGS_LOGOS = {
+  [KEYRING_CLASS.MNEMONIC]: LogoMnemonic,
+  [KEYRING_CLASS.PRIVATE_KEY]: LogoPrivateKey,
+  [KEYRING_CLASS.WATCH]: IconWatchWhite,
+  [HARDWARE_KEYRING_TYPES.BitBox02.type]: IconBitBox02WithBorder,
+  [HARDWARE_KEYRING_TYPES.Ledger.type]: LogoLedgerWhite,
+  [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
+  [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
+  [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
+};
