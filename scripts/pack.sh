@@ -7,8 +7,9 @@ RABBY_DESKTOP_REPO=$( cd "$project_dir/../RabbyDesktop" && pwd  )
 
 export VERSION=$(node --eval="process.stdout.write(require('./package.json').version)");
 export RABBYX_GIT_HASH=$(git rev-parse --short HEAD);
+export CURRENT_TIME=$(date +%Y%m%d%H%M%S);
 
-TARGET_FILE=$project_dir/tmp/RabbyX-v${VERSION}-${RABBYX_GIT_HASH}.zip;
+TARGET_FILE=$project_dir/tmp/RabbyX-v${VERSION}-${RABBYX_GIT_HASH}-${CURRENT_TIME}.zip;
 
 echo "[pack] VERSION is $VERSION";
 echo "[pack] RABBY_DESKTOP_REPO is $RABBY_DESKTOP_REPO";
