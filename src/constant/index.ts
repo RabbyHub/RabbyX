@@ -46,6 +46,8 @@ import LogoWatch from 'ui/assets/walletlogo/watchlogo.svg';
 import IconWatchWhite from 'ui/assets/walletlogo/IconWatch-white.svg';
 import LogoDefiant from 'ui/assets/walletlogo/defiant.svg';
 import LogoDefiantWhite from 'ui/assets/walletlogo/defiant.svg';
+import LogoWalletConnect from 'ui/assets/walletlogo/walletconnect28.svg';
+import IconWalletConnect from 'ui/assets/walletlogo/walletconnect28.svg';
 
 export { CHAINS, CHAINS_ENUM };
 
@@ -310,6 +312,7 @@ export enum WALLET_BRAND_TYPES {
   COOLWALLET = 'CoolWallet',
   DEFIANT = 'Defiant',
   AIRGAP = 'AirGap',
+  WalletConnect = 'WalletConnect',
 }
 
 enum WALLET_BRAND_CATEGORY {
@@ -461,6 +464,15 @@ export const WALLET_BRAND_CONTENT: {
     id: 9,
     name: 'Trust Wallet',
     brand: WALLET_BRAND_TYPES.TRUSTWALLET,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  [WALLET_BRAND_TYPES.WalletConnect]: {
+    id: 100,
+    name: 'Wallet Connect',
+    brand: WALLET_BRAND_TYPES.WalletConnect,
+    icon: IconWalletConnect,
+    image: LogoWalletConnect,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
