@@ -9,7 +9,7 @@ export VERSION=$(node --eval="process.stdout.write(require('./package.json').ver
 export RABBYX_GIT_HASH=$(git rev-parse --short HEAD);
 export CURRENT_TIME=$(date +%Y%m%d%H%M%S);
 
-TARGET_FILE=$project_dir/tmp/RabbyX-v${VERSION}-${RABBYX_GIT_HASH}-${CURRENT_TIME}.zip;
+TARGET_FILE=$project_dir/tmp/RabbyX-v${VERSION}-${RABBYX_GIT_HASH}.zip;
 
 echo "[pack] VERSION is $VERSION";
 echo "[pack] RABBY_DESKTOP_REPO is $RABBY_DESKTOP_REPO";
@@ -32,9 +32,13 @@ cp $TARGET_FILE $project_dir/tmp/RabbyX-latest.zip
 
 # upload to storage
 if [ -z $NO_UPLOAD ]; then
+    INVALIDATION_BASE="/_tools/RabbyX-v${VERSION}-${RABBYX_GIT_HASH}*"
+    JSON="{'Paths': {'Quantity': 2,'Items': ['$INVALIDATION_BASE', '/_tools/RabbyX-latest.zip']}, 'CallerReference': 'cli-rabbyx-${VERSION}-${RABBYX_GIT_HASH}-${CURRENT_TIME}'}"
+    echo $(node -e "console.log(JSON.stringify($JSON, null, 2))") > "$project_dir/tmp/inv-batch.json"
     aws s3 cp $project_dir/tmp/ s3://$RABBY_BUILD_BUCKET/rabby/_tools/ --recursive --exclude="*" --include "*.zip" --acl public-read
-    aws cloudfront create-invalidation --distribution-id E1F7UQCCQWLXXZ --paths '/_tools/RabbyX*'
     echo "[pack] uploaded.";
+    aws cloudfront create-invalidation --distribution-id E1F7UQCCQWLXXZ --invalidation-batch file://./tmp/inv-batch.json
+    echo "[pack] invalidation finished.";
 fi
 
 # cp to RabbyDesktop
