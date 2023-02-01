@@ -33,7 +33,7 @@ cp $TARGET_FILE $project_dir/tmp/RabbyX-latest.zip
 # upload to storage
 if [ -z $NO_UPLOAD ]; then
     aws s3 cp $project_dir/tmp/ s3://$RABBY_BUILD_BUCKET/rabby/_tools/ --recursive --exclude="*" --include "*.zip" --acl public-read
-    aws cloudfront create-invalidation --distribution-id E1F7UQCCQWLXXZ --paths '/_tools/*.zip'
+    aws cloudfront create-invalidation --distribution-id E1F7UQCCQWLXXZ --paths '/_tools/RabbyX*'
     echo "[pack] uploaded.";
 fi
 
