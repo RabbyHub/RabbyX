@@ -18,6 +18,7 @@ echo "[pack] RABBY_DESKTOP_REPO is $RABBY_DESKTOP_REPO";
 
 # rm -rf $RABBY_DESKTOP_REPO/assets/chrome_exts/rabby;
 if [ -z $NO_BUILD ]; then
+    yarn;
     yarn build:pro;
 fi
 echo "[pack] built finished";
