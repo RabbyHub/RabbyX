@@ -899,6 +899,9 @@ export class WalletController extends BaseController {
     preferenceService.updateAddressBalance(address, data);
     return data;
   };
+  updateAddressBalanceCache = (address: string, balance: string) => {
+    preferenceService.updateAddressUSDValueCache(address, Number(balance));
+  };
   getAddressCacheBalance = (address: string | undefined) => {
     if (!address) return null;
     return preferenceService.getAddressBalance(address);
