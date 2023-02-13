@@ -1739,6 +1739,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                         <div>
                           <Button
                             type="primary"
+                            ghost
                             size="large"
                             className="w-[172px]"
                             onClick={() => handleAllow()}
@@ -1751,6 +1752,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                     ) : (
                       <Button
                         type="primary"
+                        ghost
                         size="large"
                         className="w-[172px]"
                         onClick={() => handleAllow(forceProcess)}

@@ -1871,7 +1871,7 @@
 }
 
 html.page-notification.__rabbyx-shell-page {
-  @account-card-h: 64px;
+  @account-card-h: 58px;
   background: #fff;
 
   &.os-win32 body {
@@ -1891,13 +1891,14 @@ html.page-notification.__rabbyx-shell-page {
 
   .account-card {
     background: none;
-    background-color: #626775;
+    background-color: #8697FF;
     height: @account-card-h;
     padding: 0 20px;
     display: flex;
     align-items: center;
     .account-detail {
       background-color: #8697ff;
+      padding: 0;
     }
   }
 }
@@ -2508,6 +2509,19 @@ html.page-notification.__rabbyx-shell-page {
       svg path {
         stroke: @primary-color;
       }
+    }
+  }
+}
+
+.action-buttons {
+  .ant-btn-background-ghost:hover,
+  .ant-btn-background-ghost:focus {
+    background-color: rgba(134, 151, 255, 0.1) !important;
+    color: @primary-color;
+    border-color: @primary-color;
+
+    &::before {
+      background-color: transparent;
     }
   }
 }

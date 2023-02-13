@@ -477,6 +477,7 @@ const SignTypedData = ({ params }: { params: SignTypedDataProps }) => {
           {isWatch ? (
             <Button
               type="primary"
+              ghost
               size="large"
               className="w-[172px]"
               onClick={() => handleAllow()}
@@ -487,6 +488,7 @@ const SignTypedData = ({ params }: { params: SignTypedDataProps }) => {
           ) : (
             <Button
               type="primary"
+              ghost
               size="large"
               className="w-[172px]"
               onClick={() => handleAllow(forceProcess)}
