@@ -373,7 +373,6 @@ const SignText = ({ params }: { params: SignTextProps }) => {
             <Button
               type="primary"
               size="large"
-              ghost
               className="w-[172px]"
               onClick={() => handleAllow()}
               disabled={true}
