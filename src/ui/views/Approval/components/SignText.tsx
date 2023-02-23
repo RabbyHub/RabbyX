@@ -383,15 +383,16 @@ const SignText = ({ params }: { params: SignTextProps }) => {
             <Button
               type="primary"
               size="large"
-              ghost
               className="w-[172px]"
               onClick={() => handleAllow(forceProcess)}
               loading={isLoading}
-              disabled={
-                (isLedger && !useLedgerLive && !hasConnectedLedgerHID) ||
+              {...(isLedger && !useLedgerLive && !hasConnectedLedgerHID) ||
                 !forceProcess ||
-                securityCheckStatus === 'loading'
-              }
+                securityCheckStatus === 'loading' ? {
+                  disabled: true
+                } : {
+                  ghost: true
+                }}
             >
               {t(submitText)}
             </Button>
