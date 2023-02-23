@@ -2006,6 +2006,9 @@ export class WalletController extends BaseController {
   // getTxExplainCacheByApprovalId = (id: string) =>
   //   transactionHistoryService.getExplainCacheByApprovalId(id);
 
+  markTransactionAsIndexed = (address: string, chainId: number, hash: string) =>
+    transactionHistoryService.markTransactionAsIndexed(address, chainId, hash);
+
   getTransactionHistory = (address: string) =>
     transactionHistoryService.getList(address);
 
