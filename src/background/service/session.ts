@@ -65,7 +65,13 @@ const deleteSession = (key: string) => {
   sessionMap.delete(key);
 };
 
-const broadcastEvent = (ev, data?, origin?: string) => {
+const broadcastEvent = (ev: string, data?: any, origin?: string) => {
+  window.rabbyDesktop?.ipcRenderer.sendMessage('__internal_rpc:rabbyx:on-session-broadcast', {
+    event: ev,
+    data,
+    origin,
+  });
+
   let sessions: { key: string; data: Session }[] = [];
   sessionMap.forEach((session, key) => {
     if (session && permissionService.hasPermission(session.origin)) {
