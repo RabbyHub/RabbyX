@@ -248,7 +248,8 @@ const SignText = ({ params }: { params: SignTextProps }) => {
         <div className="flex items-center gap-6">
           <img src={IconWatch} alt="" className="w-[24px] flex-shrink-0" />
           <div>
-            Unable to sign because the current address is a Watch-only Address
+            You can't sign with a watch-only address from contacts. To sign, you'll need to use a different address.
+            {/* Unable to sign because the current address is a Watch-only Address
             from Contacts. You can{' '}
             <a
               href=""
@@ -261,7 +262,7 @@ const SignText = ({ params }: { params: SignTextProps }) => {
             >
               import it
             </a>{' '}
-            fully or use another address.
+            fully or use another address. */}
           </div>
         </div>
       );
