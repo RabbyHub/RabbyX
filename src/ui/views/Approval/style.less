@@ -1870,6 +1870,39 @@
   }
 }
 
+html.page-notification.__rabbyx-shell-page {
+  @account-card-h: 58px;
+  background: #fff;
+
+  &.os-win32 body {
+    max-width: 399px;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: transparent;
+  
+    #root {
+      width: 400px !important;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+  }
+
+  .account-card {
+    background: none;
+    background-color: #8697FF;
+    height: @account-card-h;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    .account-detail {
+      background-color: #8697ff;
+      padding: 0;
+    }
+  }
+}
+
 .account-card {
   background: @primary-linear;
   width: 100%;
@@ -2031,6 +2064,14 @@
       z-index: 999;
       pointer-events: none;
     }
+  }
+}
+
+.page-LedgerHardwareWaiting {
+  background-color: white !important;
+
+  .ledger-waiting {
+    background-color: white !important;
   }
 }
 .ledger-waiting {
@@ -2468,6 +2509,19 @@
       svg path {
         stroke: @primary-color;
       }
+    }
+  }
+}
+
+.action-buttons {
+  .ant-btn-background-ghost:hover,
+  .ant-btn-background-ghost:focus {
+    background-color: rgba(134, 151, 255, 0.1) !important;
+    color: @primary-color;
+    border-color: @primary-color;
+
+    &::before {
+      background-color: transparent;
     }
   }
 }

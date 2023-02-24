@@ -1751,6 +1751,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                         <div>
                           <Button
                             type="primary"
+                            ghost={false}
                             size="large"
                             className="w-[172px]"
                             onClick={() => handleAllow()}
@@ -1766,16 +1767,18 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                         size="large"
                         className="w-[172px]"
                         onClick={() => handleAllow(forceProcess)}
-                        disabled={
-                          !isReady ||
+                        {...!isReady ||
                           (selectedGas ? selectedGas.price < 0 : true) ||
                           (isGnosisAccount ? !safeInfo : false) ||
                           (isLedger &&
                             !useLedgerLive &&
                             !hasConnectedLedgerHID) ||
                           !forceProcess ||
-                          securityCheckStatus === 'loading'
-                        }
+                          securityCheckStatus === 'loading' ? {
+                            disabled: true
+                          } : {
+                            ghost: true
+                          }}
                         loading={isGnosisAccount ? !safeInfo : false}
                       >
                         {t(submitText)}

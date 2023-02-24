@@ -490,6 +490,7 @@ const SignTypedData = ({ params }: { params: SignTypedDataProps }) => {
           ) : (
             <Button
               type="primary"
+              ghost
               size="large"
               className="w-[172px]"
               onClick={() => handleAllow(forceProcess)}
