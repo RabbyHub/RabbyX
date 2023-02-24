@@ -1874,19 +1874,36 @@ html.page-notification.__rabbyx-shell-page {
   @account-card-h: 58px;
   background: #fff;
 
+  &.__rabbyx-center-sign-window {
+    background-color: transparent;
+
+    body {
+      background-color: transparent;
+      max-width: 100vw !important;
+    }
+    
+    #root {
+      background: #fff;
+      width: 100vw !important;
+    }
+  }
+
   &.os-win32 body {
     max-width: 399px;
     overflow-x: hidden;
   }
 
+  &.os-darwin {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+  }
+
   body {
     background-color: transparent;
-  
-    #root {
-      width: 400px !important;
-      border-bottom-left-radius: 12px;
-      border-bottom-right-radius: 12px;
-    }
+  }
+
+  body #root {
+    width: 400px !important;
   }
 
   .account-card {
