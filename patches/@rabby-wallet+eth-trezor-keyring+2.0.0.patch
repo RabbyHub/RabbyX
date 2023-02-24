@@ -1,0 +1,13 @@
+diff --git a/node_modules/@rabby-wallet/eth-trezor-keyring/dist/index.js b/node_modules/@rabby-wallet/eth-trezor-keyring/dist/index.js
+index e7821c6..7603931 100644
+--- a/node_modules/@rabby-wallet/eth-trezor-keyring/dist/index.js
++++ b/node_modules/@rabby-wallet/eth-trezor-keyring/dist/index.js
+@@ -116,7 +116,7 @@ class TrezorKeyring extends events_1.EventEmitter {
+             }
+         });
+         if (!this.trezorConnectInitiated) {
+-            connect_web_1.default.init({ manifest: TREZOR_CONNECT_MANIFEST, lazyLoad: true });
++            connect_web_1.default.init({ manifest: TREZOR_CONNECT_MANIFEST, webusb: false, lazyLoad: true });
+             this.trezorConnectInitiated = true;
+         }
+     }
