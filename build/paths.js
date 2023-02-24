@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const appRoot = fs.realpathSync(path.resolve(__dirname, '..'));
 
-const desktopRepo = process.env.RABBY_DESKTOP_REPO || path.join(appRoot, '../RabbyDesktop');
+let desktopRepo = process.env.RABBY_DESKTOP_REPO || path.join(appRoot, '../RabbyDesktop');
 if (!fs.existsSync(desktopRepo)) {
   console.log('RabbyDesktop repo not found at ' + desktopRepo);
   desktopRepo = null;
