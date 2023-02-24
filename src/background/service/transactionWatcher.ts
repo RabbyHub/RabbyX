@@ -56,7 +56,7 @@ class TransactionWatcher {
       i18n.t('Transaction submitted'),
       i18n.t('click to view more information')
     );
-    sessionService.broadcastEvent('transactionChanged', { type: 'submitted', url });
+    sessionService.broadcastEvent('transactionChanged', { type: 'submitted', url, hash });
   };
 
   checkStatus = async (id: string) => {
@@ -102,7 +102,7 @@ class TransactionWatcher {
       i18n.t('click to view more information'),
       2
     );
-    sessionService.broadcastEvent('transactionChanged', { type: 'finished', success: txReceipt.status === '0x1' });
+    sessionService.broadcastEvent('transactionChanged', { type: 'finished', success: txReceipt.status === '0x1', hash });
 
     eventBus.emit(EVENTS.broadcastToUI, {
       method: EVENTS.TX_COMPLETED,
