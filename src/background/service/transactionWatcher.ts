@@ -2,6 +2,7 @@ import {
   openapiService,
   i18n,
   transactionHistoryService,
+  sessionService,
 } from 'background/service';
 import { createPersistStore, isSameAddress } from 'background/utils';
 import { notification } from 'background/webapi';
@@ -55,6 +56,7 @@ class TransactionWatcher {
       i18n.t('Transaction submitted'),
       i18n.t('click to view more information')
     );
+    sessionService.broadcastEvent('transactionChanged', { type: 'submitted', url, hash });
   };
 
   checkStatus = async (id: string) => {
@@ -100,6 +102,7 @@ class TransactionWatcher {
       i18n.t('click to view more information'),
       2
     );
+    sessionService.broadcastEvent('transactionChanged', { type: 'finished', success: txReceipt.status === '0x1', hash });
 
     eventBus.emit(EVENTS.broadcastToUI, {
       method: EVENTS.TX_COMPLETED,

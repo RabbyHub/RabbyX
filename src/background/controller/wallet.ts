@@ -84,23 +84,19 @@ export class WalletController extends BaseController {
   verifyPassword = (password: string) =>
     keyringService.verifyPassword(password);
 
-  setWhitelist = async (password: string, addresses: string[]) => {
-    await this.verifyPassword(password);
+  setWhitelist = async (addresses: string[]) => {
     whitelistService.setWhitelist(addresses);
   };
 
-  addWhitelist = async (password: string, address: string) => {
-    await this.verifyPassword(password);
+  addWhitelist = async (address: string) => {
     whitelistService.addWhitelist(address);
   };
 
-  removeWhitelist = async (password: string, address: string) => {
-    await this.verifyPassword(password);
+  removeWhitelist = async (address: string) => {
     whitelistService.removeWhitelist(address);
   };
 
-  toggleWhitelist = async (password: string, enable: boolean) => {
-    await this.verifyPassword(password);
+  toggleWhitelist = async (enable: boolean) => {
     if (enable) {
       whitelistService.enableWhitelist();
     } else {
@@ -898,6 +894,9 @@ export class WalletController extends BaseController {
     const data = await openapiService.getTotalBalance(address);
     preferenceService.updateAddressBalance(address, data);
     return data;
+  };
+  updateAddressBalanceCache = (address: string, balance: string) => {
+    preferenceService.updateAddressUSDValueCache(address, Number(balance));
   };
   getAddressCacheBalance = (address: string | undefined) => {
     if (!address) return null;
@@ -2007,6 +2006,9 @@ export class WalletController extends BaseController {
 
   // getTxExplainCacheByApprovalId = (id: string) =>
   //   transactionHistoryService.getExplainCacheByApprovalId(id);
+
+  markTransactionAsIndexed = (address: string, chainId: number, hash: string) =>
+    transactionHistoryService.markTransactionAsIndexed(address, chainId, hash);
 
   getTransactionHistory = (address: string) =>
     transactionHistoryService.getList(address);

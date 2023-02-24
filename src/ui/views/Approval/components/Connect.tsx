@@ -146,6 +146,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
           </Button>
           <Button
             type="primary"
+            ghost
             size="large"
             className="w-[172px]"
             onClick={() => handleAllow()}
