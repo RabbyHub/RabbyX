@@ -26,7 +26,7 @@ const getParams = async () => {
   const url = `https://${location.host}.com/${pathname}`;
 
   gaParams.append('action_name', pathname);
-  gaParams.append('idsite', '2');
+  gaParams.append('idsite', '4');
   gaParams.append('rec', '1');
   gaParams.append('url', encodeURI(url));
   gaParams.append('_id', extensionId);

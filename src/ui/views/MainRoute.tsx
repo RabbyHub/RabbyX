@@ -3,16 +3,16 @@ import { Switch, Route, Redirect } from 'react-router-dom';
 import ReactGA, { ga } from 'react-ga';
 import { PrivateRoute } from 'ui/component';
 
-import Welcome from './Welcome';
-import NoAddress from './NoAddress';
-import CreatePassword from './CreatePassword';
-import ImportMode from './ImportMode';
-import ImportPrivateKey from './ImportPrivateKey';
-import ImportJson from './ImportJson';
+import Welcome from 'ui/views/Welcome';
+import NoAddress from 'ui/views/NoAddress';
+import CreatePassword from 'ui/views/CreatePassword';
+import ImportMode from 'ui/views/ImportMode';
+import ImportPrivateKey from 'ui/views/ImportPrivateKey';
+import ImportJson from 'ui/views/ImportJson';
 
-import InputMnemonics from './ImportMnemonics/InputMnemonics';
-import EntryImportAddress from './ImportMnemonics/EntryImportAddress';
-import ConfirmMnemonics from './ImportMnemonics/ConfirmMnemonics';
+import InputMnemonics from 'ui/views/ImportMnemonics/InputMnemonics';
+import EntryImportAddress from 'ui/views/ImportMnemonics/EntryImportAddress';
+import ConfirmMnemonics from 'ui/views/ImportMnemonics/ConfirmMnemonics';
 
 import ImportWatchAddress from './ImportWatchAddress';
 import ImportQRCodeBase from './ImportQRCodeBase';
@@ -98,6 +98,24 @@ const Main = () => {
       }
     })();
   }, []);
+  
+  // const history = useHistory();
+  // const [getApproval] = useApproval();
+  // useEffect(() => {
+  //   const listener = async (message: any, sender: Runtime.MessageSender) => {
+  //     const approval = await getApproval();
+  //     if (message.type !== 'rabbyx-openNotification') return ;
+
+  //     if (approval) {
+  //       history.push('/approval');
+  //     }
+  //   };
+  //   browser.runtime.onMessage.addListener(listener);
+
+  //   return () => {
+  //     browser.runtime.onMessage.removeListener(listener);
+  //   }
+  // }, [ getApproval, history ]);
 
   return (
     <>
