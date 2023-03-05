@@ -5,7 +5,7 @@ import { getUiType, useApproval, useWallet } from 'ui/utils';
 import { Spin } from 'ui/component';
 import { Approval } from 'background/service/notification';
 import { browser, Tabs } from 'webextension-polyfill-ts';
-import { getOriginFromUrl } from 'utils';
+import { getOriginFromUrl } from '@/utils';
 import { message } from 'antd';
 
 /**
