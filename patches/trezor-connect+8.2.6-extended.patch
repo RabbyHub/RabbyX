@@ -10,7 +10,7 @@ index d794a8f..d6a8454 100644
 +            var params = {
 +              url: url
 +            };
-
+ 
 -            chrome.tabs.create({
 -              url: url,
 -              index: tabs[0].index + 1
