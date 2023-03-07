@@ -5,6 +5,10 @@ interface Window {
                 channel: T,
                 ...args: any[]
             ): void;
+            invoke<T extends any, U extends string>(
+                channel: U,
+                ...args: any[]
+            ): Promise<T>;
             on: {
                 <T extends string>(
                     channel: T,
