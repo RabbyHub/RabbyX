@@ -13,10 +13,24 @@ async function postData(url = '', params: URLSearchParams) {
   return response;
 }
 
-let { extensionId } = await browser.storage.local.get('extensionId');
-if (!extensionId) {
-  extensionId = genExtensionId();
-  browser.storage.local.set({ extensionId });
+async function getExtensionId() {
+  let { extensionId } = await browser.storage.local.get('extensionId');
+  if (!extensionId) {
+    extensionId = genExtensionId();
+    browser.storage.local.set({ extensionId });
+  }
+
+  return extensionId;
+}
+
+let desktopVersion: string = '';
+async function getDesktopVersion() {
+  if (!desktopVersion) {
+    const { version } = await window.rabbyDesktop.ipcRenderer.invoke('rabbyx:get-app-version')
+    desktopVersion = version;
+  }
+
+  return desktopVersion;
 }
 
 const getParams = async () => {
@@ -29,7 +43,7 @@ const getParams = async () => {
   gaParams.append('idsite', '4');
   gaParams.append('rec', '1');
   gaParams.append('url', encodeURI(url));
-  gaParams.append('_id', extensionId);
+  gaParams.append('_id', await getExtensionId());
   gaParams.append('rand', nanoid());
   gaParams.append('ca', '1');
   gaParams.append('h', new Date().getUTCHours().toString());
@@ -37,7 +51,7 @@ const getParams = async () => {
   gaParams.append('s', new Date().getUTCSeconds().toString());
   gaParams.append('cookie', '0');
   gaParams.append('send_image', '0');
-  gaParams.append('dimension1', process.env.release!);
+  gaParams.append('dimension1', await getDesktopVersion());
 
   return gaParams;
 };
