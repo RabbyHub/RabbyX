@@ -26,7 +26,7 @@ async function getExtensionId() {
 let desktopVersion: string = '';
 async function getDesktopVersion() {
   if (!desktopVersion) {
-    const { version } = await window.rabbyDesktop.ipcRenderer.invoke('get-app-version')
+    const { version } = await window.rabbyDesktop.ipcRenderer.invoke('rabbyx:get-app-version')
     desktopVersion = version;
   }
 
