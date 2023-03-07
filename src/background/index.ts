@@ -47,7 +47,7 @@ ReactGA.initialize('UA-199755108-3');
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 ga('set', 'checkProtocolTask', function () {});
 ga('set', 'appName', 'Rabby');
-ga('set', 'appVersion', process.env.release);
+ga('set', 'appVersion', globalThis.rabbyDesktop.appVersion);
 ga('require', 'displayfeatures');
 
 dayjs.extend(utc);
@@ -62,7 +62,7 @@ Sentry.init({
   dsn:
     'https://e871ee64a51b4e8c91ea5fa50b67be6b@o460488.ingest.sentry.io/5831390',
   integrations: [new Integrations.BrowserTracing()],
-  release: process.env.release,
+  release: globalThis.rabbyDesktop.appVersion,
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production

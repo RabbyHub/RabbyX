@@ -7,7 +7,7 @@ import { HARDWARE_KEYRING_TYPES, EVENTS, CHAINS_ENUM } from 'consts';
 import { browser } from 'webextension-polyfill-ts';
 import semver from 'semver-compare';
 
-const version = process.env.release || '0';
+const version = globalThis.rabbyDesktop.appVersion || '0';
 
 export interface Account {
   type: string;

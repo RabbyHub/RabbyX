@@ -61,7 +61,7 @@ ReactGA.initialize('UA-199755108-1');
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 ga('set', 'checkProtocolTask', function () {});
 ga('set', 'appName', 'Rabby');
-ga('set', 'appVersion', process.env.release);
+ga('set', 'appVersion', globalThis.rabbyDesktop.appVersion);
 ga('require', 'displayfeatures');
 
 declare global {
