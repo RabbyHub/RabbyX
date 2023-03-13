@@ -164,10 +164,6 @@ class NotificationService extends Events {
   rejectApproval = async (err?: string, stay = false, isInternal = false) => {
     const approval = this.currentApproval;
 
-    if (this.approvals.length <= 1) {
-      await this.clear(stay); // TODO: FIXME
-    }
-
     if (isInternal) {
       approval?.reject && approval?.reject(ethErrors.rpc.internal(err));
     } else {
