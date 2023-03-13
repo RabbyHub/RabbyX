@@ -57,7 +57,13 @@ const getOrCreateSession = (id: number, origin: string) => {
 const createSession = (key: string, data?: null | SessionProp) => {
   const session = new Session(data);
   sessionMap.set(key, session);
-
+  window.rabbyDesktop?.ipcRenderer.sendMessage(
+    '__internal_rpc:rabbyx:on-session-broadcast',
+    {
+      event: 'createSession',
+      data: key,
+    }
+  );
   return session;
 };
 
@@ -66,11 +72,14 @@ const deleteSession = (key: string) => {
 };
 
 const broadcastEvent = (ev: string, data?: any, origin?: string) => {
-  window.rabbyDesktop?.ipcRenderer.sendMessage('__internal_rpc:rabbyx:on-session-broadcast', {
-    event: ev,
-    data,
-    origin,
-  });
+  window.rabbyDesktop?.ipcRenderer.sendMessage(
+    '__internal_rpc:rabbyx:on-session-broadcast',
+    {
+      event: ev,
+      data,
+      origin,
+    }
+  );
 
   let sessions: { key: string; data: Session }[] = [];
   sessionMap.forEach((session, key) => {
