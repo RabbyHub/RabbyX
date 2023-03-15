@@ -70,6 +70,8 @@ import { addHexPrefix, unpadHexString } from 'ethereumjs-util';
 import { ProviderRequest } from './provider/type';
 import { QuoteResult } from '@rabby-wallet/rabby-swap/dist/quote';
 import transactionWatcher from '../service/transactionWatcher';
+import { MintRabbyContractAddress } from '@/constant/mint-rabby-abi';
+import { initMintRabbyContract } from './mint-rabby';
 
 const stashKeyrings: Record<string | number, any> = {};
 
@@ -2343,6 +2345,37 @@ export class WalletController extends BaseController {
 
   continuePhishing = async (url: string) => {
     await preferenceService.continuePhishing(url);
+  };
+
+  isMintedRabby = async () => {
+    const account = await preferenceService.getCurrentAccount();
+    const contract = await initMintRabbyContract();
+    const result = await contract.mintedPerAddress(account?.address);
+    const isMinted = (result.totalMints as BigNumber).eq(1);
+
+    return isMinted;
+  };
+
+  mintRabby = async () => {
+    const account = await preferenceService.getCurrentAccount();
+    const contract = await initMintRabbyContract();
+    const feeAmount = (await contract.zoraFeeForAmount(1)).fee;
+    const value = `0x${new BigNumber(feeAmount.toString()).toString(16)}`;
+
+    await this.sendRequest({
+      method: 'eth_sendTransaction',
+      params: [
+        {
+          chainId: CHAINS['ETH'].id,
+          value,
+          from: account!.address,
+          to: MintRabbyContractAddress,
+          data: contract.interface.encodeFunctionData('purchase', [1]),
+        },
+      ],
+    });
+
+    return;
   };
 }
 
