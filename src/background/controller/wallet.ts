@@ -2363,13 +2363,20 @@ export class WalletController extends BaseController {
     return isMinted;
   };
 
+  mintRabbyFee = async () => {
+    const contract = await initMintRabbyContract();
+    const feeAmount = (await contract.zoraFeeForAmount(1)).fee;
+
+    return feeAmount.toString();
+  };
+
   mintRabby = async () => {
     const account = await preferenceService.getCurrentAccount();
     const contract = await initMintRabbyContract();
-    const feeAmount = (await contract.zoraFeeForAmount(1)).fee;
-    const value = `0x${new BigNumber(feeAmount.toString()).toString(16)}`;
+    const feeAmount = await this.mintRabbyFee();
+    const value = `0x${new BigNumber(feeAmount).toString(16)}`;
 
-    await this.sendRequest({
+    const result = await this.sendRequest({
       method: 'eth_sendTransaction',
       params: [
         {
@@ -2382,7 +2389,9 @@ export class WalletController extends BaseController {
       ],
     });
 
-    return;
+    console.log(result);
+
+    return result;
   };
 }
 
