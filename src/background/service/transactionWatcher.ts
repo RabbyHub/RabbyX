@@ -3,6 +3,7 @@ import {
   i18n,
   transactionHistoryService,
   sessionService,
+  swapReport,
 } from 'background/service';
 import { createPersistStore, isSameAddress } from 'background/utils';
 import { notification } from 'background/webapi';
@@ -104,6 +105,8 @@ class TransactionWatcher {
     );
     sessionService.broadcastEvent('transactionChanged', { type: 'finished', success: txReceipt.status === '0x1', hash });
 
+    swapReport.txReport(chain,hash,txReceipt.status === '0x1');
+    
     eventBus.emit(EVENTS.broadcastToUI, {
       method: EVENTS.TX_COMPLETED,
       params: { address, hash },

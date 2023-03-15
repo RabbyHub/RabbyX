@@ -21,6 +21,7 @@ import {
   swapService,
   RPCService,
   unTriggerTxCounter,
+  swapReport,
 } from 'background/service';
 import buildinProvider from 'background/utils/buildinProvider';
 import { openIndexPage } from 'background/webapi/tab';
@@ -396,7 +397,8 @@ export class WalletController extends BaseController {
         );
         unTriggerTxCounter.decrease();
       }
-      await this.sendRequest({
+
+      const txId:string = await this.sendRequest({
         $ctx:
           needApprove && pay_token_id !== chainObj.nativeTokenAddress
             ? {
@@ -419,6 +421,18 @@ export class WalletController extends BaseController {
           },
         ],
       });
+      const dex = await this.getSwapDexId();
+      swapReport.add(chain, txId, {
+        dex,
+        chainId: chainObj.serverId,
+        addr: account.address,
+        txId,
+        fromToken: quote.fromToken,
+        toToken: quote.toToken,
+        fromTokenAmount: quote.fromTokenAmount,
+        toTokenAmount: quote.toTokenAmount,
+      });
+
       unTriggerTxCounter.decrease();
     } catch (e) {
       unTriggerTxCounter.reset();
