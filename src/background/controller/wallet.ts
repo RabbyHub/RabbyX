@@ -341,6 +341,8 @@ export class WalletController extends BaseController {
       unlimited,
       gasPrice,
       shouldTwoStepApprove,
+      payToken,
+      receiveToken
     }: {
       chain: CHAINS_ENUM;
       quote: QuoteResult;
@@ -350,6 +352,8 @@ export class WalletController extends BaseController {
       unlimited: boolean;
       gasPrice: number;
       shouldTwoStepApprove: boolean;
+      payToken: TokenItem;
+      receiveToken: TokenItem;
     },
     $ctx?: any
   ) => {
@@ -429,8 +433,12 @@ export class WalletController extends BaseController {
         txId,
         fromToken: quote.fromToken,
         toToken: quote.toToken,
-        fromTokenAmount: quote.fromTokenAmount,
-        toTokenAmount: quote.toTokenAmount,
+        fromTokenAmount:new BigNumber(quote.fromTokenAmount)
+        .div(10 ** payToken.decimals)
+        .toFixed(0, 1),
+        toTokenAmount: new BigNumber(quote.toTokenAmount)
+        .div(10 ** receiveToken.decimals)
+        .toFixed(0, 1),
       });
 
       unTriggerTxCounter.decrease();
