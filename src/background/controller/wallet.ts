@@ -421,9 +421,9 @@ export class WalletController extends BaseController {
           },
         ],
       });
-      const dex = await this.getSwapDexId();
+      const swapDex = await this.getSwapDexId();
       swapReport.add(chain, txId, {
-        dex,
+        dex:swapDex!,
         chainId: chainObj.serverId,
         addr: account.address,
         txId,
