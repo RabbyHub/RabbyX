@@ -434,11 +434,9 @@ export class WalletController extends BaseController {
         fromToken: quote.fromToken,
         toToken: quote.toToken,
         fromTokenAmount:new BigNumber(quote.fromTokenAmount)
-        .div(10 ** payToken.decimals)
-        .toFixed(0, 1),
+        .div(10 ** payToken.decimals).toString(10),
         toTokenAmount: new BigNumber(quote.toTokenAmount)
-        .div(10 ** receiveToken.decimals)
-        .toFixed(0, 1),
+        .div(10 ** receiveToken.decimals).toString(10)
       });
 
       unTriggerTxCounter.decrease();
