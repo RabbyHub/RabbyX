@@ -2347,6 +2347,13 @@ export class WalletController extends BaseController {
     await preferenceService.continuePhishing(url);
   };
 
+  mintedRabbyTotal = async () => {
+    const contract = await initMintRabbyContract();
+    const result = await contract.totalSupply();
+
+    return result.toString();
+  };
+
   isMintedRabby = async () => {
     const account = await preferenceService.getCurrentAccount();
     const contract = await initMintRabbyContract();

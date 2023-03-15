@@ -39,5 +39,11 @@ export const MintRabbyAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-  { stateMutability: 'payable', type: 'receive' },
+  {
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ];
