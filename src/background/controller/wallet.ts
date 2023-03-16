@@ -434,7 +434,7 @@ export class WalletController extends BaseController {
         addr: account.address,
         txId,
         fromToken: pay_token_id,
-        toToken: quote.toToken,
+        toToken: receiveToken.id,
         fromTokenAmount:new BigNumber(payAmount).toString(10),
         toTokenAmount: new BigNumber(quote.toTokenAmount)
         .div(10 ** (quote?.toTokenDecimals || receiveToken?.decimals || 18)).toString(10)
