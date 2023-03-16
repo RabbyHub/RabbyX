@@ -2354,6 +2354,17 @@ export class WalletController extends BaseController {
     return result.toString();
   };
 
+  mintedRabbyEndDateTime = async () => {
+    const contract = await initMintRabbyContract();
+    const { publicSaleEnd } = await contract.saleDetails();
+
+    try {
+      return new Date(publicSaleEnd.toNumber() * 1000).getTime();
+    } catch (e) {
+      return 0;
+    }
+  };
+
   isMintedRabby = async () => {
     const account = await preferenceService.getCurrentAccount();
     const contract = await initMintRabbyContract();
