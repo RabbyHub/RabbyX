@@ -341,6 +341,7 @@ export class WalletController extends BaseController {
       unlimited,
       gasPrice,
       shouldTwoStepApprove,
+      payAmount,
       payToken,
       receiveToken
     }: {
@@ -352,6 +353,7 @@ export class WalletController extends BaseController {
       unlimited: boolean;
       gasPrice: number;
       shouldTwoStepApprove: boolean;
+      payAmount:number;
       payToken: TokenItem;
       receiveToken: TokenItem;
     },
@@ -431,12 +433,11 @@ export class WalletController extends BaseController {
         chainId: chainObj.serverId,
         addr: account.address,
         txId,
-        fromToken: quote.fromToken,
+        fromToken: pay_token_id,
         toToken: quote.toToken,
-        fromTokenAmount:new BigNumber(quote.fromTokenAmount)
-        .div(10 ** payToken.decimals).toString(10),
+        fromTokenAmount:new BigNumber(payAmount).toString(10),
         toTokenAmount: new BigNumber(quote.toTokenAmount)
-        .div(10 ** receiveToken.decimals).toString(10)
+        .div(10 ** (quote?.toTokenDecimals || receiveToken?.decimals || 18)).toString(10)
       });
 
       unTriggerTxCounter.decrease();

@@ -582,6 +582,7 @@ export const SwapByDex = () => {
             gasPrice: price,
             unlimited: unlimitedAllowance,
             shouldTwoStepApprove,
+            payAmount,
             payToken,
             receiveToken
           },
