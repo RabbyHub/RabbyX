@@ -353,7 +353,7 @@ export class WalletController extends BaseController {
       unlimited: boolean;
       gasPrice: number;
       shouldTwoStepApprove: boolean;
-      payAmount:number;
+      payAmount:string;
       payToken: TokenItem;
       receiveToken: TokenItem;
     },
