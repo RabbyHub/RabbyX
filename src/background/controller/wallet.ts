@@ -2365,13 +2365,38 @@ export class WalletController extends BaseController {
     }
   };
 
-  isMintedRabby = async () => {
+  getMintedRabby = async () => {
     const account = await preferenceService.getCurrentAccount();
     const contract = await initMintRabbyContract();
-    const result = await contract.mintedPerAddress(account?.address);
+    const accountAddress = account!.address;
+    const result = await contract.mintedPerAddress(accountAddress);
     const isMinted = (result.totalMints as BigNumber).eq(1);
 
-    return isMinted;
+    if (!isMinted) {
+      return false;
+    }
+
+    const nfts = await openapiService.listNFT(accountAddress, true);
+
+    // only one token, so just return the first one
+    const nft = nfts.find((item) =>
+      isSameAddress(item.contract_id, MintRabbyContractAddress)
+    );
+
+    if (!nft) {
+      if (isSameAddress(await contract.owner(), accountAddress)) {
+        return {
+          isOwner: true,
+        };
+      }
+      return false;
+    }
+
+    return {
+      tokenId: nft?.inner_id,
+      contractAddress: nft?.contract_id,
+      detailUrl: nft?.detail_url,
+    };
   };
 
   mintRabbyFee = async () => {
