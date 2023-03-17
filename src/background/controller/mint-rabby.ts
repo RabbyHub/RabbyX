@@ -1,5 +1,5 @@
 import {
-  MintRabbyContractAddress,
+  getMintRabbyContractAddress,
   MintRabbyAbi,
 } from '@/constant/mint-rabby-abi';
 import { CHAINS } from '@debank/common';
@@ -15,11 +15,12 @@ export const initMintRabbyContract = async () => {
   buildinProvider.currentProvider.currentAccountBrand = account.brandName;
   buildinProvider.currentProvider.chainId = CHAINS['ETH'].network;
 
+  const contractAddress = await getMintRabbyContractAddress();
   const provider = new ethers.providers.Web3Provider(
     buildinProvider.currentProvider
   );
   const signer = provider.getSigner();
-  const contract = new Contract(MintRabbyContractAddress, MintRabbyAbi, signer);
+  const contract = new Contract(contractAddress, MintRabbyAbi, signer);
 
   return contract;
 };

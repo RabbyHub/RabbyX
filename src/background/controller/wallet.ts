@@ -70,7 +70,7 @@ import { addHexPrefix, unpadHexString } from 'ethereumjs-util';
 import { ProviderRequest } from './provider/type';
 import { QuoteResult } from '@rabby-wallet/rabby-swap/dist/quote';
 import transactionWatcher from '../service/transactionWatcher';
-import { MintRabbyContractAddress } from '@/constant/mint-rabby-abi';
+import { getMintRabbyContractAddress } from '@/constant/mint-rabby-abi';
 import { initMintRabbyContract } from './mint-rabby';
 
 const stashKeyrings: Record<string | number, any> = {};
@@ -2377,19 +2377,16 @@ export class WalletController extends BaseController {
     }
 
     const nfts = await openapiService.listNFT(accountAddress, true);
-
+    const contractAddress = await getMintRabbyContractAddress();
     // only one token, so just return the first one
     const nft = nfts.find((item) =>
-      isSameAddress(item.contract_id, MintRabbyContractAddress)
+      isSameAddress(item.contract_id, contractAddress)
     );
 
     if (!nft) {
-      if (isSameAddress(await contract.owner(), accountAddress)) {
-        return {
-          isOwner: true,
-        };
-      }
-      return false;
+      return {
+        contractAddress,
+      };
     }
 
     return {
@@ -2411,6 +2408,7 @@ export class WalletController extends BaseController {
     const contract = await initMintRabbyContract();
     const feeAmount = await this.mintRabbyFee();
     const value = `0x${new BigNumber(feeAmount).toString(16)}`;
+    const contractAddress = await getMintRabbyContractAddress();
 
     const result = await this.sendRequest({
       method: 'eth_sendTransaction',
@@ -2419,13 +2417,11 @@ export class WalletController extends BaseController {
           chainId: CHAINS['ETH'].id,
           value,
           from: account!.address,
-          to: MintRabbyContractAddress,
+          to: contractAddress,
           data: contract.interface.encodeFunctionData('purchase', [1]),
         },
       ],
     });
-
-    console.log(result);
 
     return result;
   };

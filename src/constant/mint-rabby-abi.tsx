@@ -1,6 +1,19 @@
-// TODO: temporary for testing, will be replaced with production contract address
-export const MintRabbyContractAddress =
-  '0xe473A20617f20f4A7B4fBDD39490380B78430141';
+export const TEST_ADDRESS = '0xe473A20617f20f4A7B4fBDD39490380B78430141';
+export const PROD_ADDRESS = '0x1645787ddcb380932130f0d8c22e6bf53a38e725';
+
+const { appChannel } = (await window.rabbyDesktop.ipcRenderer.invoke(
+  'rabbyx:get-app-version'
+)) as {
+  appChannel: 'reg' | 'prod';
+};
+
+export const getMintRabbyContractAddress = async () => {
+  console.log('appChannel', appChannel);
+  if (appChannel === 'prod') {
+    return PROD_ADDRESS;
+  }
+  return TEST_ADDRESS;
+};
 
 export const MintRabbyAbi = [
   {
@@ -77,13 +90,6 @@ export const MintRabbyAbi = [
         type: 'tuple',
       },
     ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'owner',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
