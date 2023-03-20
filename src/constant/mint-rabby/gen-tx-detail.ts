@@ -1,6 +1,7 @@
 import { ExplainTxResponse } from '@debank/rabby-api/dist/types';
 import { getMintRabbyContractAddress } from './mint-rabby-abi';
 import IconRabbySVG from 'src/ui/assets/dashboard/rabby.svg';
+import RabbyNFTSVG from './nft.svg';
 import { isSameAddress } from '@/ui/utils';
 
 export const genMintRabbyTxDetail = (
@@ -16,6 +17,19 @@ export const genMintRabbyTxDetail = (
   }
   return {
     ...txDetail,
+    balance_change: {
+      ...txDetail.balance_change,
+      receive_nft_list: [
+        {
+          ...txDetail.balance_change.receive_nft_list[0],
+          name:
+            'Rabby Desktop Genesis ' +
+            txDetail.balance_change.receive_nft_list[0].inner_id,
+          content: RabbyNFTSVG,
+          content_type: 'image_url',
+        },
+      ],
+    },
     type_call: {
       ...txDetail.type_call,
       contract_protocol_name: 'Rabby Desktop',
