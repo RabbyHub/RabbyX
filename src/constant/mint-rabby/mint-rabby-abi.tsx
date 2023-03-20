@@ -7,8 +7,7 @@ const { appChannel } = (await window.rabbyDesktop.ipcRenderer.invoke(
   appChannel: 'reg' | 'prod';
 };
 
-export const getMintRabbyContractAddress = async () => {
-  console.log('appChannel', appChannel);
+export const getMintRabbyContractAddress = () => {
   if (appChannel === 'prod') {
     return PROD_ADDRESS;
   }
