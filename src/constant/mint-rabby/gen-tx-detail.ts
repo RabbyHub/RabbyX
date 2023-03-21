@@ -24,9 +24,12 @@ export const genMintRabbyTxDetail = (
         ? [
             {
               ...nftList[0],
-              name: 'Rabby Desktop Genesis ' + nftList[0].inner_id,
+              name: 'Rabby Desktop Genesis #' + nftList[0].inner_id,
               content: RabbyNFTSVG,
               content_type: 'image_url',
+              collection: {
+                name: 'Rabby Desktop Genesis',
+              } as any,
             },
           ]
         : [],
