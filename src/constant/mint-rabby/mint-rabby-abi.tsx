@@ -8,10 +8,11 @@ const { appChannel } = (await window.rabbyDesktop.ipcRenderer.invoke(
 };
 
 export const getMintRabbyContractAddress = () => {
-  if (appChannel === 'prod') {
-    return PROD_ADDRESS;
-  }
-  return TEST_ADDRESS;
+  return PROD_ADDRESS;
+  // if (appChannel === 'prod') {
+  //   return PROD_ADDRESS;
+  // }
+  // return TEST_ADDRESS;
 };
 
 export const MintRabbyAbi = [
