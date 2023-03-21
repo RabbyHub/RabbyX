@@ -1,7 +1,7 @@
 import {
   getMintRabbyContractAddress,
   MintRabbyAbi,
-} from '@/constant/mint-rabby-abi';
+} from '@/constant/mint-rabby/mint-rabby-abi';
 import { CHAINS } from '@debank/common';
 import { ethers, Contract } from 'ethers';
 import { preferenceService } from '../service';
@@ -15,7 +15,7 @@ export const initMintRabbyContract = async () => {
   buildinProvider.currentProvider.currentAccountBrand = account.brandName;
   buildinProvider.currentProvider.chainId = CHAINS['ETH'].network;
 
-  const contractAddress = await getMintRabbyContractAddress();
+  const contractAddress = getMintRabbyContractAddress();
   const provider = new ethers.providers.Web3Provider(
     buildinProvider.currentProvider
   );
