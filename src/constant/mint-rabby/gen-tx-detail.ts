@@ -15,20 +15,24 @@ export const genMintRabbyTxDetail = (
   if (!isSameAddress(contract, getMintRabbyContractAddress())) {
     return txDetail;
   }
+  const nftList = txDetail.balance_change.receive_nft_list;
   return {
     ...txDetail,
     balance_change: {
       ...txDetail.balance_change,
-      receive_nft_list: [
-        {
-          ...txDetail.balance_change.receive_nft_list[0],
-          name:
-            'Rabby Desktop Genesis ' +
-            txDetail.balance_change.receive_nft_list[0].inner_id,
-          content: RabbyNFTSVG,
-          content_type: 'image_url',
-        },
-      ],
+      receive_nft_list: nftList?.length
+        ? [
+            {
+              ...nftList[0],
+              name: 'Rabby Desktop Genesis #' + nftList[0].inner_id,
+              content: RabbyNFTSVG,
+              content_type: 'image_url',
+              collection: {
+                name: 'Rabby Desktop Genesis',
+              } as any,
+            },
+          ]
+        : [],
     },
     type_call: {
       ...txDetail.type_call,
