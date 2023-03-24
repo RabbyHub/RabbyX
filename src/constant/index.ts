@@ -380,6 +380,8 @@ export const WALLET_BRAND_CONTENT: {
     id: 13,
     name: 'Gnosis Safe',
     brand: WALLET_BRAND_TYPES.GNOSIS,
+    icon: IconGnosis,
+    image: IconGnosis,
     connectType: BRAND_WALLET_CONNECT_TYPE.GnosisConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
