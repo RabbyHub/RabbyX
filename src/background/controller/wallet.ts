@@ -72,6 +72,7 @@ import { QuoteResult } from '@rabby-wallet/rabby-swap/dist/quote';
 import transactionWatcher from '../service/transactionWatcher';
 import { getMintRabbyContractAddress } from '@/constant/mint-rabby/mint-rabby-abi';
 import { initMintRabbyContract } from './mint-rabby';
+import { validateConfirmation } from './safe';
 
 const stashKeyrings: Record<string | number, any> = {};
 
@@ -2425,6 +2426,8 @@ export class WalletController extends BaseController {
 
     return result;
   };
+
+  validateSafeConfirmation = validateConfirmation;
 }
 
 export default new WalletController();
