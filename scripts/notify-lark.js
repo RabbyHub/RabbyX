@@ -20,14 +20,14 @@ function makeSign(secret) {
 }
 
 const chatURL = process.env.LARK_CHAT_URL;
-const secret = process.env.LARK_SECRET;
+const secret = process.env.LARK_CHAT_SECRET;
 
 if (!chatURL) {
     throw new Error('LARK_CHAT_URL is not set');
 }
 
 if (!secret) {
-    throw new Error('LARK_SECRET is not set');
+    throw new Error('LARK_CHAT_SECRET is not set');
 }
 
 // sendMessage with axios
@@ -36,8 +36,12 @@ async function sendMessage({
     actionsJobUrl = '',
     gitCommitURL = '',
     gitRefURL = '',
+    triggers = [],
 }) {
     const { timeSec, Signature } = makeSign(secret);
+
+    // dedupe
+    triggers = [...new Set(triggers)];
 
     const headers = {
         'Content-Type': 'application/json',
@@ -76,6 +80,10 @@ async function sendMessage({
                             { "tag": "text", "text": `Git Ref: ` },
                             { "tag": "text", "text": gitRefURL }
                         ],
+                        triggers.length && [
+                            { "tag": "text", "text": `Triggers: ` },
+                            { "tag": "text", "text": triggers.join(', ') }
+                        ],
                     ].filter(Boolean)
                 }
             }
@@ -94,6 +102,10 @@ if (args[0]) {
         actionsJobUrl: args[1] || process.env.ACTIONS_JOB_URL,
         gitCommitURL: args[2] || process.env.GIT_COMMIT_URL,
         gitRefURL: process.env.GIT_REF_URL,
+        triggers: [
+            process.env.GITHUB_TRIGGERING_ACTOR,
+            process.env.GITHUB_ACTOR,
+        ].filter(Boolean)
     })
 } else {
     console.log('[notify-lark] no message');
