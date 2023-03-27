@@ -21,7 +21,8 @@ jobs:
   # Prepare node modules. Reuse cache if available
   setup:
     name: prepare build
-    runs-on: [self-hosted, X64, macOS, mac, builder]
+    # runs-on: [self-hosted, X64, macOS, mac, builder]
+    runs-on: [self-hosted, X64, Windows, builder]
     env:
       NODE_OPTIONS: '--max_old_space_size=4096'
     steps:
