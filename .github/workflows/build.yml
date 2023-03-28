@@ -1,10 +1,6 @@
-# Each PR will build preview site that help to check code is work as expect.
-
 name: Build
 
 on:
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
   push:
     branches:
       # - develop
@@ -15,13 +11,13 @@ on:
 
 defaults:
   run:
-    shell: bash -ieo pipefail {0}
+    shell: bash -leo pipefail {0}
 
 jobs:
   # Prepare node modules. Reuse cache if available
   setup:
     name: prepare build
-    runs-on: [self-hosted, X64, Windows, builder]
+    runs-on: [self-hosted, X64, Linux, builder]
     env:
       NODE_OPTIONS: '--max_old_space_size=4096'
     steps:
@@ -72,7 +68,7 @@ jobs:
 
   build-pro:
     name: build pro
-    runs-on: [self-hosted, X64, macOS, mac, builder]
+    runs-on: [self-hosted, X64, Linux, builder]
     needs: setup
     env:
       NODE_OPTIONS: '--max_old_space_size=4096'
@@ -128,7 +124,7 @@ jobs:
 
   # build-debug:
   #   name: build debug
-  #   runs-on: [self-hosted, X64, macOS, mac, builder]
+  #   runs-on: [self-hosted, X64, Linux, builder]
   #   needs: setup
   #   env:
   #     NODE_OPTIONS: '--max_old_space_size=4096'
