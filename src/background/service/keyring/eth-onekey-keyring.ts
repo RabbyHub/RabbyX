@@ -40,11 +40,26 @@ class OneKeyKeyring extends EventEmitter {
   paths = {};
   hdPath = '';
   accountDetails: Record<string, AccountDetail>;
+  connectDevices: Set<string>;
 
   constructor(opts = {}) {
     super();
     this.accountDetails = {};
+    this.connectDevices = new Set<string>();
     this.deserialize(opts);
+
+    OneKeyConnect.on('DEVICE_EVENT', (event: any) => {
+      const currentDeviceId = event.payload?.id;
+      if (event.type === 'device-connect') {
+        this.connectDevices.add(currentDeviceId);
+        this.cleanUp(true);
+      }
+      if (event.type === 'device-disconnect') {
+        this.connectDevices.delete(currentDeviceId);
+        this.cleanUp(true);
+      }
+    });
+
     OneKeyConnect.manifest(ONEKEY_CONNECT_MANIFEST);
   }
 
@@ -74,8 +89,13 @@ class OneKeyKeyring extends EventEmitter {
     return Boolean(this.hdk && this.hdk.publicKey);
   }
 
-  cleanUp() {
-    this.hdk = new HDKey();
+  cleanUp(force = false) {
+    if (!this.hdk) {
+      return;
+    }
+    if (force || this.connectDevices.size > 1) {
+      this.hdk = new HDKey();
+    }
   }
 
   unlock(): Promise<string> {
