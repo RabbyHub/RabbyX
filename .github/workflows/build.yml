@@ -1,10 +1,6 @@
-# Each PR will build preview site that help to check code is work as expect.
-
 name: Build
 
 on:
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
   push:
     branches:
       # - develop
