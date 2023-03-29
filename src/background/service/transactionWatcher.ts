@@ -56,7 +56,7 @@ class TransactionWatcher {
       i18n.t('Transaction submitted'),
       i18n.t('click to view more information')
     );
-    sessionService.broadcastEvent('transactionChanged', { type: 'submitted', url, hash });
+    sessionService.broadcastToDesktopOnly('transactionChanged', { type: 'submitted', url, hash });
   };
 
   checkStatus = async (id: string) => {

@@ -1453,13 +1453,8 @@ export class WalletController extends BaseController {
   clearAddressPendingTransactions = (address: string) => {
     transactionHistoryService.clearPendingTransactions(address);
     transactionWatcher.clearPendingTx(address);
-    window.rabbyDesktop?.ipcRenderer.sendMessage(
-      '__internal_rpc:rabbyx:on-session-broadcast',
-      {
-        event: 'clearPendingTransactions',
-        data: null,
-      }
-    );
+    sessionService.broadcastToDesktopOnly('clearPendingTransactions', null);
+
     return;
   };
 
