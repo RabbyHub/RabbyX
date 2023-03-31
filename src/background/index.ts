@@ -1,8 +1,10 @@
+/// <reference path="desktop-inject/type.d.ts" />
+
 import { groupBy } from 'lodash';
 import 'reflect-metadata';
 import * as Sentry from '@sentry/browser';
 import { Integrations } from '@sentry/tracing';
-import { browser } from 'webextension-polyfill-ts';
+import { browser, Runtime } from 'webextension-polyfill-ts';
 import { ethErrors } from 'eth-rpc-errors';
 import { WalletController } from 'background/controller/wallet';
 import { Message } from '@/utils';
@@ -38,6 +40,8 @@ import { setPopupIcon, wait } from './utils';
 import { getSentryEnv } from '@/utils/env';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 
+import './desktop-inject/bridge';
+
 dayjs.extend(utc);
 
 setPopupIcon('default');
@@ -50,7 +54,7 @@ Sentry.init({
   dsn:
     'https://e871ee64a51b4e8c91ea5fa50b67be6b@o460488.ingest.sentry.io/5831390',
   integrations: [new Integrations.BrowserTracing()],
-  release: process.env.release,
+  release: globalThis.rabbyDesktop.appVersion,
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
@@ -105,6 +109,8 @@ async function restoreAppState() {
   transactionWatchService.roll();
   initAppMeta();
   startEnableUser();
+
+  window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-initialized', Date.now());
 }
 
 restoreAppState();
@@ -175,12 +181,12 @@ restoreAppState();
   });
 }
 
-// for page provider
-browser.runtime.onConnect.addListener((port) => {
+const onConnectListner = async (port: Runtime.Port) => {
   if (
     port.name === 'popup' ||
     port.name === 'notification' ||
-    port.name === 'tab'
+    port.name === 'tab' ||
+    port.name === 'rabbyDesktop'
   ) {
     const pm = new PortMessage(port);
     pm.listen((data) => {
@@ -278,6 +284,16 @@ browser.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener((port) => {
     subscriptionManager.destroy();
   });
+}
+
+// for other extension's such as rabby desktop's shell
+browser.runtime.onConnectExternal.addListener(function(port) {
+  onConnectListner(port);
+});
+
+// for page provider
+browser.runtime.onConnect.addListener((port) => {
+  onConnectListner(port);
 });
 
 declare global {

@@ -42,9 +42,12 @@ import LogoTrust from 'ui/assets/walletlogo/trust.svg';
 import IconTrust from 'ui/assets/walletlogo/trust.svg';
 import LogoCoolWallet from 'ui/assets/walletlogo/coolwallet.svg';
 import IconWatchPurple from 'ui/assets/walletlogo/watch-purple.svg';
+import LogoWatch from 'ui/assets/walletlogo/watchlogo.svg';
 import IconWatchWhite from 'ui/assets/walletlogo/IconWatch-white.svg';
 import LogoDefiant from 'ui/assets/walletlogo/defiant.svg';
 import LogoDefiantWhite from 'ui/assets/walletlogo/defiant.svg';
+import LogoWalletConnect from 'ui/assets/walletlogo/walletconnect28.svg';
+import IconWalletConnect from 'ui/assets/walletlogo/walletconnect28.svg';
 
 export { CHAINS, CHAINS_ENUM };
 
@@ -174,14 +177,6 @@ export const GAS_LEVEL_TEXT = {
 };
 
 export const IS_WINDOWS = /windows/i.test(global.navigator?.userAgent);
-
-export const LANGS = [
-  {
-    value: 'en',
-    label: 'English',
-    icon: IconEN,
-  },
-];
 
 export const CHECK_METAMASK_INSTALLED_URL = {
   Chrome: 'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/phishing.html',
@@ -317,6 +312,7 @@ export enum WALLET_BRAND_TYPES {
   COOLWALLET = 'CoolWallet',
   DEFIANT = 'Defiant',
   AIRGAP = 'AirGap',
+  WalletConnect = 'WalletConnect',
 }
 
 enum WALLET_BRAND_CATEGORY {
@@ -329,8 +325,8 @@ export type IWalletBrandContent = {
   id: number;
   name: string;
   brand: WALLET_BRAND_TYPES;
-  icon: string;
-  image: string;
+  icon?: string;
+  image?: string;
   connectType: BRAND_WALLET_CONNECT_TYPE;
   category: WALLET_BRAND_CATEGORY;
 };
@@ -342,8 +338,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 0,
     name: 'Amber',
     brand: WALLET_BRAND_TYPES.AMBER,
-    icon: IconAmber,
-    image: LogoAmber,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -351,8 +345,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 10,
     name: 'BitBox02',
     brand: WALLET_BRAND_TYPES.BITBOX02,
-    icon: IconBitBox02,
-    image: IconBitBox02WithBorder,
     connectType: BRAND_WALLET_CONNECT_TYPE.BitBox02Connect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -360,8 +352,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 1,
     name: 'Cobo Wallet',
     brand: WALLET_BRAND_TYPES.COBO,
-    icon: IconCobo,
-    image: LogoCobo,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -369,8 +359,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 16,
     name: 'CoolWallet',
     brand: WALLET_BRAND_TYPES.COOLWALLET,
-    icon: LogoCoolWallet,
-    image: LogoCoolWallet,
     connectType: BRAND_WALLET_CONNECT_TYPE.QRCodeBase,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -378,8 +366,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 17,
     name: 'Defiant',
     brand: WALLET_BRAND_TYPES.DEFIANT,
-    icon: LogoDefiant,
-    image: LogoDefiantWhite,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -387,8 +373,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 11,
     name: 'FireBlocks',
     brand: WALLET_BRAND_TYPES.FIREBLOCKS,
-    icon: IconFireblocks,
-    image: IconFireblocksWithBorder,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -405,8 +389,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 12,
     name: 'GridPlus',
     brand: WALLET_BRAND_TYPES.GRIDPLUS,
-    icon: IconGridPlus,
-    image: IconGridPlus,
     connectType: BRAND_WALLET_CONNECT_TYPE.GridPlusConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -414,8 +396,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 2,
     name: 'imToken',
     brand: WALLET_BRAND_TYPES.IMTOKEN,
-    icon: IconImtoken,
-    image: LogoImtoken,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -423,8 +403,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 3,
     name: 'Jade Wallet',
     brand: WALLET_BRAND_TYPES.JADE,
-    icon: IconJade,
-    image: LogoJade,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.INSTITUTIONAL,
   },
@@ -432,8 +410,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 15,
     name: 'Keystone',
     brand: WALLET_BRAND_TYPES.KEYSTONE,
-    icon: LogoKeystone,
-    image: LogoKeystone,
     connectType: BRAND_WALLET_CONNECT_TYPE.QRCodeBase,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -441,8 +417,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 18,
     name: 'AirGap Vault',
     brand: WALLET_BRAND_TYPES.AIRGAP,
-    icon: LogoAirGap,
-    image: LogoAirGap,
     connectType: BRAND_WALLET_CONNECT_TYPE.QRCodeBase,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -450,8 +424,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 4,
     name: 'Ledger',
     brand: WALLET_BRAND_TYPES.LEDGER,
-    icon: LogoLedgerWhite,
-    image: LogoLedgerDark,
     connectType: BRAND_WALLET_CONNECT_TYPE.LedgerConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -459,8 +431,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 5,
     name: 'Math Wallet',
     brand: WALLET_BRAND_TYPES.MATHWALLET,
-    icon: IconMath,
-    image: LogoMath,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -468,8 +438,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 14,
     name: 'MetaMask Mobile',
     brand: WALLET_BRAND_TYPES.METAMASK,
-    icon: IconMetaMask,
-    image: IconMetaMask,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -477,8 +445,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 6,
     name: 'OneKey',
     brand: WALLET_BRAND_TYPES.ONEKEY,
-    icon: IconOnekey,
-    image: LogoOnekey,
     connectType: BRAND_WALLET_CONNECT_TYPE.OneKeyConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -486,8 +452,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 7,
     name: 'TokenPocket',
     brand: WALLET_BRAND_TYPES.TP,
-    icon: IconTokenpocket,
-    image: LogoTp,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -495,8 +459,6 @@ export const WALLET_BRAND_CONTENT: {
     id: 8,
     name: 'Trezor',
     brand: WALLET_BRAND_TYPES.TREZOR,
-    icon: IconTrezor,
-    image: LogoTrezor,
     connectType: BRAND_WALLET_CONNECT_TYPE.TrezorConnect,
     category: WALLET_BRAND_CATEGORY.HARDWARE,
   },
@@ -504,8 +466,15 @@ export const WALLET_BRAND_CONTENT: {
     id: 9,
     name: 'Trust Wallet',
     brand: WALLET_BRAND_TYPES.TRUSTWALLET,
-    icon: IconTrust,
-    image: LogoTrust,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  [WALLET_BRAND_TYPES.WalletConnect]: {
+    id: 100,
+    name: 'Wallet Connect',
+    brand: WALLET_BRAND_TYPES.WalletConnect,
+    icon: IconWalletConnect,
+    image: LogoWalletConnect,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -520,6 +489,7 @@ export const KEYRING_ICONS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const KEYRING_ICONS_WHITE = {
@@ -548,6 +518,7 @@ export const KEYRINGS_LOGOS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const NOT_CLOSE_UNFOCUS_LIST: string[] = [
