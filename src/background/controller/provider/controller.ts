@@ -601,6 +601,7 @@ class ProviderController extends BaseController {
           i18n.t('Transaction push failed'),
           errMsg
         );
+        sessionService.broadcastToDesktopOnly('transactionChanged', { type: 'push-failed', errMsg });
         transactionHistoryService.removeSigningTx(signingTxId!);
         throw new Error(errMsg);
       }
@@ -633,7 +634,7 @@ class ProviderController extends BaseController {
 
   @Reflect.metadata('SAFE', true)
   web3ClientVersion = () => {
-    return `Rabby/${process.env.release}`;
+    return `RabbyX/${globalThis.rabbyDesktop.appVersion}`;
   };
 
   @Reflect.metadata('APPROVAL', ['ETHSign', () => null, { height: 390 }])

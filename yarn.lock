@@ -1329,15 +1329,15 @@
   resolved "https://registry.yarnpkg.com/@ctrl/tinycolor/-/tinycolor-3.4.0.tgz#c3c5ae543c897caa9c2a68630bed355be5f9990f"
   integrity sha512-JZButFdZ1+/xAfpguQHoabIXkcqRRKpMrWKBkpEZZyxfY9C1DpADFB8PEqGSTeFr135SaTRfKqGKx5xSCLI7ZQ==
 
-"@debank/common@0.2.28":
+"@debank/common@^0.2.20", "@debank/common@^0.2.28":
   version "0.2.28"
   resolved "https://registry.yarnpkg.com/@debank/common/-/common-0.2.28.tgz#5a27c77aee4bd620cc861d39129320c4247d6c2c"
   integrity sha512-fN/bq5gDk+AQay5OS026zRWIWAYiPdP4Xf6Mk9cfUHTNSvRFLSIyNovhNT31dObCCPnyY1vJDC67PjJKAVnvgQ==
 
-"@debank/festats@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.0.tgz#0217ac76921a92aa9e31f6b7d33411d4c11eea11"
-  integrity sha512-MqCF4SJ04X5/vd5wfCPRyTLwPtJNzBrriSOv02Q+WRooOv97rSpl98NikN9IaUSFOJJBYpajJWeQda7CGPJpzw==
+"@debank/festats@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.3.tgz#68ea438d89f09de565d4d4336d82c29f6a0484a1"
+  integrity sha512-pANPwkNkqfxCBA9MUswRJsRplqgwSBZ5fXiUUfqioc64+lgzShuddSgAlyL0icShwvjM+5FtV4qqQBh2Gti8fw==
 
 "@debank/isomorphic@^0.3.1":
   version "0.3.1"
@@ -3548,7 +3548,7 @@
     typescript "^4.4.4"
     web3-core "^1.6.0"
 
-"@rabby-wallet/page-provider@^0.1.13":
+"@rabby-wallet/page-provider@^0.1.10":
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/@rabby-wallet/page-provider/-/page-provider-0.1.13.tgz#ccb80d0b89532005c25307f82ecb3fa4dde50ab6"
   integrity sha512-SO2ZuBNTiZYrMNWBqFEjH1flPDwsOV1+a/Nm7ZGxdw6gpsd2cmvz+X9eT1cXxT23PPTBRdz8tYRuCiZn309ojQ==
@@ -3564,12 +3564,12 @@
     sinon-chrome "^3.0.1"
     webextension-polyfill-ts "^0.26.0"
 
-"@rabby-wallet/rabby-swap@0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@rabby-wallet/rabby-swap/-/rabby-swap-0.0.12.tgz#510e4284b864161d6f194b8d1fa42075e73f34d9"
-  integrity sha512-kfw4froeEJqsyMRPq9mpsRw2rDkkDEcDM0THnP0HE26T6ljbIk34PFX0kSQ0j2g43CfU2UREugvFWcsNzXiTFw==
+"@rabby-wallet/rabby-swap@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@rabby-wallet/rabby-swap/-/rabby-swap-0.0.9.tgz#cca980189f47de50c448ad51cc95cfbe7f41c241"
+  integrity sha512-KTTyGkySHpTBAkR1JZX3J9BQycXl++1dyHvNjhQE3Zkz6fWG5n/PQq8kCmOjvF3q5h28g8DCaygluuNAHQnCsg==
   dependencies:
-    "@debank/common" "0.2.28"
+    "@debank/common" "^0.2.20"
     "@ethersproject/abi" "^5.7.0"
     axios "^0.27.2"
     web3-eth-abi "^1.8.1"
