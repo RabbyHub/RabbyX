@@ -399,7 +399,7 @@ export class WalletController extends BaseController {
         );
         unTriggerTxCounter.decrease();
       }
-      await this.sendRequest({
+      const tx = await this.sendRequest({
         $ctx:
           needApprove && pay_token_id !== chainObj.nativeTokenAddress
             ? {
@@ -422,7 +422,9 @@ export class WalletController extends BaseController {
           },
         ],
       });
+
       unTriggerTxCounter.decrease();
+      return tx;
     } catch (e) {
       unTriggerTxCounter.reset();
     }
