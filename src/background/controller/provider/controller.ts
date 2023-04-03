@@ -515,6 +515,7 @@ class ProviderController extends BaseController {
       try {
         validateGasPriceRange(approvalRes);
         let hash = '';
+
         if (RPCService.hasCustomRPC(chain)) {
           const txData: any = {
             ...approvalRes,
@@ -550,6 +551,15 @@ class ProviderController extends BaseController {
             traceId
           );
         }
+
+        const { r, s, v, ...other } = approvalRes;
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-tx',
+          ...other,
+          value: approvalRes.value || '0x0',
+          hash: hash,
+        });
+
         onTransactionSubmitted(hash);
         return hash;
       } catch (e: any) {
@@ -601,7 +611,10 @@ class ProviderController extends BaseController {
           i18n.t('Transaction push failed'),
           errMsg
         );
-        sessionService.broadcastToDesktopOnly('transactionChanged', { type: 'push-failed', errMsg });
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-failed',
+          errMsg,
+        });
         transactionHistoryService.removeSigningTx(signingTxId!);
         throw new Error(errMsg);
       }
