@@ -432,6 +432,14 @@ class ProviderController extends BaseController {
           });
         }
 
+        const { r, s, v, ...other } = approvalRes;
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-tx',
+          ...other,
+          value: approvalRes.value || '0x0',
+          hash: hash,
+        });
+
         stats.report('submitTransaction', {
           type: currentAccount.brandName,
           chainId: CHAINS[chain].serverId,
@@ -551,14 +559,6 @@ class ProviderController extends BaseController {
             traceId
           );
         }
-
-        const { r, s, v, ...other } = approvalRes;
-        sessionService.broadcastToDesktopOnly('transactionChanged', {
-          type: 'push-tx',
-          ...other,
-          value: approvalRes.value || '0x0',
-          hash: hash,
-        });
 
         onTransactionSubmitted(hash);
         return hash;
