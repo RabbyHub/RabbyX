@@ -30,5 +30,11 @@ interface Window {
                 ): (() => void) | undefined;
             };
         };
+        rendererHelpers: {
+            b64ToObjLink: (b64: string) => string;
+            bufToObjLink: (buf: Buffer | Uint8Array) => string;
+      
+            formatDappURLToShow: (dappURL: string) => string;
+        };
     };
 }

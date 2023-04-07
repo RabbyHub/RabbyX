@@ -8,6 +8,7 @@ import { useApproval, useWallet } from 'ui/utils';
 import { CHAINS_ENUM, CHAINS } from 'consts';
 import { ConnectDetect } from './ConnectDetect/ConnectDetect';
 import { useBodyClassNameOnMounted } from '@/ui/hooks/useClasses';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface ConnectProps {
   params: any;
@@ -112,7 +113,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
               <FallbackSiteLogo url={icon} origin={origin} width="44px" />
             </div>
             <div className="site-info__text">
-              <p className="text-15 font-medium">{origin}</p>
+              <p className="text-15 font-medium">{formatDappURLToShow(origin)}</p>
             </div>
           </div>
           <div className="site-chain">
@@ -125,7 +126,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
                   <div className="chain-selector-tips">
                     Select a chain to connect for
                   </div>
-                  <div className="chain-selector-site">{origin}</div>
+                  <div className="chain-selector-site">{formatDappURLToShow(origin)}</div>
                 </div>
               }
               value={defaultChain}
