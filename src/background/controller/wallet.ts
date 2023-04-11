@@ -350,7 +350,7 @@ export class WalletController extends BaseController {
       spender: string;
       pay_token_id: string;
       unlimited: boolean;
-      gasPrice: number;
+      gasPrice?: number;
       shouldTwoStepApprove: boolean;
     },
     $ctx?: any
@@ -360,9 +360,10 @@ export class WalletController extends BaseController {
     const chainObj = CHAINS[chain];
     if (!chainObj) throw new Error(`Can not find chain ${chain}`);
     try {
+      let approvalTxHash: string | undefined;
       if (shouldTwoStepApprove) {
         unTriggerTxCounter.increase(3);
-        await this.approveToken(
+        approvalTxHash = await this.approveToken(
           chainObj.serverId,
           pay_token_id,
           spender,
@@ -383,7 +384,7 @@ export class WalletController extends BaseController {
         if (!shouldTwoStepApprove) {
           unTriggerTxCounter.increase(2);
         }
-        await this.approveToken(
+        approvalTxHash = await this.approveToken(
           chainObj.serverId,
           pay_token_id,
           spender,
@@ -399,7 +400,10 @@ export class WalletController extends BaseController {
         );
         unTriggerTxCounter.decrease();
       }
-      const tx = await this.sendRequest({
+      if (approvalTxHash) {
+        return approvalTxHash;
+      }
+      const tx: string = await this.sendRequest({
         $ctx:
           needApprove && pay_token_id !== chainObj.nativeTokenAddress
             ? {
@@ -417,7 +421,9 @@ export class WalletController extends BaseController {
             data: quote.tx.data || '0x',
             value: `0x${new BigNumber(quote.tx.value || '0').toString(16)}`,
             chainId: chainObj.id,
-            gasPrice: `0x${new BigNumber(gasPrice).toString(16)}`,
+            gasPrice: gasPrice
+              ? `0x${new BigNumber(gasPrice).toString(16)}`
+              : undefined,
             isSwap: true,
           },
         ],
@@ -536,11 +542,12 @@ export class WalletController extends BaseController {
         ...extra,
       };
     }
-    await this.sendRequest({
+    const txHash: string = await this.sendRequest({
       $ctx,
       method: 'eth_sendTransaction',
       params: [tx],
     });
+    return txHash;
   };
 
   fetchEstimatedL1Fee = async (
