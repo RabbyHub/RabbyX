@@ -11,7 +11,7 @@ import { Integrations } from '@sentry/tracing';
 import i18n, { addResourceBundle } from 'src/i18n';
 import { EVENTS } from 'consts';
 
-import type { WalletControllerType } from 'ui/utils/WalletContext';
+import { WalletControllerType, WalletProvider } from 'ui/utils/WalletContext';
 
 import store from './store';
 
@@ -21,7 +21,12 @@ import { getSentryEnv } from '@/utils/env';
 Sentry.init({
   dsn:
     'https://e871ee64a51b4e8c91ea5fa50b67be6b@o460488.ingest.sentry.io/5831390',
-  release: process.env.release,
+  release: globalThis.rabbyDesktop.appVersion,
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
   environment: getSentryEnv(),
   ignoreErrors: [
     'ResizeObserver loop limit exceeded',
@@ -110,7 +115,9 @@ store.dispatch.app.initBizStore();
 
 ReactDOM.render(
   <Provider store={store}>
-    <Views wallet={wallet} />
+    <WalletProvider wallet={wallet as any}>
+      <Views />
+    </WalletProvider>
   </Provider>,
   document.getElementById('root')
 );

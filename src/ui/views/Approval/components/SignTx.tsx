@@ -66,6 +66,7 @@ import { useLedgerDeviceConnected } from '@/utils/ledger';
 import { TransactionGroup } from 'background/service/transactionHistory';
 import { intToHex } from 'ui/utils/number';
 import { calcMaxPriorityFee } from '@/utils/transaction';
+import { genMintRabbyTxDetail } from '@/constant/mint-rabby/gen-tx-detail';
 
 const normalizeHex = (value: string | number) => {
   if (typeof value === 'number') {
@@ -111,7 +112,7 @@ const normalizeTxParams = (tx) => {
 };
 
 export const TxTypeComponent = ({
-  txDetail,
+  txDetail: oldTxDetail,
   chain = CHAINS[CHAINS_ENUM.ETH],
   isReady,
   raw,
@@ -128,6 +129,10 @@ export const TxTypeComponent = ({
   isSpeedUp: boolean;
 }) => {
   if (!isReady) return <Loading chainEnum={chain.enum} />;
+
+  const txDetail = useMemo(() => genMintRabbyTxDetail(oldTxDetail), [
+    oldTxDetail,
+  ]);
 
   if (txDetail.type_deploy_contract)
     return (
@@ -1387,7 +1392,9 @@ const SignTx = ({ params, origin }: SignTxProps) => {
           <img src={IconWatch} alt="" className="w-[24px] flex-shrink-0" />
           <div>
             You can't sign with a watch-only address from contacts. To sign,
-            you'll need to{' '}
+            you'll need to use a different address.
+            {/* Unable to sign because the current address is a Watch-only Address
+            from Contacts. You can{' '}
             <a
               href=""
               className="underline"
@@ -1399,7 +1406,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
             >
               import it
             </a>{' '}
-            fully or use a different address.
+            fully or use another address. */}
           </div>
         </div>
       );
@@ -1757,6 +1764,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                         <div>
                           <Button
                             type="primary"
+                            ghost={false}
                             size="large"
                             className="w-[172px]"
                             onClick={() => handleAllow()}
@@ -1772,16 +1780,20 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                         size="large"
                         className="w-[172px]"
                         onClick={() => handleAllow(forceProcess)}
-                        disabled={
-                          !isReady ||
-                          (selectedGas ? selectedGas.price < 0 : true) ||
-                          (isGnosisAccount ? !safeInfo : false) ||
-                          (isLedger &&
-                            !useLedgerLive &&
-                            !hasConnectedLedgerHID) ||
-                          !forceProcess ||
-                          securityCheckStatus === 'loading'
-                        }
+                        {...(!isReady ||
+                        (selectedGas ? selectedGas.price < 0 : true) ||
+                        (isGnosisAccount ? !safeInfo : false) ||
+                        (isLedger &&
+                          !useLedgerLive &&
+                          !hasConnectedLedgerHID) ||
+                        !forceProcess ||
+                        securityCheckStatus === 'loading'
+                          ? {
+                              disabled: true,
+                            }
+                          : {
+                              ghost: true,
+                            })}
                         loading={isGnosisAccount ? !safeInfo : false}
                       >
                         {t(submitText)}

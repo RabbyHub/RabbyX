@@ -292,7 +292,6 @@ export default ({
       // 'queue',
       'transactions',
       'dapps',
-      'security',
       'address',
       'settings',
     ];
@@ -304,7 +303,6 @@ export default ({
       'gasTopUp',
       'transactions',
       'dapps',
-      'security',
       'address',
       'settings',
     ];
