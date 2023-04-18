@@ -251,7 +251,7 @@ const Settings = ({ visible, onClose }: SettingsProps) => {
         ? 'Once enabled, you can only send assets to the addresses in the whitelist using Rabby.'
         : 'You can send assets to any address once disabled',
       validationHandler: async (password: string) =>
-        await wallet.toggleWhitelist(password, value),
+        await wallet.toggleWhitelist(value),
       onFinished() {
         setWhitelistEnable(value);
         message.success({
@@ -287,7 +287,7 @@ const Settings = ({ visible, onClose }: SettingsProps) => {
   const { value: hasNewVersion = false } = useAsync(async () => {
     const data = await wallet.openapi.getLatestVersion();
 
-    return semver(process.env.release || '0.0.0', data.version_tag) === -1;
+    return semver(globalThis.rabbyDesktop.appVersion || '0.0.0', data.version_tag) === -1;
   });
 
   const updateVersionClassName = useCss({
