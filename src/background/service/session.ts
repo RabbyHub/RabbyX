@@ -1,5 +1,6 @@
 import { permissionService } from 'background/service';
 import PortMessage from '@/utils/message/portMessage';
+import RabbyXPortMessage from '@/utils/message/RabbyxPortMessage';
 
 export interface SessionProp {
   origin: string;
@@ -15,12 +16,7 @@ export class Session {
   name = '';
 
   pm: PortMessage | null = null;
-
-  pushMessage(event, data) {
-    if (this.pm) {
-      this.pm.send('message', { event, data });
-    }
-  }
+  rpm: RabbyXPortMessage | null = null;
 
   constructor(data?: SessionProp | null) {
     if (data) {
@@ -30,6 +26,18 @@ export class Session {
 
   setPortMessage(pm: PortMessage) {
     this.pm = pm;
+  }
+
+  pushMessage(event: string, data: any, origin?: string) {
+    this.pm?.send('message', { event, data, origin });
+  }
+
+  setRabbyXPortMessage(rpm: RabbyXPortMessage) {
+    this.rpm = rpm;
+  }
+
+  pushRabbyXMessage(event: string, data: any, origin?: string) {
+    this.rpm?.send('message', { event, data, origin });
   }
 
   setProp({ origin, icon, name }: SessionProp) {
@@ -70,11 +78,18 @@ const deleteSession = (key: string) => {
   sessionMap.delete(key);
 };
 
-const broadcastToDesktopOnly = (ev: string, data?: any, origin?: string) => {
+const broadcastToDesktopOnly = (event: string, data?: any, origin?: string) => {
+  sessionMap.forEach((session, key) => {
+    if (!session?.rpm) return ;
+
+    session?.pushRabbyXMessage?.(event, data, origin);
+  });
+
+  // deprecated pattern, never rely on this
   window.rabbyDesktop?.ipcRenderer.sendMessage(
     '__internal_rpc:rabbyx:on-session-broadcast',
     {
-      event: ev,
+      event,
       data,
       origin,
     }
@@ -100,7 +115,7 @@ const broadcastEvent = (ev: string, data?: any, origin?: string) => {
 
   sessions.forEach((session) => {
     try {
-      session.data.pushMessage?.(ev, data);
+      session.data.pushMessage?.(ev, data, origin);
     } catch (e) {
       if (sessionMap.has(session.key)) {
         deleteSession(session.key);

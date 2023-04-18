@@ -47,7 +47,7 @@ dayjs.extend(utc);
 
 setPopupIcon('default');
 
-const { PortMessage } = Message;
+const { PortMessage, RabbyXPortMessage } = Message;
 
 let appStoreLoaded = false;
 
@@ -290,9 +290,49 @@ const onConnectListner = async (port: Runtime.Port) => {
   });
 }
 
+const onConnectRabbyXMessage = async (port: Runtime.Port) => {
+  if (port.name !== 'rabbyxToDesktop') {
+    console.error(`port name ${port.name} is not supported`);
+    return ;
+  }
+
+  const rpm = new RabbyXPortMessage(port);
+
+  // const boardcastToDesktopCallback = (data: any) => {
+  //   rpm.request({
+  //     type: 'broadcastToDesktop',
+  //     method: data.method,
+  //     params: data.params,
+  //   });
+  // };
+  // eventBus.addEventListener(EVENTS.broadcastToDesktopUI, boardcastToDesktopCallback);
+  // port.onDisconnect.addListener(() => {
+  //   eventBus.removeEventListener(EVENTS.broadcastToDesktopUI, boardcastToDesktopCallback);
+  // });
+  
+  rpm.listen(async (data) => {
+    if (!appStoreLoaded) {
+      throw ethErrors.provider.disconnected();
+    }
+
+    const sessionId = port.sender?.tab?.id;
+    if (sessionId === undefined || !port.sender?.url) {
+      return;
+    }
+    const origin = (port.sender as any).origin || getOriginFromUrl(port.sender.url);
+    const session = sessionService.getOrCreateSession(sessionId, origin);
+    // for background push to rabby desktop's page
+    session!.setRabbyXPortMessage(rpm);
+  });
+};
+
 // for other extension's such as rabby desktop's shell
 browser.runtime.onConnectExternal.addListener(function(port) {
-  onConnectListner(port);
+  if (port.name === 'rabbyxToDesktop') {
+    onConnectRabbyXMessage(port);
+  } else {
+    onConnectListner(port);
+  }
 });
 
 // for page provider

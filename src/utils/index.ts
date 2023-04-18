@@ -5,10 +5,12 @@ import { ledgerUSBVendorId } from '@ledgerhq/devices';
 
 import BroadcastChannelMessage from './message/broadcastChannelMessage';
 import PortMessage from './message/portMessage';
+import RabbyXPortMessage from './message/RabbyxPortMessage';
 
 const Message = {
   BroadcastChannelMessage,
   PortMessage,
+  RabbyXPortMessage,
 };
 
 declare global {

@@ -1,5 +1,12 @@
+type RabbyXEvent = {
+    event: string;
+    data?: any;
+    origin?: string;
+};
+
 interface Window {
     rabbyDesktop: {
+        readonly appVersion: string;
         ipcRenderer: {
             sendMessage<T extends string>(
                 channel: T,
