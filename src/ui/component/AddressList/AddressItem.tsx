@@ -13,11 +13,13 @@ import { Account } from 'background/service/preference';
 import { useWallet } from 'ui/utils';
 import { AddressViewer, Copy } from 'ui/component';
 import {
-  KEYRING_ICONS,
   WALLET_BRAND_CONTENT,
   KEYRING_TYPE_TEXT,
   BRAND_ALIAN_TYPE_TEXT,
 } from 'consts';
+import {
+  KEYRING_ICONS,
+} from 'ui/assets-const';
 import IconEditPen from 'ui/assets/editpen.svg';
 import IconCorrect from 'ui/assets/dashboard/contacts/correct.png';
 
