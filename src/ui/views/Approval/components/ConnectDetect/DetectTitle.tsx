@@ -1,4 +1,5 @@
 import { FallbackSiteLogo } from '@/ui/component';
+import { formatDappURLToShow } from '@/ui/utils/url';
 import clsx from 'clsx';
 import React from 'react';
 import { ConnectDetectProps, TYPE_VISIBLE_DECISIONS } from './ConnectDetect';
@@ -31,7 +32,7 @@ export const DetectTitle: React.FC<DetectTitleProps> = ({
 
       <div className="inline-flex mt-6 px-8 py-6 bg-[#00000010] text-white text-13 leading-[1.15] rounded-sm">
         <FallbackSiteLogo url={icon} origin={origin} width="15px" />
-        <div className="ml-6">{origin}</div>
+        <div className="ml-6">{formatDappURLToShow(origin)}</div>
       </div>
     </div>
   );
