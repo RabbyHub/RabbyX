@@ -7,6 +7,8 @@ import { ChainSelector, Spin, FallbackSiteLogo } from 'ui/component';
 import { useApproval, useWallet } from 'ui/utils';
 import { CHAINS_ENUM, CHAINS } from 'consts';
 import { ConnectDetect } from './ConnectDetect/ConnectDetect';
+import { useBodyClassNameOnMounted } from '@/ui/hooks/useClasses';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface ConnectProps {
   params: any;
@@ -25,6 +27,8 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
   const wallet = useWallet();
   const [defaultChain, setDefaultChain] = useState(CHAINS_ENUM.ETH);
   const [isLoading, setIsLoading] = useState(true);
+
+  useBodyClassNameOnMounted(['__rabbyx-approval-connect']);
 
   const init = async () => {
     const account = await wallet.getCurrentAccount();
@@ -109,11 +113,11 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
               <FallbackSiteLogo url={icon} origin={origin} width="44px" />
             </div>
             <div className="site-info__text">
-              <p className="text-15 font-medium">{origin}</p>
+              <p className="text-15 font-medium">{formatDappURLToShow(origin)}</p>
             </div>
           </div>
           <div className="site-chain">
-            <p className="mb-0 text-12 text-gray-content">
+            <p className="mb-0 text-12">
               {t('On this site use chain')}
             </p>
             <ChainSelector
@@ -122,7 +126,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
                   <div className="chain-selector-tips">
                     Select a chain to connect for
                   </div>
-                  <div className="chain-selector-site">{origin}</div>
+                  <div className="chain-selector-site">{formatDappURLToShow(origin)}</div>
                 </div>
               }
               value={defaultChain}
@@ -135,10 +139,11 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
       </div>
 
       <footer className="connect-footer">
-        <div className="action-buttons flex justify-between mt-4">
+        <div className="action-buttons flex justify-center mt-4">
           <Button
             type="primary"
             size="large"
+            ghost
             className="w-[172px]"
             onClick={handleCancel}
           >
@@ -147,7 +152,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
           <Button
             type="primary"
             size="large"
-            className="w-[172px]"
+            className="w-[172px] ml-[16px]"
             onClick={() => handleAllow()}
           >
             {t('Connect')}
