@@ -173,14 +173,6 @@ export const GAS_LEVEL_TEXT = {
 
 export const IS_WINDOWS = /windows/i.test(global.navigator?.userAgent);
 
-export const LANGS = [
-  {
-    value: 'en',
-    label: 'English',
-    icon: IconEN,
-  },
-];
-
 export const CHECK_METAMASK_INSTALLED_URL = {
   Chrome: 'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/phishing.html',
   Firefox: '',
@@ -525,6 +517,15 @@ export const WALLET_BRAND_CONTENT: {
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
+  [WALLET_BRAND_TYPES.WALLETCONNECT]: {
+    id: 100,
+    name: 'Wallet Connect',
+    brand: WALLET_BRAND_TYPES.WALLETCONNECT,
+    icon: LogoWalletConnect,
+    image: LogoWalletConnect,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
 };
 
 export const KEYRING_ICONS = {
@@ -536,6 +537,7 @@ export const KEYRING_ICONS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const KEYRING_ICONS_WHITE = {
@@ -564,6 +566,7 @@ export const KEYRINGS_LOGOS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const NOT_CLOSE_UNFOCUS_LIST: string[] = [
