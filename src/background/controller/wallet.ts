@@ -74,6 +74,7 @@ import transactionWatcher from '../service/transactionWatcher';
 import { getMintRabbyContractAddress } from '@/constant/mint-rabby/mint-rabby-abi';
 import { initMintRabbyContract } from './mint-rabby';
 import { validateConfirmation } from './safe';
+import { getEnsContentHash } from './ens';
 
 const stashKeyrings: Record<string | number, any> = {};
 
@@ -2468,6 +2469,8 @@ export class WalletController extends BaseController {
 
     return result;
   };
+
+  getEnsContentHash = getEnsContentHash;
 
   validateSafeConfirmation = validateConfirmation;
 }
