@@ -438,6 +438,7 @@ class ProviderController extends BaseController {
           ...other,
           value: approvalRes.value || '0x0',
           hash: hash,
+          chain,
         });
 
         stats.report('submitTransaction', {
