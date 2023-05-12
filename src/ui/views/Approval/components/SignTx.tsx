@@ -1759,7 +1759,6 @@ const SignTx = ({ params, origin }: SignTxProps) => {
                   )}
 
                   <FooterBar
-                    gnosisAccount={isGnosis ? account : undefined}
                     chain={chain}
                     onCancel={handleCancel}
                     onSubmit={() => handleAllow(forceProcess)}

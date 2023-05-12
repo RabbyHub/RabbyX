@@ -202,7 +202,7 @@ const QRHardWareWaiting = ({ params }) => {
       return 'SUBMITTING';
     }
     if (status === QRHARDWARE_STATUS.DONE) {
-      setContent('Signature completed');
+      setContent('Transaction submitted');
       return 'RESOLVED';
     }
     if ([QRHARDWARE_STATUS.SIGN, QRHARDWARE_STATUS.SYNC].includes(status)) {

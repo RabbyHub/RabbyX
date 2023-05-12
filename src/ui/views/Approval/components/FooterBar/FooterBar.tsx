@@ -8,16 +8,14 @@ import { Chain } from '@debank/common';
 
 interface Props extends Omit<ActionGroupProps, 'account'> {
   chain?: Chain;
-  gnosisAccount?: Account;
 }
 
-export const FooterBar: React.FC<Props> = ({ gnosisAccount, ...props }) => {
+export const FooterBar: React.FC<Props> = (props) => {
   const [account, setAccount] = React.useState<Account>();
   const wallet = useWallet();
 
   const init = async () => {
-    const currentAccount =
-      gnosisAccount || (await wallet.syncGetCurrentAccount());
+    const currentAccount = await wallet.syncGetCurrentAccount();
     if (currentAccount) setAccount(currentAccount);
   };
 
