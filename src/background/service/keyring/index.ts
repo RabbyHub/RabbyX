@@ -955,12 +955,6 @@ export class KeyringService extends EventEmitter {
     return addrs.map(normalizeAddress);
   }
 
-  resetResend() {
-    this.keyrings.forEach((keyring) => {
-      keyring?.resetResend?.();
-    });
-  }
-
   /**
    * Get Keyring For Account
    *

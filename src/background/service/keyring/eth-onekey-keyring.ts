@@ -88,10 +88,6 @@ class OneKeyKeyring extends EventEmitter {
     this.signHelper.resend();
   }
 
-  resetResend() {
-    this.signHelper.resetResend();
-  }
-
   unlock(): Promise<string> {
     if (this.isUnlocked()) {
       return Promise.resolve('already unlocked');
@@ -376,9 +372,7 @@ class OneKeyKeyring extends EventEmitter {
 
   signTypedData_v1(address, typedData, opts = {}) {
     // Waiting on trezor to enable this
-    return this.signHelper.invoke(async () => {
-      throw new Error('Not supported on this device');
-    });
+    return Promise.reject(new Error('Not supported on this device'));
   }
 
   // personal_signTypedData, signs data along with the schema

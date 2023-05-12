@@ -511,7 +511,6 @@ const SignTypedData = ({ params }: { params: SignTypedDataProps }) => {
         <ProcessTooltip>{cantProcessReason}</ProcessTooltip>
 
         <FooterBar
-          gnosisAccount={isGnosis ? account : undefined}
           onCancel={handleCancel}
           onSubmit={() => handleAllow(forceProcess)}
           enableTooltip={isWatch}
