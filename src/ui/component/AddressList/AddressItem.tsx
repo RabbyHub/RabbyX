@@ -20,7 +20,6 @@ import {
 } from 'consts';
 import IconEditPen from 'ui/assets/editpen.svg';
 import IconCorrect from 'ui/assets/dashboard/contacts/correct.png';
-import { useDebounce } from 'react-use';
 
 export interface AddressItemProps {
   account: {
@@ -54,8 +53,6 @@ export interface AddressItemProps {
   canEditing?(editing: boolean): void;
   stopEditing?: boolean;
   retriveAlianName?(): void;
-  ellipsis?: boolean;
-  showEditIcon?: boolean;
 }
 
 const AddressItem = memo(
@@ -77,8 +74,6 @@ const AddressItem = memo(
         canEditing,
         stopEditing = false,
         retriveAlianName,
-        ellipsis = true,
-        showEditIcon = true,
       }: AddressItemProps,
       ref
     ) => {
@@ -123,7 +118,6 @@ const AddressItem = memo(
 
       const alianNameConfirm = async (e?) => {
         e && e.stopPropagation();
-
         if (!alianName || alianName.trim() === '') {
           return;
         }
@@ -138,16 +132,6 @@ const AddressItem = memo(
       useImperativeHandle(ref, () => ({
         alianNameConfirm,
       }));
-
-      useDebounce(
-        () => {
-          if (!showEditIcon) {
-            alianNameConfirm();
-          }
-        },
-        200,
-        [alianName, showEditIcon]
-      );
 
       const updateAlianName = async (alianName) => {
         await wallet.updateAlianName(
@@ -237,7 +221,7 @@ const AddressItem = memo(
                       onClick={inputName}
                     />
                   )}
-                  {!stopEditing && editing && showEditIcon && (
+                  {!stopEditing && editing && (
                     <img
                       className="edit-name w-[16px] h-[16px]"
                       src={IconCorrect}
@@ -258,7 +242,6 @@ const AddressItem = memo(
                       : 'import-color flex'
                   }
                   showIndex={showIndex}
-                  ellipsis={ellipsis}
                 />
                 <Copy
                   variant="address"

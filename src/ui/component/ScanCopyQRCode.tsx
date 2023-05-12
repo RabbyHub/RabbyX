@@ -11,9 +11,6 @@ import IconBridgeChange from 'ui/assets/bridgechange.svg';
 import IconQRCodeRefresh from 'ui/assets/qrcoderefresh.svg';
 import IconCopy from 'ui/assets/urlcopy.svg';
 import IconRefresh from 'ui/assets/urlrefresh.svg';
-import { ConnectStatus } from './WalletConnect/ConnectStatus';
-import { useSessionStatus } from './WalletConnect/useSessionStatus';
-import { Account } from '@/background/service/preference';
 
 interface Props {
   showURL: boolean;
@@ -24,8 +21,6 @@ interface Props {
   bridgeURL: string;
   defaultBridge: string;
   canChangeBridge?: boolean;
-  brandName?: string;
-  account?: Account;
 }
 const ScanCopyQRCode: React.FC<Props> = ({
   showURL = false,
@@ -36,21 +31,14 @@ const ScanCopyQRCode: React.FC<Props> = ({
   bridgeURL,
   defaultBridge,
   canChangeBridge = true,
-  brandName,
-  account,
 }) => {
-  // Disable hover
-  // const [isHovering, hoverProps] = useHover();
-  const isHovering = false;
-  const hoverProps = {};
+  const [isHovering, hoverProps] = useHover();
   const { t } = useTranslation();
   const [copySuccess, setCopySuccess] = useState(false);
   const [showOpenApiModal, setShowOpenApiModal] = useState(false);
-  const { status } = useSessionStatus(account);
-  const rootRef = React.useRef<HTMLDivElement>(null);
 
   const handleCopyCurrentAddress = () => {
-    const clipboard = new ClipboardJS(rootRef.current!, {
+    const clipboard = new ClipboardJS('.wallet-connect', {
       text: function () {
         return qrcodeURL;
       },
@@ -75,16 +63,9 @@ const ScanCopyQRCode: React.FC<Props> = ({
     setShowOpenApiModal(false);
   };
 
-  React.useEffect(() => {
-    // refresh when status is not connected
-    if (status && status !== 'CONNECTED') {
-      refreshFun();
-    }
-  }, [status]);
-
   return (
-    <div ref={rootRef}>
-      <div className="button-container mt-32 mb-24">
+    <div>
+      <div className="button-container mt-28 mb-16">
         <div
           className={clsx('cursor-pointer', { active: !showURL })}
           onClick={() => changeShowURL(false)}
@@ -99,7 +80,7 @@ const ScanCopyQRCode: React.FC<Props> = ({
         </div>
       </div>
       {!showURL && (
-        <div className="qrcode mb-0" {...hoverProps}>
+        <div className="qrcode cursor-pointer mb-0" {...hoverProps}>
           <QRCode value={qrcodeURL} size={170} />
           {isHovering && (
             <div className="refresh-container">
@@ -136,7 +117,9 @@ const ScanCopyQRCode: React.FC<Props> = ({
           />
         </div>
       )}
-
+      <div className="text-12 text-gray-content text-center mb-24 mt-12">
+        WalletConnect will be unstable if you use VPN.
+      </div>
       {canChangeBridge && (
         <div
           className="change-bridge"
@@ -153,7 +136,6 @@ const ScanCopyQRCode: React.FC<Props> = ({
         onChange={handleBridgeServerChange}
         onCancel={() => setShowOpenApiModal(false)}
       />
-      <ConnectStatus account={account} uri={qrcodeURL} brandName={brandName} />
     </div>
   );
 };

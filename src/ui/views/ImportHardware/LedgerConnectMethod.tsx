@@ -49,9 +49,8 @@ const LedgerConnectMethod = () => {
     >
       <div className="w-[300px]">
         <ul>
-          <li>Plug in a single Ledger</li>
-          <li>Enter pin to unlock</li>
-          <li>Open Ethereum App</li>
+          <li>1. Plug your Ledger wallet into your computer</li>
+          <li>2. Unlock Ledger and open the Ethereum app</li>
         </ul>
         <img src="/images/ledger-plug.png" className="ledger-plug" />
       </div>
