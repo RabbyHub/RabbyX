@@ -8,7 +8,7 @@ import { openInternalPageInTab, useWallet } from 'ui/utils';
 import { useHistory } from 'react-router-dom';
 import { Form } from 'antd';
 
-const Reader = ({ requestId, setErrorMessage, brandName, onScan }) => {
+const Reader = ({ requestId, setErrorMessage, address }) => {
   const { t } = useTranslation();
   const decoder = useRef(new URDecoder());
   const wallet = useWallet();
@@ -24,13 +24,11 @@ const Reader = ({ requestId, setErrorMessage, brandName, onScan }) => {
         const buffer = ethSignature.getRequestId();
         const signId = uuid.stringify(buffer);
         if (signId === requestId) {
-          onScan(ur.cbor.toString('hex'));
-          // return await wallet.submitQRHardwareSignature(
-          //   signId,
-          //   ur.cbor.toString('hex'),
-          //   address
-          // );
-          return;
+          return await wallet.submitQRHardwareSignature(
+            signId,
+            ur.cbor.toString('hex'),
+            address
+          );
         }
         setErrorMessage(t('KesytoneMismatchedSignId'));
       } else {
@@ -49,20 +47,12 @@ const Reader = ({ requestId, setErrorMessage, brandName, onScan }) => {
   };
 
   return (
-    <div>
-      <div className="p-[10px] border border-gray-divider rounded-[8px] m-auto w-[222px] h-[222px]">
-        <QRCodeReader
-          width={200}
-          height={200}
-          onSuccess={handleSuccess}
-          onError={handleError}
-        />
-      </div>
-      <p className="text-13 leading-[18px] mb-0 mt-24 text-gray-subTitle font-medium text-center">
-        After signing, place the QR code on {brandName} in front of your PC
-        camera
-      </p>
-    </div>
+    <QRCodeReader
+      width={250}
+      height={250}
+      onSuccess={handleSuccess}
+      onError={handleError}
+    />
   );
 };
 

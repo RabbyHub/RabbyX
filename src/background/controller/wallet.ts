@@ -1314,81 +1314,23 @@ export class WalletController extends BaseController {
 
   getWalletConnectStatus = (address: string, brandName: string) => {
     const keyringType = KEYRING_CLASS.WALLETCONNECT;
-    try {
-      const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
-      if (keyring) {
-        return keyring.getConnectorStatus(address, brandName);
-      }
-    } catch (e) {
-      // ignore
-    }
-    return null;
-  };
-
-  resendWalletConnect = () => {
-    const keyringType = KEYRING_CLASS.WALLETCONNECT;
     const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
     if (keyring) {
-      return keyring.resend();
+      return keyring.getConnectorStatus(address, brandName);
     }
     return null;
   };
 
-  getWalletConnectSessionStatus = (address: string, brandName: string) => {
-    const keyringType = KEYRING_CLASS.WALLETCONNECT;
-    try {
-      const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
-      if (keyring) {
-        return keyring.getSessionStatus(address, brandName);
-      }
-    } catch (e) {
-      // ignore
-    }
-    return null;
-  };
-
-  getWalletConnectSessionNetworkDelay = (
-    address: string,
-    brandName: string
-  ) => {
-    const keyringType = KEYRING_CLASS.WALLETCONNECT;
-    const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
-    if (keyring) {
-      return keyring.getSessionNetworkDelay(address, brandName);
-    }
-    return null;
-  };
-
-  getWalletConnectSessionAccount = (address: string, brandName: string) => {
-    const keyringType = KEYRING_CLASS.WALLETCONNECT;
-    try {
-      const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
-      if (keyring) {
-        return keyring.getSessionAccount(address, brandName);
-      }
-    } catch (e) {
-      // ignore
-    }
-    return null;
-  };
-
-  initWalletConnect = async (brandName: string, curStashId?: number | null) => {
+  initWalletConnect = async (brandName: string, bridge?: string) => {
     let keyring: WalletConnectKeyring, isNewKey;
     const keyringType = KEYRING_CLASS.WALLETCONNECT;
     try {
-      if (curStashId !== null && curStashId !== undefined) {
-        keyring = stashKeyrings[curStashId];
-        isNewKey = false;
-      } else {
-        keyring = this._getKeyringByType(keyringType);
-      }
+      keyring = this._getKeyringByType(keyringType);
     } catch {
       const WalletConnect = keyringService.getKeyringClassForType(keyringType);
       keyring = new WalletConnect({
         accounts: [],
         brandName: brandName,
-        // 1h
-        maxDuration: 3600000,
         clientMeta: {
           description: i18n.t('appDescription'),
           url: 'https://rabby.io',
@@ -1398,8 +1340,8 @@ export class WalletController extends BaseController {
       });
       isNewKey = true;
     }
-    const { uri } = await keyring.initConnector(brandName);
-    let stashId = curStashId;
+    const { uri } = await keyring.initConnector(brandName, bridge);
+    let stashId: null | number = null;
     if (isNewKey) {
       stashId = this.addKeyringToStash(keyring);
       eventBus.addEventListener(
@@ -1429,25 +1371,6 @@ export class WalletController extends BaseController {
         if (!preferenceService.getPopupOpen()) {
           setPageStateCacheWhenPopupClose(data);
         }
-      });
-
-      keyring.on('sessionStatusChange', (data) => {
-        eventBus.emit(EVENTS.broadcastToUI, {
-          method: EVENTS.WALLETCONNECT.SESSION_STATUS_CHANGED,
-          params: data,
-        });
-      });
-      keyring.on('sessionAccountChange', (data) => {
-        eventBus.emit(EVENTS.broadcastToUI, {
-          method: EVENTS.WALLETCONNECT.SESSION_ACCOUNT_CHANGED,
-          params: data,
-        });
-      });
-      keyring.on('sessionNetworkDelay', (data) => {
-        eventBus.emit(EVENTS.broadcastToUI, {
-          method: EVENTS.WALLETCONNECT.SESSION_NETWORK_DELAY,
-          params: data,
-        });
       });
     }
     return {
@@ -1490,46 +1413,23 @@ export class WalletController extends BaseController {
     return [];
   };
 
-  killWalletConnectConnector = async (
-    address: string,
-    brandName: string,
-    resetConnect: boolean,
-    silent?: boolean
-  ) => {
+  killWalletConnectConnector = async (address: string, brandName: string) => {
     const keyringType = KEYRING_CLASS.WALLETCONNECT;
     const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
     if (keyring) {
       const connector =
         keyring.connectors[`${brandName}-${address.toLowerCase()}`];
       if (connector) {
-        await keyring.closeConnector(
-          connector.connector,
-          address,
-          brandName,
-          silent
-        );
-        // reset onAfterConnect
-        if (resetConnect) keyring.onAfterConnect = null;
+        await keyring.closeConnector(connector.connector, address, brandName);
       }
     }
-  };
-
-  getCommonWalletConnectInfo = (address: string) => {
-    const keyringType = KEYRING_CLASS.WALLETCONNECT;
-    const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
-    if (keyring) {
-      return keyring.getCommonWalletConnectInfo(address);
-    }
-    return;
   };
 
   importWalletConnect = async (
     address: string,
     brandName: string,
     bridge?: string,
-    stashId?: number,
-    realBrandName?: string,
-    realBrandUrl?: string
+    stashId?: number
   ) => {
     let keyring: WalletConnectKeyring, isNewKey;
     const keyringType = KEYRING_CLASS.WALLETCONNECT;
@@ -1552,8 +1452,6 @@ export class WalletController extends BaseController {
       address,
       brandName,
       bridge,
-      realBrandName,
-      realBrandUrl,
     });
 
     if (isNewKey) {
@@ -1563,15 +1461,6 @@ export class WalletController extends BaseController {
     await keyringService.addNewAccount(keyring);
     this.clearPageStateCache();
     return this._setCurrentAccountFromKeyring(keyring, -1);
-  };
-
-  gridPlusIsConnect = () => {
-    const keyringType = KEYRING_CLASS.HARDWARE.GRIDPLUS;
-    const keyring = this._getKeyringByType(keyringType);
-    if (keyring) {
-      return keyring.isUnlocked();
-    }
-    return null;
   };
 
   getPrivateKey = async (

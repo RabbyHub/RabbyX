@@ -7,11 +7,8 @@ import { IExtractFromPromise } from '@/ui/utils/type';
 import * as ApprovalComponent from './components';
 
 import './style.less';
-import clsx from 'clsx';
 
-const Approval: React.FC<{
-  className?: string;
-}> = ({ className }) => {
+const Approval = () => {
   const history = useHistory();
   // const [account, setAccount] = useState('');
   const wallet = useWallet();
@@ -56,7 +53,7 @@ const Approval: React.FC<{
   const CurrentApprovalComponent = ApprovalComponent[approvalComponent];
 
   return (
-    <div className={clsx('approval', className)}>
+    <div className="approval">
       {approval && (
         <CurrentApprovalComponent
           params={params}
