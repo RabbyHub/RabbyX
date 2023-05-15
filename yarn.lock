@@ -1372,7 +1372,7 @@
     lodash "^4.17.21"
     qss "^2.0.3"
 
-"@debank/rabby-api@^0.5.28":
+"@debank/rabby-api@^0.5.31":
   version "0.5.31"
   resolved "https://registry.yarnpkg.com/@debank/rabby-api/-/rabby-api-0.5.31.tgz#c541d0bd3dc13bc065e29b60926067644ed232a9"
   integrity sha512-LnA4hZ7SlcIcFXlvWRmm9piSVckB0D2yZ/Lep9dTSd7hbJShBwHerprihJbbHpEx82rNS9s94XrJqhNWecFRxw==
