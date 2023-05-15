@@ -68,7 +68,6 @@ class SecurityEngineService {
     });
     this.rules = mergeRules(defaultRules, storage.rules);
     this.store = storage || this.store;
-    // @ts-expect-error
     this.engine = new Engine(this.rules, openapiService);
   };
 
