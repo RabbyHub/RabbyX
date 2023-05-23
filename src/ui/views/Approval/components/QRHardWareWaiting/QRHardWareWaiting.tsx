@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import stats from '@/stats';
 import Player from './Player';
 import Reader from './Reader';
@@ -82,7 +82,7 @@ const QRHardWareWaiting = ({ params }) => {
     await wallet.acquireKeystoneMemStoreData();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     init();
     return () => {
       eventBus.removeAllEventListeners(EVENTS.SIGN_FINISHED);
