@@ -1344,10 +1344,10 @@
   resolved "https://registry.yarnpkg.com/@debank/common/-/common-0.2.33.tgz#e3ed9bce272beb47886af15edb000d1496032eb1"
   integrity sha512-6nPvxPazsmHIbpqtKjlbysKagt8EEMYTraez/n1wprfIxviJ/qDyt/gey9HNo1BKeyc5+bDgYTzqR7yh4ljjgA==
 
-"@debank/festats@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.0.tgz#0217ac76921a92aa9e31f6b7d33411d4c11eea11"
-  integrity sha512-MqCF4SJ04X5/vd5wfCPRyTLwPtJNzBrriSOv02Q+WRooOv97rSpl98NikN9IaUSFOJJBYpajJWeQda7CGPJpzw==
+"@debank/festats@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.3.tgz#68ea438d89f09de565d4d4336d82c29f6a0484a1"
+  integrity sha512-pANPwkNkqfxCBA9MUswRJsRplqgwSBZ5fXiUUfqioc64+lgzShuddSgAlyL0icShwvjM+5FtV4qqQBh2Gti8fw==
 
 "@debank/isomorphic@^0.3.1":
   version "0.3.1"
@@ -10183,6 +10183,11 @@ jest@^27.4.7:
     "@jest/core" "^27.4.7"
     import-local "^3.0.2"
     jest-cli "^27.4.7"
+
+jotai@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.1.0.tgz#b1a9525345518453802e4a64d99e2800598bab76"
+  integrity sha512-fR82PtHAmEQrc/daMEYGc4EteW96/b6wodtDSCzLvoJA/6y4YG70er4hh2f8CYwYjqwQ0eZUModGfG4DmwkTyQ==
 
 jpeg-js@^0.4.4:
   version "0.4.4"

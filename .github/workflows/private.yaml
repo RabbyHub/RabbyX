@@ -1,13 +1,16 @@
 name: Triger Private Build
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
   push:
     branches:
-      - develop
-    tags:
-      - v*
+      - dont_trigger
+      # - develop
+      # - feat/for_desktop
+      # - feat/for_desktop*
+    # tags:
+    #   - v*
 
 jobs:
   create-new-private-build:
