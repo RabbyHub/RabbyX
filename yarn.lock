@@ -1344,10 +1344,10 @@
   resolved "https://registry.yarnpkg.com/@debank/common/-/common-0.2.38.tgz#455365b64aafdd5234954e5d4426ab35d29e7eae"
   integrity sha512-h97wkFeiD7VXv2IS8vwli+WW8c3YJ9ZJNhcar0DbDRzwZ4NVa8JA05e0zNPvAjAgE256mMgQH/GIAzExRN83zA==
 
-"@debank/festats@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.0.tgz#0217ac76921a92aa9e31f6b7d33411d4c11eea11"
-  integrity sha512-MqCF4SJ04X5/vd5wfCPRyTLwPtJNzBrriSOv02Q+WRooOv97rSpl98NikN9IaUSFOJJBYpajJWeQda7CGPJpzw==
+"@debank/festats@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.3.tgz#68ea438d89f09de565d4d4336d82c29f6a0484a1"
+  integrity sha512-pANPwkNkqfxCBA9MUswRJsRplqgwSBZ5fXiUUfqioc64+lgzShuddSgAlyL0icShwvjM+5FtV4qqQBh2Gti8fw==
 
 "@debank/isomorphic@^0.3.1":
   version "0.3.1"
@@ -1360,22 +1360,10 @@
     sha256-uint8array "^0.10.3"
     url-parse "^1.5.1"
 
-"@debank/rabby-api@^0.5.25":
-  version "0.5.25"
-  resolved "https://registry.yarnpkg.com/@debank/rabby-api/-/rabby-api-0.5.25.tgz#b283a8701c7773206237490224e4ff32eefe7aa4"
-  integrity sha512-G0tHBqYEfs1A7tLjDenoBUnWINW50A9jzMBOYo+tqc9RGpQKjQSe5p8hROftCMhcwUIQIUuqVbkg9o/w+84o2A==
-  dependencies:
-    "@debank/isomorphic" "^0.3.1"
-    axios "^0.27.2"
-    axios-rate-limit "^1.3.0"
-    eth-rpc-errors "^4.0.3"
-    lodash "^4.17.21"
-    qss "^2.0.3"
-
-"@debank/rabby-api@^0.5.28":
-  version "0.5.28"
-  resolved "https://registry.yarnpkg.com/@debank/rabby-api/-/rabby-api-0.5.28.tgz#a911527c5184a1180d68d1503a0c20443db73b53"
-  integrity sha512-JUrT2jp95tT1NxiTrcan5gSdCtUmhFLJsq7cUrPcNoysgl+U7vSe2S3BqdJVElg1N+TnhcXRecpEX7KH9lsFKw==
+"@debank/rabby-api@0.5.31", "@debank/rabby-api@^0.5.25":
+  version "0.5.31"
+  resolved "https://registry.yarnpkg.com/@debank/rabby-api/-/rabby-api-0.5.31.tgz#c541d0bd3dc13bc065e29b60926067644ed232a9"
+  integrity sha512-LnA4hZ7SlcIcFXlvWRmm9piSVckB0D2yZ/Lep9dTSd7hbJShBwHerprihJbbHpEx82rNS9s94XrJqhNWecFRxw==
   dependencies:
     "@debank/isomorphic" "^0.3.1"
     axios "^0.27.2"

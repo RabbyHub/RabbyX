@@ -69,6 +69,7 @@ import { TransactionGroup } from 'background/service/transactionHistory';
 import { intToHex } from 'ui/utils/number';
 import { calcMaxPriorityFee } from '@/utils/transaction';
 import { FooterBar } from './FooterBar/FooterBar';
+import { genMintRabbyTxDetail } from '@/constant/mint-rabby/gen-tx-detail';
 
 const normalizeHex = (value: string | number) => {
   if (typeof value === 'number') {
@@ -114,7 +115,7 @@ const normalizeTxParams = (tx) => {
 };
 
 export const TxTypeComponent = ({
-  txDetail,
+  txDetail: oldTxDetail,
   chain = CHAINS[CHAINS_ENUM.ETH],
   isReady,
   raw,
@@ -131,6 +132,10 @@ export const TxTypeComponent = ({
   isSpeedUp: boolean;
 }) => {
   if (!isReady) return <Loading chainEnum={chain.enum} />;
+
+  const txDetail = useMemo(() => genMintRabbyTxDetail(oldTxDetail), [
+    oldTxDetail,
+  ]);
 
   if (txDetail.type_deploy_contract)
     return (
