@@ -1340,14 +1340,14 @@
   integrity sha512-6nPvxPazsmHIbpqtKjlbysKagt8EEMYTraez/n1wprfIxviJ/qDyt/gey9HNo1BKeyc5+bDgYTzqR7yh4ljjgA==
 
 "@debank/common@^0.2.39":
-  version "0.2.39"
-  resolved "https://registry.yarnpkg.com/@debank/common/-/common-0.2.39.tgz#02e2eeb3074f59c9cdffe5fdcadb03d865e908f2"
-  integrity sha512-h4yLXMoB0GKxEDE2dhMQkz/YQPoIpEZQG8GmhF9RZ4mLfk+2Ai7nW1dgpzxW5+y6QEn9hQfPmGXd+5WFwL/1OA==
+  version "0.2.40"
+  resolved "https://registry.yarnpkg.com/@debank/common/-/common-0.2.40.tgz#2d8363ef32ecd2911549ef540e778f35006b9a6f"
+  integrity sha512-IXOkEumXGYn8dwmBtMa5mlWNpUn2q2OurLp+4hDl07cu+fZg+/42VBZRLsE+YatZ+wOjmozpYUes1c1u5F36mA==
 
-"@debank/festats@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.0.tgz#0217ac76921a92aa9e31f6b7d33411d4c11eea11"
-  integrity sha512-MqCF4SJ04X5/vd5wfCPRyTLwPtJNzBrriSOv02Q+WRooOv97rSpl98NikN9IaUSFOJJBYpajJWeQda7CGPJpzw==
+"@debank/festats@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.3.tgz#68ea438d89f09de565d4d4336d82c29f6a0484a1"
+  integrity sha512-pANPwkNkqfxCBA9MUswRJsRplqgwSBZ5fXiUUfqioc64+lgzShuddSgAlyL0icShwvjM+5FtV4qqQBh2Gti8fw==
 
 "@debank/isomorphic@^0.3.1":
   version "0.3.1"
@@ -1361,9 +1361,9 @@
     url-parse "^1.5.1"
 
 "@debank/rabby-api@^0.5.25":
-  version "0.5.32"
-  resolved "https://registry.yarnpkg.com/@debank/rabby-api/-/rabby-api-0.5.32.tgz#30ddef99c09d8ac14d42525c0cb791093a8ae029"
-  integrity sha512-wlddfFr+82n1jWdnz8ITOEbiscjpDtYdBdy+rdKIayoOXMO6kc81gfb9rPAwZXT5WbbQ1Qqr/yp30My9yPnfPA==
+  version "0.5.31"
+  resolved "https://registry.yarnpkg.com/@debank/rabby-api/-/rabby-api-0.5.31.tgz#c541d0bd3dc13bc065e29b60926067644ed232a9"
+  integrity sha512-LnA4hZ7SlcIcFXlvWRmm9piSVckB0D2yZ/Lep9dTSd7hbJShBwHerprihJbbHpEx82rNS9s94XrJqhNWecFRxw==
   dependencies:
     "@debank/isomorphic" "^0.3.1"
     axios "^0.27.2"
@@ -3586,10 +3586,10 @@
     ethereumjs-util "^7.1.5"
     hdkey "0.8.0"
 
-"@rabby-wallet/eth-walletconnect-keyring@^1.7.15":
-  version "1.7.15"
-  resolved "https://registry.yarnpkg.com/@rabby-wallet/eth-walletconnect-keyring/-/eth-walletconnect-keyring-1.7.15.tgz#927d85cc54c8b2ca5c186a761341fb09938aea0b"
-  integrity sha512-tSAQFTmbRMsjvy98db+spwh8MWrE8jXwHMkdszNc3t4/HeFpcAxmXiG0rcm79adxpVeAqKEaxrfGTUYNEK6E1w==
+"@rabby-wallet/eth-walletconnect-keyring@^1.7.19":
+  version "1.7.19"
+  resolved "https://registry.yarnpkg.com/@rabby-wallet/eth-walletconnect-keyring/-/eth-walletconnect-keyring-1.7.19.tgz#66f59d1e75d59da38ad1e5fb100f701934992d2e"
+  integrity sha512-3Ec/H5tZjoo1Hi6gRfdRprxqexYmaCmBI1P+1N93qtGZYsLylun2YqCH0nTXGpIgBt1hkqo1Kctpuo9UD78gtw==
   dependencies:
     "@debank/wc-client" "^1.8.7"
     "@ethereumjs/tx" "^3.5.2"
@@ -10183,6 +10183,11 @@ jest@^27.4.7:
     "@jest/core" "^27.4.7"
     import-local "^3.0.2"
     jest-cli "^27.4.7"
+
+jotai@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.1.0.tgz#b1a9525345518453802e4a64d99e2800598bab76"
+  integrity sha512-fR82PtHAmEQrc/daMEYGc4EteW96/b6wodtDSCzLvoJA/6y4YG70er4hh2f8CYwYjqwQ0eZUModGfG4DmwkTyQ==
 
 jpeg-js@^0.4.4:
   version "0.4.4"

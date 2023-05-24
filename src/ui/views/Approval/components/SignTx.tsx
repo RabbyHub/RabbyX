@@ -68,6 +68,7 @@ import { useSecurityEngine } from 'ui/utils/securityEngine';
 import { useRabbyDispatch, useRabbySelector } from '@/ui/store';
 import RuleDrawer from './SecurityEngine/RuleDrawer';
 import { Level } from '@debank/rabby-security-engine/dist/rules';
+import { genMintRabbyTxDetail } from '@/constant/mint-rabby/gen-tx-detail';
 
 const normalizeHex = (value: string | number) => {
   if (typeof value === 'number') {
@@ -121,7 +122,7 @@ export const TxTypeComponent = ({
   onChange,
   isSpeedUp,
   engineResults,
-  txDetail,
+  txDetail: oldTxDetail,
 }: {
   actionRequireData: ActionRequireData;
   actionData: ParsedActionData;
@@ -134,6 +135,11 @@ export const TxTypeComponent = ({
   engineResults: Result[];
 }) => {
   if (!isReady) return <Loading />;
+
+  const txDetail = useMemo(() => genMintRabbyTxDetail(oldTxDetail), [
+    oldTxDetail,
+  ]);
+
   if (actionData && actionRequireData) {
     return (
       <Actions
