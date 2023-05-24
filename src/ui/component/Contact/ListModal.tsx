@@ -90,7 +90,7 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
       cancelText: 'Cancel',
       title: 'Save to Whitelist',
       validationHandler: async (password: string) =>
-        wallet.setWhitelist(password, list),
+        wallet.setWhitelist(list),
       onFinished() {
         setEditWhitelistVisible(false);
         dispatch.whitelist.getWhitelist();

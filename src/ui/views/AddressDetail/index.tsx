@@ -45,9 +45,9 @@ const AddressDetail = () => {
       wallet,
       validationHandler: async (password) => {
         if (checked) {
-          await wallet.addWhitelist(password, address);
+          await wallet.addWhitelist(address);
         } else {
-          await wallet.removeWhitelist(password, address);
+          await wallet.removeWhitelist(address);
         }
       },
       onFinished() {

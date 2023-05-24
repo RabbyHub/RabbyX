@@ -38,12 +38,12 @@ export const Ledger: React.FC = () => {
         src="/images/ledger-plug.png"
         className="w-[240px] bg-gray-bg mt-[20px] mx-auto py-20 px-40"
       />
-      <div className="mt-[46px] text-13 text-gray-subTitle">
+      {/* <div className="mt-[46px] text-13 text-gray-subTitle">
         If it doesn't work, please try{' '}
         <span className="underline cursor-pointer" onClick={handleClick}>
           reconnecting from the beginning.
         </span>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -7,31 +7,23 @@ import Unlock from './Unlock';
 import SortHat from './SortHat';
 const AsyncMainRoute = lazy(() => import('./MainRoute'));
 
-const Main = () => (
-  <Router>
-    <Route exact path="/">
-      <SortHat />
-    </Route>
-
-    <Route exact path="/unlock">
-      <Unlock />
-    </Route>
-
-    <PrivateRoute exact path="/dashboard">
-      <Dashboard />
-    </PrivateRoute>
-    <Suspense fallback={null}>
-      <AsyncMainRoute />
-    </Suspense>
-  </Router>
-);
-
-const App = ({ wallet }: { wallet: any }) => {
+export default function Views() {
   return (
-    <WalletProvider wallet={wallet}>
-      <Main />
-    </WalletProvider>
-  );
-};
+    <Router>
+      <Route exact path="/">
+        <SortHat />
+      </Route>
 
-export default App;
+      <Route exact path="/unlock">
+        <Unlock />
+      </Route>
+
+      <PrivateRoute exact path="/dashboard">
+        <Dashboard />
+      </PrivateRoute>
+      <Suspense fallback={null}>
+        <AsyncMainRoute />
+      </Suspense>
+    </Router>
+  );
+}
