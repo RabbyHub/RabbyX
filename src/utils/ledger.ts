@@ -1,7 +1,5 @@
 import { ledgerUSBVendorId } from '@ledgerhq/devices';
-import { useEffect, useState } from 'react';
-import { hasConnectedLedgerDevice } from '@/utils';
-import { browser } from 'webextension-polyfill-ts';
+import { useCallback, useEffect, useState } from 'react';
 
 export enum LedgerHDPathType {
   LedgerLive = 'LedgerLive',
@@ -17,39 +15,63 @@ export const LedgerHDPathTypeLabel = {
   [LedgerHDPathType.Default]: 'Default',
 };
 
+export function useHIDDevices() {
+  const [devices, setDevices] = useState<any[]>([]);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const fetchDevices = useCallback(() => {
+    if (isFetching) return;
+
+    setIsFetching(true);
+    window.rabbyDesktop.ipcRenderer
+      .invoke('get-hid-devices')
+      .then((res: any) => {
+        if (res?.error) {
+          return;
+        }
+        setDevices(res?.devices);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
+  }, [setDevices, isFetching, setIsFetching]);
+
+  useEffect(() => {
+    fetchDevices();
+
+    return window.rabbyDesktop.ipcRenderer.on(
+      '__internal_push:webusb:device-changed',
+      (event) => {
+        fetchDevices();
+      }
+    );
+  }, [fetchDevices]);
+
+  return {
+    isFetchingDevice: isFetching,
+    devices,
+    fetchDevices,
+  };
+}
+
 export const useLedgerDeviceConnected = () => {
   const [connected, setConnected] = useState(false);
 
-  const onConnect = async ({ device }) => {
-    if (device.vendorId === ledgerUSBVendorId) {
-      setConnected(true);
-    }
-  };
+  const { devices, fetchDevices } = useHIDDevices();
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+  useEffect(() => {
+    const hasLedger = devices.some(
+      (item) => item.vendorId === ledgerUSBVendorId
+    );
 
-  const onDisconnect = ({ device }) => {
-    if (device.vendorId === ledgerUSBVendorId) {
+    if (hasLedger) {
+      setConnected(true);
+    } else {
       setConnected(false);
     }
-  };
-
-  const detectDevice = async () => {
-    hasConnectedLedgerDevice().then((state) => {
-      setConnected(state);
-    });
-  };
-
-  useEffect(() => {
-    detectDevice();
-    navigator.hid.addEventListener('connect', onConnect);
-    navigator.hid.addEventListener('disconnect', onDisconnect);
-    browser.windows.onFocusChanged.addListener(detectDevice);
-
-    return () => {
-      navigator.hid.removeEventListener('connect', onConnect);
-      navigator.hid.removeEventListener('disconnect', onDisconnect);
-      browser.windows.onFocusChanged.removeListener(detectDevice);
-    };
-  }, []);
+  }, [devices]);
 
   return connected;
 };
