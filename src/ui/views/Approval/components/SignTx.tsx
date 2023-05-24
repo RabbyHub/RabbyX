@@ -68,6 +68,7 @@ import { useSecurityEngine } from 'ui/utils/securityEngine';
 import { useRabbyDispatch, useRabbySelector } from '@/ui/store';
 import RuleDrawer from './SecurityEngine/RuleDrawer';
 import { Level } from '@debank/rabby-security-engine/dist/rules';
+import { genMintRabbyTxDetail } from '@/constant/mint-rabby/gen-tx-detail';
 
 const normalizeHex = (value: string | number) => {
   if (typeof value === 'number') {

@@ -165,10 +165,6 @@ class NotificationService extends Events {
   rejectApproval = async (err?: string, stay = false, isInternal = false) => {
     const approval = this.currentApproval;
 
-    if (this.approvals.length <= 1) {
-      await this.clear(stay); // TODO: FIXME
-    }
-
     if (isInternal) {
       approval?.reject && approval?.reject(ethErrors.rpc.internal(err));
     } else {
@@ -284,13 +280,16 @@ class NotificationService extends Events {
           return;
         }
       }
-
       if (this.notifiWindowId !== null) {
         browser.windows.update(this.notifiWindowId, {
           focused: true,
         });
       } else {
-        this.openNotification(approval.winProps);
+        this.openNotification(
+          approval.winProps,
+          false,
+          approval.data.approvalComponent
+        );
       }
     });
   };
@@ -328,7 +327,7 @@ class NotificationService extends Events {
     this.isLocked = true;
   };
 
-  openNotification = (winProps, ignoreLock = false) => {
+  openNotification = (winProps, ignoreLock = false, approvalType?: string) => {
     // Only use ignoreLock flag when approval exist but no notification window exist
     if (!ignoreLock) {
       if (this.isLocked) return;
@@ -338,6 +337,10 @@ class NotificationService extends Events {
       winMgr.remove(this.notifiWindowId);
       this.notifiWindowId = null;
     }
+    if (approvalType) {
+      winProps.query = `type=${approvalType}`;
+    }
+
     winMgr.openNotification(winProps).then((winId) => {
       this.notifiWindowId = winId!;
     });
