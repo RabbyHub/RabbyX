@@ -13,11 +13,13 @@ import styled from 'styled-components';
 import {
   CHAINS,
   CHAINS_ENUM,
-  KEYRING_PURPLE_LOGOS,
   KEYRING_CLASS,
   MINIMUM_GAS_LIMIT,
   L2_ENUMS,
 } from 'consts';
+import { 
+  KEYRING_PURPLE_LOGOS,
+} from 'ui/assets-const';
 import { useRabbyDispatch, useRabbySelector, connectStore } from 'ui/store';
 import { Account, ChainGas } from 'background/service/preference';
 import { isSameAddress, useWallet } from 'ui/utils';

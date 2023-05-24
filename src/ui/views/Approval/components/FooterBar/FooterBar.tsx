@@ -13,6 +13,7 @@ import { Result } from '@rabby-wallet/rabby-security-engine';
 import { FallbackSiteLogo } from '@/ui/component';
 import { useRabbyDispatch, useRabbySelector } from '@/ui/store';
 import SecurityLevelTagNoText from '../SecurityEngine/SecurityLevelTagNoText';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface Props extends Omit<ActionGroupProps, 'account'> {
   chain?: Chain;
@@ -150,7 +151,7 @@ export const FooterBar: React.FC<Props> = ({
     if (origin === INTERNAL_REQUEST_ORIGIN) {
       return 'Rabby Wallet';
     }
-    return origin;
+    return formatDappURLToShow(origin || '');
   }, [origin]);
 
   const { rules, processedRules } = useRabbySelector((s) => ({
