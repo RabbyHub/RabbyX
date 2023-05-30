@@ -56,8 +56,8 @@ export function useHIDDevices() {
 
 export const useLedgerDeviceConnected = () => {
   const [connected, setConnected] = useState(false);
-
   const { devices, fetchDevices } = useHIDDevices();
+
   useEffect(() => {
     fetchDevices();
   }, []);
