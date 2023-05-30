@@ -217,10 +217,12 @@ const onConnectListner = async (port: Runtime.Port) => {
     });
 
     const boardcastCallback = (data: any) => {
-      pm.request({
-        type: 'broadcast',
-        method: data.method,
-        params: data.params,
+      pm.send('message', {
+        event: 'broadcast',
+        data: {
+          type: data.method,
+          data: data.params,
+        },
       });
     };
 
