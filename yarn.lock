@@ -3574,10 +3574,10 @@
     ethereumjs-util "^7.1.5"
     hdkey "0.8.0"
 
-"@rabby-wallet/eth-walletconnect-keyring@^1.7.15":
-  version "1.7.15"
-  resolved "https://registry.yarnpkg.com/@rabby-wallet/eth-walletconnect-keyring/-/eth-walletconnect-keyring-1.7.15.tgz#927d85cc54c8b2ca5c186a761341fb09938aea0b"
-  integrity sha512-tSAQFTmbRMsjvy98db+spwh8MWrE8jXwHMkdszNc3t4/HeFpcAxmXiG0rcm79adxpVeAqKEaxrfGTUYNEK6E1w==
+"@rabby-wallet/eth-walletconnect-keyring@^1.7.18":
+  version "1.7.18"
+  resolved "https://registry.yarnpkg.com/@rabby-wallet/eth-walletconnect-keyring/-/eth-walletconnect-keyring-1.7.18.tgz#600c13b8a6c64156321121d10eb82f835f25f41d"
+  integrity sha512-U05RSIvyBwyjhzqAku/3P7xqayn7UKKuLXvifSbevme4BeBQkKhILbd5uK6cS6C1jXlMWrHxwE3iUOhRGguzMw==
   dependencies:
     "@debank/wc-client" "^1.8.7"
     "@ethereumjs/tx" "^3.5.2"
