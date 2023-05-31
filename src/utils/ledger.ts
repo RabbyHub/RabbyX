@@ -1,6 +1,8 @@
 import { ledgerUSBVendorId } from '@ledgerhq/devices';
+import { atom, useAtom } from 'jotai';
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import { useInterval } from 'react-use';
 
 export enum LedgerHDPathType {
   LedgerLive = 'LedgerLive',
@@ -16,8 +18,21 @@ export const LedgerHDPathTypeLabel = {
   [LedgerHDPathType.Default]: 'Default',
 };
 
+const hidDevicesAtom = atom<any[]>([]);
+
+/**
+ * @description make sure ONLY call this hooks in whole page-level app
+ */
+export function useInfiniteFetchingDevices() {
+  const { fetchDevices } = useHIDDevices();
+
+  useInterval(() => {
+    fetchDevices();
+  }, 500);
+}
+
 export function useHIDDevices() {
-  const [devices, setDevices] = useState<any[]>([]);
+  const [devices, setDevices] = useAtom(hidDevicesAtom);
   const isFetchingRef = React.useRef(false);
 
   const fetchDevices = useCallback(() => {
@@ -57,19 +72,7 @@ export function useHIDDevices() {
 
 export const useLedgerDeviceConnected = () => {
   const [connected, setConnected] = useState(false);
-  const { devices, fetchDevices } = useHIDDevices();
-
-  const loopFetchDevices = () => {
-    fetchDevices();
-
-    setTimeout(() => {
-      loopFetchDevices();
-    }, 500);
-  };
-
-  React.useEffect(() => {
-    loopFetchDevices();
-  }, []);
+  const { devices } = useHIDDevices();
 
   useEffect(() => {
     const hasLedger = devices.some(
