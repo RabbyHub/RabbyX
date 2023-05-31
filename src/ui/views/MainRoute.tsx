@@ -56,6 +56,7 @@ import { SwapByDex } from './DexSwap';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 import { PreferMetamaskDapps } from './PreferMetamaskDapps';
 import { CommonPopup } from './CommonPopup';
+import { useInfiniteFetchingDevices } from '@/utils/ledger';
 
 declare global {
   interface Window {
@@ -74,6 +75,7 @@ const LogPageView = () => {
 
 const Main = () => {
   const wallet = useWallet();
+  useInfiniteFetchingDevices();
 
   useEffect(() => {
     (async () => {
@@ -90,7 +92,7 @@ const Main = () => {
       }
     })();
   }, []);
-  
+
   // const history = useHistory();
   // const [getApproval] = useApproval();
   // useEffect(() => {

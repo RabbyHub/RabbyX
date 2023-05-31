@@ -1,5 +1,8 @@
 import { ledgerUSBVendorId } from '@ledgerhq/devices';
+import { atom, useAtom } from 'jotai';
+import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import { useInterval } from 'react-use';
 
 export enum LedgerHDPathType {
   LedgerLive = 'LedgerLive',
@@ -15,14 +18,27 @@ export const LedgerHDPathTypeLabel = {
   [LedgerHDPathType.Default]: 'Default',
 };
 
+const hidDevicesAtom = atom<any[]>([]);
+
+/**
+ * @description make sure ONLY call this hooks in whole page-level app
+ */
+export function useInfiniteFetchingDevices() {
+  const { fetchDevices } = useHIDDevices();
+
+  useInterval(() => {
+    fetchDevices();
+  }, 500);
+}
+
 export function useHIDDevices() {
-  const [devices, setDevices] = useState<any[]>([]);
-  const [isFetching, setIsFetching] = useState(false);
+  const [devices, setDevices] = useAtom(hidDevicesAtom);
+  const isFetchingRef = React.useRef(false);
 
   const fetchDevices = useCallback(() => {
-    if (isFetching) return;
+    if (isFetchingRef.current) return;
 
-    setIsFetching(true);
+    isFetchingRef.current = true;
     window.rabbyDesktop.ipcRenderer
       .invoke('get-hid-devices')
       .then((res: any) => {
@@ -32,9 +48,9 @@ export function useHIDDevices() {
         setDevices(res?.devices);
       })
       .finally(() => {
-        setIsFetching(false);
+        isFetchingRef.current = false;
       });
-  }, [setDevices, isFetching, setIsFetching]);
+  }, [setDevices]);
 
   useEffect(() => {
     fetchDevices();
@@ -48,7 +64,7 @@ export function useHIDDevices() {
   }, [fetchDevices]);
 
   return {
-    isFetchingDevice: isFetching,
+    isFetchingDevice: isFetchingRef.current,
     devices,
     fetchDevices,
   };
@@ -56,11 +72,8 @@ export function useHIDDevices() {
 
 export const useLedgerDeviceConnected = () => {
   const [connected, setConnected] = useState(false);
-  const { devices, fetchDevices } = useHIDDevices();
+  const { devices } = useHIDDevices();
 
-  useEffect(() => {
-    fetchDevices();
-  }, []);
   useEffect(() => {
     const hasLedger = devices.some(
       (item) => item.vendorId === ledgerUSBVendorId
