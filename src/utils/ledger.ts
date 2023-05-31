@@ -1,4 +1,5 @@
 import { ledgerUSBVendorId } from '@ledgerhq/devices';
+import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 
 export enum LedgerHDPathType {
@@ -17,12 +18,12 @@ export const LedgerHDPathTypeLabel = {
 
 export function useHIDDevices() {
   const [devices, setDevices] = useState<any[]>([]);
-  const [isFetching, setIsFetching] = useState(false);
+  const isFetchingRef = React.useRef(false);
 
   const fetchDevices = useCallback(() => {
-    if (isFetching) return;
+    if (isFetchingRef.current) return;
 
-    setIsFetching(true);
+    isFetchingRef.current = true;
     window.rabbyDesktop.ipcRenderer
       .invoke('get-hid-devices')
       .then((res: any) => {
@@ -32,9 +33,9 @@ export function useHIDDevices() {
         setDevices(res?.devices);
       })
       .finally(() => {
-        setIsFetching(false);
+        isFetchingRef.current = false;
       });
-  }, [setDevices, isFetching, setIsFetching]);
+  }, [setDevices]);
 
   useEffect(() => {
     fetchDevices();
@@ -48,7 +49,7 @@ export function useHIDDevices() {
   }, [fetchDevices]);
 
   return {
-    isFetchingDevice: isFetching,
+    isFetchingDevice: isFetchingRef.current,
     devices,
     fetchDevices,
   };
@@ -58,9 +59,19 @@ export const useLedgerDeviceConnected = () => {
   const [connected, setConnected] = useState(false);
   const { devices, fetchDevices } = useHIDDevices();
 
-  useEffect(() => {
+  const loopFetchDevices = () => {
     fetchDevices();
+
+    setTimeout(() => {
+      console.log('loopFetchDevices');
+      loopFetchDevices();
+    }, 500);
+  };
+
+  React.useEffect(() => {
+    loopFetchDevices();
   }, []);
+
   useEffect(() => {
     const hasLedger = devices.some(
       (item) => item.vendorId === ledgerUSBVendorId
