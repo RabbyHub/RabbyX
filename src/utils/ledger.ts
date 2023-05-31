@@ -2,7 +2,6 @@ import { ledgerUSBVendorId } from '@ledgerhq/devices';
 import { atom, useAtom } from 'jotai';
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { useInterval } from 'react-use';
 
 export enum LedgerHDPathType {
   LedgerLive = 'LedgerLive',
@@ -19,17 +18,6 @@ export const LedgerHDPathTypeLabel = {
 };
 
 const hidDevicesAtom = atom<any[]>([]);
-
-/**
- * @description make sure ONLY call this hooks in whole page-level app
- */
-export function useInfiniteFetchingDevices() {
-  const { fetchDevices } = useHIDDevices();
-
-  useInterval(() => {
-    fetchDevices();
-  }, 500);
-}
 
 export function useHIDDevices() {
   const [devices, setDevices] = useAtom(hidDevicesAtom);
@@ -56,9 +44,18 @@ export function useHIDDevices() {
     fetchDevices();
 
     return window.rabbyDesktop.ipcRenderer.on(
-      '__internal_push:webusb:device-changed',
+      '__internal_push:webusb:events',
       (event) => {
-        fetchDevices();
+        switch (event.eventType) {
+          case 'change-detected': {
+            fetchDevices();
+            break;
+          }
+          case 'push-hiddevice-list': {
+            setDevices(event.deviceList);
+            break;
+          }
+        }
       }
     );
   }, [fetchDevices]);
