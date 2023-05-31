@@ -63,7 +63,6 @@ export const useLedgerDeviceConnected = () => {
     fetchDevices();
 
     setTimeout(() => {
-      console.log('loopFetchDevices');
       loopFetchDevices();
     }, 500);
   };
