@@ -10,6 +10,7 @@ import { Chain } from '@debank/common';
 import { SecurityEngineLevel } from 'consts';
 import { Level } from '@debank/rabby-security-engine/dist/rules';
 import { FallbackSiteLogo } from '@/ui/component';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface Props extends Omit<ActionGroupProps, 'account'> {
   chain?: Chain;
@@ -140,7 +141,7 @@ export const FooterBar: React.FC<Props> = ({
     if (origin === INTERNAL_REQUEST_ORIGIN) {
       return 'Rabby Wallet';
     }
-    return origin;
+    return formatDappURLToShow(origin || '');
   }, [origin]);
 
   const init = async () => {
