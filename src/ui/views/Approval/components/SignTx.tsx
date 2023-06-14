@@ -1411,7 +1411,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
       Number(tx.nonce || '0') >= safeInfo.nonce &&
       origin === INTERNAL_REQUEST_ORIGIN
     ) {
-      recommendSafeNonce = Number(tx.nonce);
+      recommendSafeNonce = Number(tx.nonce || '0');
       setRecommendNonce(tx.nonce || '0x0');
     }
     if (Number(tx.nonce || 0) < safeInfo.nonce) {
