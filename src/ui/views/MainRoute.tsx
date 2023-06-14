@@ -56,7 +56,6 @@ import { SwapByDex } from './DexSwap';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 import { PreferMetamaskDapps } from './PreferMetamaskDapps';
 import { CommonPopup } from './CommonPopup';
-import ManageAddress from './ManageAddress';
 
 declare global {
   interface Window {
@@ -201,7 +200,7 @@ const Main = () => {
           <Settings />
         </PrivateRoute>
         <PrivateRoute exact path="/settings/address">
-          <ManageAddress />
+          <AddressManagement />
         </PrivateRoute>
         <PrivateRoute exact path="/settings/address-detail">
           <AddressDetail />
