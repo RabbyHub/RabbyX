@@ -19,7 +19,6 @@ export const AccountList = ({
   list,
   highlightedAddresses = [],
   handleOpenDeleteModal,
-  updateIndex,
 }: {
   list?: DisplayedAccount[];
   highlightedAddresses?: IHighlightedAddress[];
@@ -27,7 +26,6 @@ export const AccountList = ({
     list: IDisplayedAccountWithBalance[],
     deleteGroup?: boolean
   ) => void;
-  updateIndex: (b: boolean) => void;
 }) => {
   const history = useHistory();
 
@@ -43,33 +41,32 @@ export const AccountList = ({
     );
 
     const onDelete = React.useMemo(() => {
+      if (account.type === KEYRING_TYPE['HdKeyring']) {
+        return async () => {
+          await dispatch.addressManagement.removeAddress([
+            account.address,
+            account.type,
+            account.brandName,
+            false,
+          ]);
+          message.success({
+            icon: <img src={IconSuccess} className="icon icon-success" />,
+            content: 'Deleted',
+            duration: 0.5,
+          });
+        };
+      }
       if (account.type === KEYRING_TYPE['SimpleKeyring']) {
         return () => {
           handleOpenDeleteModal([account], false);
         };
       }
-      return async () => {
-        await dispatch.addressManagement.removeAddress([
-          account.address,
-          account.type,
-          account.brandName,
-          account.type !== KEYRING_TYPE['HdKeyring'],
-        ]);
-        if (data.length === 1 && account.type !== KEYRING_TYPE['HdKeyring']) {
-          updateIndex(
-            data.length === 1 && account.type !== KEYRING_TYPE['HdKeyring']
-          );
-        }
-        message.success({
-          icon: <img src={IconSuccess} className="icon icon-success" />,
-          content: 'Deleted',
-          duration: 0.5,
-        });
-      };
-    }, [account, KEYRING_TYPE['HdKeyring'], data.length, updateIndex]);
+
+      return undefined;
+    }, [account, KEYRING_TYPE['HdKeyring']]);
 
     return (
-      <div className="address-wrap px-[20px]" style={style}>
+      <div className="address-wrap-with-padding px-[20px]" style={style}>
         <AddressItem
           balance={account.balance}
           address={account.address}
@@ -117,10 +114,15 @@ export const AccountList = ({
     return null;
   }
   return (
-    <div>
-      {list.map((item, index) => (
-        <Row data={list} index={index} key={item.address} />
-      ))}
-    </div>
+    <VList
+      height={450}
+      width="100%"
+      itemData={list}
+      itemCount={list.length}
+      itemSize={() => 64}
+      className="w-auto"
+    >
+      {Row}
+    </VList>
   );
 };
