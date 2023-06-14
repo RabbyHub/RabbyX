@@ -428,17 +428,7 @@ export default ({
           </div>
         </div>
       </div>
-      <CurrentConnection
-        onChainChange={(chain) => {
-          setCurrentConnectedSiteChain(chain);
-          if (currentConnect) {
-            onChange({
-              ...currentConnect,
-              chain,
-            });
-          }
-        }}
-      />
+      <CurrentConnection onChainChange={setCurrentConnectedSiteChain} />
       <ChainSelectorModal
         className="receive-chain-select-modal"
         value={CHAINS_ENUM.ETH}

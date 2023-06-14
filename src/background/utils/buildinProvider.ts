@@ -81,8 +81,12 @@ export class EthereumProvider extends EventEmitter {
     };
     const mapMethod = underline2Camelcase(method);
     const currentAccount = preferenceService.getCurrentAccount()!;
-    const networkId = this.chainId || CHAINS[CHAINS_ENUM.ETH].id.toString();
-
+    let networkId = CHAINS[CHAINS_ENUM.ETH].id.toString();
+    if (currentAccount.type === KEYRING_CLASS.GNOSIS) {
+      networkId = wallet.getGnosisNetworkId(currentAccount.address);
+    } else {
+      networkId = this.chainId!;
+    }
     const chain = Object.values(CHAINS).find(
       (item) => item.id.toString() === networkId
     )!;
