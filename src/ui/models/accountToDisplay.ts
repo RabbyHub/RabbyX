@@ -9,7 +9,6 @@ type IDisplayedAccount = Required<DisplayedKeryring['accounts'][number]>;
 export type IDisplayedAccountWithBalance = IDisplayedAccount & {
   balance: number;
   byImport?: boolean;
-  publicKey?: string;
 };
 
 type IState = {
@@ -54,7 +53,6 @@ export const accountToDisplay = createModel<RootModel>()({
                 byImport: item.byImport,
                 alianName: allAlianNames[account?.address?.toLowerCase()]?.name,
                 keyring: item.keyring,
-                publicKey: item?.publicKey,
               };
             });
           })

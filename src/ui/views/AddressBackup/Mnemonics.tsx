@@ -14,7 +14,6 @@ import { copyTextToClipboard } from '@/ui/utils/clipboard';
 import clsx from 'clsx';
 import WordsMatrix from '@/ui/component/WordsMatrix';
 import { useHistory, useLocation } from 'react-router-dom';
-import IconBack from 'ui/assets/back.svg';
 
 const AddressBackup = () => {
   const wallet = useWallet();
@@ -23,7 +22,6 @@ const AddressBackup = () => {
   const history = useHistory();
   const { state } = useLocation<{
     data: string;
-    goBack?: boolean;
   }>();
 
   const data = state?.data;
@@ -51,16 +49,7 @@ const AddressBackup = () => {
 
   return (
     <div className="page-address-backup">
-      <header className="relative">
-        {!!state.goBack && (
-          <img
-            src={IconBack}
-            className={clsx('absolute icon icon-back filter invert')}
-            onClick={() => history.goBack()}
-          />
-        )}
-        Backup Seed Phrase
-      </header>
+      <header>Backup Seed Phrase</header>
       <div className="alert mb-[34px]">
         <InfoCircleOutlined />
         This Seed Phrase is the credential to your assets. DO NOT lose it or

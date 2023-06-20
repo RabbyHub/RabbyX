@@ -55,7 +55,6 @@ import { ImportMyMetaMaskAccount } from './ImportMyMetaMaskAccount';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 import { PreferMetamaskDapps } from './PreferMetamaskDapps';
 import { CommonPopup } from './CommonPopup';
-import ManageAddress from './ManageAddress';
 import { NFTView } from './NFTView';
 
 declare global {
@@ -201,7 +200,7 @@ const Main = () => {
           <Settings />
         </PrivateRoute>
         <PrivateRoute exact path="/settings/address">
-          <ManageAddress />
+          <AddressManagement />
         </PrivateRoute>
         <PrivateRoute exact path="/settings/address-detail">
           <AddressDetail />
