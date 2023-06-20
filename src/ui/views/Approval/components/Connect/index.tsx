@@ -1,23 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import clsx from 'clsx';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Chain } from 'background/service/openapi';
 import { ChainSelector, Spin, FallbackSiteLogo } from 'ui/component';
 import { useApproval, useWallet } from 'ui/utils';
-import { CHAINS_ENUM, CHAINS } from 'consts';
+import { CHAINS_ENUM, CHAINS, SecurityEngineLevel } from 'consts';
 import styled from 'styled-components';
-import UserDataList from './UserDataList';
 import {
   ContextActionData,
   RuleConfig,
   Level,
-} from '@debank/rabby-security-engine/dist/rules';
-import { Result } from '@debank/rabby-security-engine';
+} from '@rabby-wallet/rabby-security-engine/dist/rules';
+import { Result } from '@rabby-wallet/rabby-security-engine';
 import { useSecurityEngine } from 'ui/utils/securityEngine';
 import RuleResult from './RuleResult';
 import RuleDrawer from '../SecurityEngine/RuleDrawer';
+import UserListDrawer from './UserListDrawer';
+import IconSuccess from 'ui/assets/success.svg';
+import PQueue from 'p-queue';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface ConnectProps {
   params: any;
@@ -72,6 +75,11 @@ const ConnectWrapper = styled.div`
         line-height: 26px;
         text-align: center;
         color: #13141a;
+        
+        white-space: pre-wrap;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
     }
   }
@@ -103,15 +111,32 @@ const Footer = styled.div`
     font-weight: 500;
     font-size: 13px;
     line-height: 15px;
-    text-align: center;
-    color: #4b4d59;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    position: relative;
+    &::before {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border: 5px solid transparent;
+      border-bottom: 8px solid currentColor;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .icon-level {
+      margin-right: 6px;
+    }
   }
 `;
 
 const RuleDesc = [
   {
     id: '1004',
-    desc: 'Listed by community platform',
+    desc: 'Listed by',
     fixed: true,
   },
   {
@@ -120,21 +145,49 @@ const RuleDesc = [
     fixed: true,
   },
   {
+    id: '1006',
+    desc: 'My Mark',
+    fixed: false,
+  },
+  {
     id: '1001',
-    desc: 'Phishing check by Rabby',
+    desc: 'Flagged by Rabby',
     fixed: false,
   },
   {
     id: '1002',
-    desc: 'Phishing check by MetaMask',
+    desc: 'Flagged by MetaMask',
     fixed: false,
   },
   {
     id: '1003',
-    desc: 'Phishing check by ScamSniffer',
+    desc: 'Flagged by ScamSniffer',
+    fixed: false,
+  },
+  {
+    id: '1070',
+    desc: 'Verified by Rabby',
     fixed: false,
   },
 ];
+
+const SecurityLevelTipColor = {
+  [Level.FORBIDDEN]: {
+    bg: '#EFCFCF',
+    text: '#AF160E',
+    icon: SecurityEngineLevel[Level.FORBIDDEN].icon,
+  },
+  [Level.DANGER]: {
+    bg: '#FCDCDC',
+    text: '#EC5151',
+    icon: SecurityEngineLevel[Level.DANGER].icon,
+  },
+  [Level.WARNING]: {
+    bg: '#FFEFD2',
+    text: '#FFB020',
+    icon: SecurityEngineLevel[Level.WARNING].icon,
+  },
+};
 
 const Connect = ({ params: { icon, origin } }: ConnectProps) => {
   const { state } = useLocation<{
@@ -147,6 +200,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
   const wallet = useWallet();
   const [defaultChain, setDefaultChain] = useState(CHAINS_ENUM.ETH);
   const [isLoading, setIsLoading] = useState(true);
+  const [listDrawerVisible, setListDrawerVisible] = useState(false);
   const [processedRules, setProcessedRules] = useState<string[]>([]);
   const [nonce, setNonce] = useState(0);
   const { rules, userData, executeEngine } = useSecurityEngine(nonce);
@@ -176,10 +230,16 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
   }, [engineResults]);
 
   const sortRules = useMemo(() => {
-    const list: { id: string; desc: string; result: Result | null }[] = [];
+    const list: {
+      id: string;
+      desc: string;
+      result: Result | null;
+    }[] = [];
     for (let i = 0; i < RuleDesc.length; i++) {
       const item = RuleDesc[i];
-      const result = engineResults.find((result) => result.id === item.id);
+      const result = engineResults.find((result) => {
+        return result.id === item.id;
+      });
       if (result || item.fixed) {
         list.push({
           id: item.id,
@@ -188,7 +248,20 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
         });
       }
     }
+    engineResults.forEach((result) => {
+      if (!list.find((item) => item.id === result.id)) {
+        list.push({
+          id: result.id,
+          desc: '',
+          result,
+        });
+      }
+    });
     return list;
+  }, [engineResults]);
+
+  const resultsWithoutDisable = useMemo(() => {
+    return engineResults.filter((item) => item.enable);
   }, [engineResults]);
 
   const connectBtnStatus = useMemo(() => {
@@ -196,40 +269,48 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
     let text = '';
     let forbiddenCount = 0;
     let safeCount = 0;
+    let warningCount = 0;
+    let dangerCount = 0;
     let needProcessCount = 0;
     let cancelBtnText = 'Cancel';
-
-    engineResults.forEach((result) => {
+    let level: Level = Level.SAFE;
+    resultsWithoutDisable.forEach((result) => {
       if (result.level === Level.SAFE) {
         safeCount++;
       } else if (result.level === Level.FORBIDDEN) {
         forbiddenCount++;
       } else if (
         result.level !== Level.ERROR &&
-        result.level !== Level.CLOSED &&
+        result.enable &&
         !processedRules.includes(result.id)
       ) {
         needProcessCount++;
+        if (result.level === Level.WARNING) {
+          warningCount++;
+        } else if (result.level === Level.DANGER) {
+          dangerCount++;
+        }
       }
     });
 
     if (forbiddenCount > 0) {
       disabled = true;
-      text = `Found ${forbiddenCount} forbidden risk${
-        forbiddenCount > 1 ? 's' : ''
-      }. Connection is blocked.`;
+      text = 'Found forbidden risks. Connection is blocked.';
       cancelBtnText = 'Close';
+      level = Level.FORBIDDEN;
     } else if (needProcessCount > 0) {
       if (safeCount > 0) {
         disabled = false;
         text = '';
+        level = Level.SAFE;
       } else {
         disabled = true;
-        text = `Found ${needProcessCount} risk${
-          needProcessCount > 1 ? 's' : ''
-        }. Please process ${
-          needProcessCount > 1 ? 'them' : 'it'
-        } before connecting.`;
+        text = 'Please process the alert before signing';
+        if (dangerCount > 0) {
+          level = Level.DANGER;
+        } else {
+          level = Level.WARNING;
+        }
       }
     }
 
@@ -237,16 +318,25 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
       disabled,
       text,
       cancelBtnText,
+      level,
     };
-  }, [engineResults, processedRules]);
+  }, [resultsWithoutDisable, processedRules]);
 
   const hasForbidden = useMemo(() => {
-    return engineResults.some((item) => item.level === Level.FORBIDDEN);
-  }, [engineResults]);
+    return resultsWithoutDisable.some((item) => item.level === Level.FORBIDDEN);
+  }, [resultsWithoutDisable]);
 
   const hasSafe = useMemo(() => {
-    return engineResults.some((item) => item.level === Level.SAFE);
-  }, [engineResults]);
+    return resultsWithoutDisable.some((item) => item.level === Level.SAFE);
+  }, [resultsWithoutDisable]);
+
+  const isInBlacklist = useMemo(() => {
+    return userData.originBlacklist.includes(origin.toLowerCase());
+  }, [origin, userData]);
+
+  const isInWhitelist = useMemo(() => {
+    return userData.originWhitelist.includes(origin.toLowerCase());
+  }, [origin, userData]);
 
   const handleIgnoreRule = (id: string) => {
     setProcessedRules([...processedRules, id]);
@@ -278,8 +368,65 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
     setNonce(nonce + 1);
   };
 
-  const handleUserDataListChange = () => {
-    setNonce(nonce + 1);
+  const handleUserListChange = async ({
+    onWhitelist,
+    onBlacklist,
+  }: {
+    onWhitelist: boolean;
+    onBlacklist: boolean;
+  }) => {
+    if (onWhitelist === isInWhitelist && onBlacklist === isInBlacklist) return;
+    if (onWhitelist) {
+      await wallet.addOriginWhitelist(origin);
+      message.success({
+        duration: 3,
+        icon: <i />,
+        content: (
+          <div>
+            <div className="flex gap-4">
+              <img src={IconSuccess} alt="" />
+              <div className="text-white">Mark as "Trusted"</div>
+            </div>
+          </div>
+        ),
+      });
+    } else if (onBlacklist) {
+      await wallet.addOriginBlacklist(origin);
+      message.success({
+        duration: 3,
+        icon: <i />,
+        content: (
+          <div>
+            <div className="flex gap-4">
+              <img src={IconSuccess} alt="" />
+              <div className="text-white">Mark as "Blocked"</div>
+            </div>
+          </div>
+        ),
+      });
+    } else {
+      await wallet.removeOriginBlacklist(origin);
+      await wallet.removeOriginWhitelist(origin);
+      message.success({
+        duration: 3,
+        icon: <i />,
+        content: (
+          <div>
+            <div className="flex gap-4">
+              <img src={IconSuccess} alt="" />
+              <div className="text-white">Mark removed</div>
+            </div>
+          </div>
+        ),
+      });
+    }
+    setListDrawerVisible(false);
+    setNonce(nonce + 1); // update security engine
+    handleExecuteSecurityEngine();
+  };
+
+  const handleEditUserDataList = () => {
+    setListDrawerVisible(true);
   };
 
   const handleExecuteSecurityEngine = async () => {
@@ -299,25 +446,57 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
   const init = async () => {
     const account = await wallet.getCurrentAccount();
     const site = await wallet.getSite(origin);
-    let level: 'very_low' | 'low' | 'medium' | 'high';
+    let level: 'very_low' | 'low' | 'medium' | 'high' = 'low';
     let collectList: { name: string; logo_url: string }[] = [];
-    try {
-      const result = await wallet.openapi.getOriginPopularityLevel(origin);
-      setOriginPopularLevel(result.level);
-      level = result.level;
-    } catch (e) {
-      setOriginPopularLevel('low');
-      level = 'low';
-    }
-    try {
-      const {
-        collect_list,
-      } = await wallet.openapi.getOriginThirdPartyCollectList(origin);
-      setCollectList(collect_list);
-      collectList = collect_list;
-    } catch (e) {
-      setCollectList([]);
-    }
+    let defaultChain = CHAINS_ENUM.ETH;
+    const queue = new PQueue();
+    const waitQueueFinished = (q: PQueue) => {
+      return new Promise((resolve) => {
+        q.on('empty', () => {
+          if (q.pending <= 0) resolve(null);
+        });
+      });
+    };
+    queue.add(async () => {
+      try {
+        const result = await wallet.openapi.getOriginPopularityLevel(origin);
+        level = result.level;
+      } catch (e) {
+        level = 'low';
+      }
+    });
+    queue.add(async () => {
+      try {
+        const {
+          collect_list,
+        } = await wallet.openapi.getOriginThirdPartyCollectList(origin);
+        collectList = collect_list;
+      } catch (e) {
+        collectList = [];
+      }
+    });
+    queue.add(async () => {
+      try {
+        const recommendChains = await wallet.openapi.getRecommendChains(
+          account!.address,
+          origin
+        );
+        let targetChain: Chain | undefined;
+        for (let i = 0; i < recommendChains.length; i++) {
+          targetChain = Object.values(CHAINS).find(
+            (c) => c.serverId === recommendChains[i].id
+          );
+          if (targetChain) break;
+        }
+        defaultChain = targetChain ? targetChain.enum : CHAINS_ENUM.ETH;
+      } catch (e) {
+        console.log(e);
+      }
+    });
+    await waitQueueFinished(queue);
+    setOriginPopularLevel(level);
+    setCollectList(collectList);
+    setDefaultChain(defaultChain);
 
     const ctx: ContextActionData = {
       origin: {
@@ -333,23 +512,6 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
       setDefaultChain(site.chain);
       setIsLoading(false);
       return;
-    }
-    try {
-      const recommendChains = await wallet.openapi.getRecommendChains(
-        account!.address,
-        origin
-      );
-      setIsLoading(false);
-      let targetChain: Chain | undefined;
-      for (let i = 0; i < recommendChains.length; i++) {
-        targetChain = Object.values(CHAINS).find(
-          (c) => c.serverId === recommendChains[i].id
-        );
-        if (targetChain) break;
-      }
-      setDefaultChain(targetChain ? targetChain.enum : CHAINS_ENUM.ETH);
-    } catch (e) {
-      console.log(e);
     }
     setIsLoading(false);
   };
@@ -395,6 +557,10 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
     setRuleDrawerVisible(true);
   };
 
+  const originToShow = useMemo(() => {
+    return formatDappURLToShow(origin);
+  }, [origin]);
+
   return (
     <Spin spinning={isLoading}>
       <ConnectWrapper>
@@ -407,7 +573,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
                   <div className="chain-selector-tips">
                     Select a chain to connect for
                   </div>
-                  <div className="chain-selector-site">{origin}</div>
+                  <div className="chain-selector-site">{originToShow}</div>
                 </div>
               }
               value={defaultChain}
@@ -419,42 +585,55 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
           </div>
           <div className="connect-card">
             <FallbackSiteLogo url={icon} origin={origin} width="40px" />
-            <p className="connect-origin">{origin}</p>
-            <UserDataList
-              origin={origin}
-              logo={icon}
-              userData={userData}
-              ruleResult={userListResult}
-              processedRules={processedRules}
-              onChange={handleUserDataListChange}
-              onUpdateSecurityEngine={handleExecuteSecurityEngine}
-              onIgnore={handleIgnoreRule}
-              onUndo={handleUndoIgnore}
-              onRuleEnableStatusChange={handleRuleEnableStatusChange}
-              rules={rules}
-              hasSafe={hasSafe}
-              hasForbidden={hasForbidden}
-            />
+            <p className="connect-origin">{originToShow}</p>
           </div>
         </div>
 
         <div className="rule-list">
-          {sortRules.map((rule) => (
-            <RuleResult
-              rule={rule}
-              key={rule.id}
-              onSelect={handleSelectRule}
-              collectList={collectList}
-              popularLevel={originPopularLevel}
-              ignored={processedRules.includes(rule.id)}
-              hasSafe={hasSafe}
-              hasForbidden={hasForbidden}
-            />
-          ))}
+          {RuleDesc.map((rule) => {
+            if (rule.id === '1006') {
+              return (
+                <RuleResult
+                  rule={{
+                    id: '1006',
+                    desc: 'My mark',
+                    result: userListResult || null,
+                  }}
+                  onSelect={handleSelectRule}
+                  collectList={collectList}
+                  popularLevel={originPopularLevel}
+                  userListResult={userListResult}
+                  ignored={false}
+                  hasSafe={hasSafe}
+                  hasForbidden={hasForbidden}
+                  onEditUserList={handleEditUserDataList}
+                />
+              );
+            } else {
+              if (sortRules.find((item) => item.id === rule.id) || rule.fixed) {
+                return (
+                  <RuleResult
+                    rule={sortRules.find((item) => item.id === rule.id)!}
+                    key={rule.id}
+                    onSelect={handleSelectRule}
+                    collectList={collectList}
+                    popularLevel={originPopularLevel}
+                    userListResult={userListResult}
+                    ignored={processedRules.includes(rule.id)}
+                    hasSafe={hasSafe}
+                    hasForbidden={hasForbidden}
+                    onEditUserList={handleEditUserDataList}
+                  />
+                );
+              } else {
+                return null;
+              }
+            }
+          })}
         </div>
 
         <Footer>
-          <div className="action-buttons flex flex-col mt-4">
+          <div className="action-buttons flex flex-col mt-4 items-center">
             <Button
               type="primary"
               size="large"
@@ -467,7 +646,26 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
               {t('Connect')}
             </Button>
             {connectBtnStatus.text && (
-              <div className="security-tip">{connectBtnStatus.text}</div>
+              <div
+                className={clsx('security-tip', connectBtnStatus.level)}
+                style={{
+                  color: SecurityLevelTipColor[connectBtnStatus.level].bg,
+                  backgroundColor:
+                    SecurityLevelTipColor[connectBtnStatus.level].bg,
+                }}
+              >
+                <img
+                  src={SecurityLevelTipColor[connectBtnStatus.level].icon}
+                  className="icon icon-level"
+                />
+                <span
+                  style={{
+                    color: SecurityLevelTipColor[connectBtnStatus.level].text,
+                  }}
+                >
+                  {connectBtnStatus.text}
+                </span>
+              </div>
             )}
             <Button
               type="primary"
@@ -487,6 +685,15 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
           onUndo={handleUndoIgnore}
           onRuleEnableStatusChange={handleRuleEnableStatusChange}
           onClose={handleRuleDrawerClose}
+        />
+        <UserListDrawer
+          origin={originToShow}
+          logo={icon}
+          onWhitelist={isInWhitelist}
+          onBlacklist={isInBlacklist}
+          visible={listDrawerVisible}
+          onChange={handleUserListChange}
+          onClose={() => setListDrawerVisible(false)}
         />
       </ConnectWrapper>
     </Spin>

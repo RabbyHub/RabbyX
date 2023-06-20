@@ -1,5 +1,5 @@
 import { CHAINS, CHAINS_ENUM } from '@debank/common';
-import { Level } from '@debank/rabby-security-engine/dist/rules';
+import { Level } from '@rabby-wallet/rabby-security-engine/dist/rules';
 import IconEN from 'ui/assets/langs/en.svg';
 import IconAmber from 'ui/assets/walletlogo/amber.svg';
 import LogoAmber from 'ui/assets/walletlogo/amber.svg';
@@ -55,6 +55,19 @@ import IconProceed from 'ui/assets/sign/security-engine/processed.svg';
 import IconClosed from 'ui/assets/sign/security-engine/closed.svg';
 import LogoWalletConnect from 'ui/assets/walletlogo/walletconnect.svg';
 import LogoWalletConnectWhite from 'ui/assets/walletlogo/walletconnect.svg';
+import LogoBitkeep from 'ui/assets/walletlogo/bitkeep.svg';
+import LogoRainbow from 'ui/assets/walletlogo/rainbow.svg';
+import LogoZerion from 'ui/assets/walletlogo/zerion.svg';
+import { ensureChainHashValid, ensureChainListValid } from '@/utils/chain';
+import { DEX_ENUM, DEX_SUPPORT_CHAINS } from '@rabby-wallet/rabby-swap';
+
+import LogoParaswap from 'ui/assets/swap/paraswap.png';
+import Logo0X from 'ui/assets/swap/0xswap.png';
+import LogoOpenOcean from 'ui/assets/swap/openocean.png';
+import LogoBinance from 'ui/assets/swap/binance.png';
+import LogoCoinbase from 'ui/assets/swap/coinbase.png';
+import LogoOkx from 'ui/assets/swap/okx.png';
+import LogoTokenDefault from 'ui/assets/token-default.svg';
 
 export { CHAINS, CHAINS_ENUM };
 
@@ -172,14 +185,6 @@ export const GAS_LEVEL_TEXT = {
 };
 
 export const IS_WINDOWS = /windows/i.test(global.navigator?.userAgent);
-
-export const LANGS = [
-  {
-    value: 'en',
-    label: 'English',
-    icon: IconEN,
-  },
-];
 
 export const CHECK_METAMASK_INSTALLED_URL = {
   Chrome: 'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/phishing.html',
@@ -321,7 +326,12 @@ export enum WALLET_BRAND_TYPES {
   COOLWALLET = 'CoolWallet',
   DEFIANT = 'Defiant',
   WALLETCONNECT = 'WALLETCONNECT',
+  WalletConnect = 'WalletConnect',
   AIRGAP = 'AirGap',
+  Rainbow = 'Rainbow',
+  Bitkeep = 'Bitkeep',
+  // Uniswap = 'Uniswap',
+  Zerion = 'Zerion',
 }
 
 enum WALLET_BRAND_CATEGORY {
@@ -396,6 +406,15 @@ export const WALLET_BRAND_CONTENT: {
     brand: WALLET_BRAND_TYPES.WALLETCONNECT,
     icon: LogoWalletConnect,
     image: LogoWalletConnectWhite,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  [WALLET_BRAND_TYPES.WalletConnect]: {
+    id: 100,
+    name: 'Wallet Connect',
+    brand: WALLET_BRAND_TYPES.WalletConnect,
+    icon: LogoWalletConnect,
+    image: LogoWalletConnect,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -525,6 +544,42 @@ export const WALLET_BRAND_CONTENT: {
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
+  [WALLET_BRAND_TYPES.Rainbow]: {
+    id: 21,
+    name: 'Rainbow',
+    brand: WALLET_BRAND_TYPES.Rainbow,
+    icon: LogoRainbow,
+    image: LogoRainbow,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  [WALLET_BRAND_TYPES.Bitkeep]: {
+    id: 22,
+    name: 'Bitkeep',
+    brand: WALLET_BRAND_TYPES.Bitkeep,
+    icon: LogoBitkeep,
+    image: LogoBitkeep,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  [WALLET_BRAND_TYPES.Zerion]: {
+    id: 23,
+    name: 'Zerion Wallet',
+    brand: WALLET_BRAND_TYPES.Zerion,
+    icon: LogoZerion,
+    image: LogoZerion,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  // [WALLET_BRAND_TYPES.Uniswap]: {
+  //   id: 24,
+  //   name: 'Uniswap Wallet',
+  //   brand: WALLET_BRAND_TYPES.Uniswap,
+  //   icon: LogoUniswap,
+  //   image: LogoUniswap,
+  //   connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+  //   category: WALLET_BRAND_CATEGORY.MOBILE,
+  // },
 };
 
 export const KEYRING_ICONS = {
@@ -536,6 +591,7 @@ export const KEYRING_ICONS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const KEYRING_ICONS_WHITE = {
@@ -564,6 +620,7 @@ export const KEYRINGS_LOGOS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const NOT_CLOSE_UNFOCUS_LIST: string[] = [
@@ -585,7 +642,7 @@ export const SORT_WEIGHT = {
   [KEYRING_TYPE.WatchAddressKeyring]: 5,
 };
 
-export const GASPRICE_RANGE = {
+export const GASPRICE_RANGE = ensureChainHashValid({
   [CHAINS_ENUM.ETH]: [0, 10000],
   [CHAINS_ENUM.BOBA]: [0, 1000],
   [CHAINS_ENUM.OP]: [0, 1000],
@@ -603,7 +660,7 @@ export const GASPRICE_RANGE = {
   [CHAINS_ENUM.CRO]: [0, 100000],
   [CHAINS_ENUM.BTT]: [0, 20000000000],
   [CHAINS_ENUM.METIS]: [0, 3000],
-};
+});
 
 export const HDPaths = {
   [HARDWARE_KEYRING_TYPES.Ledger.type]: [
@@ -726,7 +783,7 @@ export const GAS_TOP_UP_SUPPORT_TOKENS: Record<string, string[]> = {
   sbch: ['sbch'],
   sdn: ['sdn'],
   sgb: ['sgb'],
-  swm: ['swm'],
+  // swm: ['swm'],
   tlos: ['tlos'],
   wan: ['wan'],
   xdai: ['xdai'],
@@ -782,7 +839,7 @@ export const SecurityEngineLevel = {
     icon: IconError,
     text: 'Security engine failed',
   },
-  [Level.CLOSED]: {
+  closed: {
     color: '#B4BDCC',
     icon: IconClosed,
     text: 'Closed',
@@ -818,3 +875,59 @@ export const BRAND_ALIAN_TYPE_TEXT = {
   [WALLET_BRAND_TYPES.MATHWALLET]: WALLET_BRAND_CONTENT.MATHWALLET.name,
   [WALLET_BRAND_TYPES.TRUSTWALLET]: WALLET_BRAND_CONTENT.TRUSTWALLET.name,
 };
+
+export const SWAP_FEE_ADDRESS = '0x39041F1B366fE33F9A5a79dE5120F2Aee2577ebc';
+
+export const ETH_USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+
+export const DEX = {
+  [DEX_ENUM.ZEROXAPI]: {
+    id: DEX_ENUM.ZEROXAPI,
+    logo: Logo0X,
+    name: '0x',
+    chains: DEX_SUPPORT_CHAINS[DEX_ENUM.ZEROXAPI],
+  },
+  [DEX_ENUM.PARASWAP]: {
+    id: DEX_ENUM.PARASWAP,
+    logo: LogoParaswap,
+    name: 'ParaSwap',
+    chains: DEX_SUPPORT_CHAINS[DEX_ENUM.PARASWAP],
+  },
+  [DEX_ENUM.OPENOCEAN]: {
+    id: DEX_ENUM.OPENOCEAN,
+    logo: LogoOpenOcean,
+    name: 'OpenOcean',
+    chains: DEX_SUPPORT_CHAINS[DEX_ENUM.OPENOCEAN],
+  },
+};
+
+export const DEX_WITH_WRAP = {
+  ...DEX,
+  [DEX_ENUM.WRAPTOKEN]: {
+    logo: LogoTokenDefault,
+    name: 'Wrap Contract',
+    chains: DEX_SUPPORT_CHAINS.WrapToken,
+  },
+};
+
+export const CEX = {
+  binance: {
+    id: 'binance',
+    name: 'Binance',
+    logo: LogoBinance,
+  },
+  coinbase: {
+    id: 'coinbase',
+    name: 'Coinbase',
+    logo: LogoCoinbase,
+  },
+  okex: {
+    id: 'okex',
+    name: 'OKX',
+    logo: LogoOkx,
+  },
+};
+
+export const SWAP_SUPPORT_CHAINS = Array.from(
+  new Set(Object.values(DEX_SUPPORT_CHAINS).flat())
+);

@@ -9,10 +9,12 @@ import { Input, Form, message, Button } from 'antd';
 import { isValidAddress } from 'ethereumjs-util';
 import {
   CHAINS,
-  KEYRING_PURPLE_LOGOS,
   KEYRING_CLASS,
   CHAINS_ENUM,
 } from 'consts';
+import { 
+  KEYRING_PURPLE_LOGOS,
+} from 'ui/assets-const';
 import { useRabbyDispatch, useRabbySelector, connectStore } from 'ui/store';
 import { Account } from 'background/service/preference';
 import { NFTItem } from '@/background/service/openapi';
@@ -20,7 +22,7 @@ import { UIContactBookItem } from 'background/service/contactBook';
 import { useWallet, isSameAddress, openInTab } from 'ui/utils';
 import AccountCard from '../Approval/components/AccountCard';
 import TagChainSelector from 'ui/component/ChainSelector/tag';
-import { PageHeader, AddressViewer } from 'ui/component';
+import { PageHeader, AddressViewer, Copy } from 'ui/component';
 import AuthenticationModalPromise from 'ui/component/AuthenticationModal';
 import ContactEditModal from 'ui/component/Contact/EditModal';
 import ContactListModal from 'ui/component/Contact/ListModal';
@@ -36,7 +38,8 @@ import IconTemporaryGrantCheckbox from 'ui/assets/send-token/temporary-grant-che
 import './style.less';
 import { getKRCategoryByType } from '@/utils/transaction';
 import { filterRbiSource, useRbiSource } from '@/ui/utils/ga-event';
-import IconExternal from 'ui/assets/open-external-gray.svg';
+import IconExternal from 'ui/assets/icon-share.svg';
+import { findChainByEnum } from '@/utils/chain';
 
 const SendNFT = () => {
   const wallet = useWallet();
@@ -59,7 +62,6 @@ const SendNFT = () => {
         )?.enum
       : undefined
   );
-  const chainName = CHAINS[chain as string]?.name;
 
   const amountInputEl = useRef<any>(null);
 
@@ -120,7 +122,9 @@ const SendNFT = () => {
     (!whitelistEnabled || temporaryGrant || toAddressInWhitelist);
   const handleClickContractId = () => {
     if (!chain || !nftItem) return;
-    const targetChain = CHAINS[chain];
+    const targetChain = findChainByEnum(chain);
+    if (!targetChain) return;
+
     openInTab(
       targetChain.scanLink.replace(/tx\/_s_/, `address/${nftItem.contract_id}`),
       false
@@ -180,7 +184,7 @@ const SendNFT = () => {
         category: 'Send',
         action: 'createTx',
         label: [
-          chainName,
+          findChainByEnum(chain)?.name,
           getKRCategoryByType(currentAccount?.type),
           currentAccount?.brandName,
           'nft',
@@ -433,7 +437,7 @@ const SendNFT = () => {
                 </p>
                 <p>
                   <span className="field-name">Contract</span>
-                  <span className="value">
+                  <span className="value gap-[4px]">
                     <AddressViewer
                       address={nftItem.contract_id}
                       showArrow={false}
@@ -443,6 +447,7 @@ const SendNFT = () => {
                       className="icon icon-copy"
                       onClick={handleClickContractId}
                     />
+                    <Copy data={nftItem.contract_id} variant="address"></Copy>
                   </span>
                 </p>
               </div>

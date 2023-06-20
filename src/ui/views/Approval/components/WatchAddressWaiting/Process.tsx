@@ -101,7 +101,7 @@ const Process = ({
         setStatusProp('FAILED');
         break;
       case WALLETCONNECT_STATUS_MAP.SIBMITTED:
-        setContent('Transaction submitted');
+        setContent('Signature completed');
         setDescription('');
         setStatusProp('RESOLVED');
         break;

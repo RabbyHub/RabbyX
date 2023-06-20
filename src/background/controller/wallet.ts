@@ -47,8 +47,9 @@ import { ConnectedSite } from '../service/permission';
 import { TokenItem, Tx } from '../service/openapi';
 import {
   ContextActionData,
+  ContractAddress,
   UserData,
-} from '@debank/rabby-security-engine/dist/rules';
+} from '@rabby-wallet/rabby-security-engine/dist/rules';
 import DisplayKeyring from '../service/keyring/display';
 import provider from './provider';
 import WalletConnectKeyring from '@rabby-wallet/eth-walletconnect-keyring';
@@ -76,6 +77,11 @@ import { addHexPrefix, unpadHexString } from 'ethereumjs-util';
 import { ProviderRequest } from './provider/type';
 import { QuoteResult } from '@rabby-wallet/rabby-swap/dist/quote';
 import transactionWatcher from '../service/transactionWatcher';
+import { findChainByEnum } from '@/utils/chain';
+import { getMintRabbyContractAddress } from '@/constant/mint-rabby/mint-rabby-abi';
+import { initMintRabbyContract } from './mint-rabby';
+import { validateConfirmation } from './safe';
+import { getEnsContentHash } from './ens';
 
 const stashKeyrings: Record<string | number, any> = {};
 
@@ -90,23 +96,19 @@ export class WalletController extends BaseController {
   verifyPassword = (password: string) =>
     keyringService.verifyPassword(password);
 
-  setWhitelist = async (password: string, addresses: string[]) => {
-    await this.verifyPassword(password);
+  setWhitelist = async (addresses: string[]) => {
     whitelistService.setWhitelist(addresses);
   };
 
-  addWhitelist = async (password: string, address: string) => {
-    await this.verifyPassword(password);
+  addWhitelist = async (address: string) => {
     whitelistService.addWhitelist(address);
   };
 
-  removeWhitelist = async (password: string, address: string) => {
-    await this.verifyPassword(password);
+  removeWhitelist = async (address: string) => {
     whitelistService.removeWhitelist(address);
   };
 
-  toggleWhitelist = async (password: string, enable: boolean) => {
-    await this.verifyPassword(password);
+  toggleWhitelist = async (enable: boolean) => {
     if (enable) {
       whitelistService.enableWhitelist();
     } else {
@@ -357,19 +359,20 @@ export class WalletController extends BaseController {
       spender: string;
       pay_token_id: string;
       unlimited: boolean;
-      gasPrice: number;
+      gasPrice?: number;
       shouldTwoStepApprove: boolean;
     },
     $ctx?: any
   ) => {
     const account = await preferenceService.getCurrentAccount();
     if (!account) throw new Error('no current account');
-    const chainObj = CHAINS[chain];
+    const chainObj = findChainByEnum(chain);
     if (!chainObj) throw new Error(`Can not find chain ${chain}`);
     try {
+      let approvalTxHash: string | undefined;
       if (shouldTwoStepApprove) {
         unTriggerTxCounter.increase(3);
-        await this.approveToken(
+        approvalTxHash = await this.approveToken(
           chainObj.serverId,
           pay_token_id,
           spender,
@@ -390,7 +393,7 @@ export class WalletController extends BaseController {
         if (!shouldTwoStepApprove) {
           unTriggerTxCounter.increase(2);
         }
-        await this.approveToken(
+        approvalTxHash = await this.approveToken(
           chainObj.serverId,
           pay_token_id,
           spender,
@@ -406,7 +409,10 @@ export class WalletController extends BaseController {
         );
         unTriggerTxCounter.decrease();
       }
-      await this.sendRequest({
+      if (approvalTxHash) {
+        return approvalTxHash;
+      }
+      const tx: string = await this.sendRequest({
         $ctx:
           needApprove && pay_token_id !== chainObj.nativeTokenAddress
             ? {
@@ -424,12 +430,16 @@ export class WalletController extends BaseController {
             data: quote.tx.data || '0x',
             value: `0x${new BigNumber(quote.tx.value || '0').toString(16)}`,
             chainId: chainObj.id,
-            gasPrice: `0x${new BigNumber(gasPrice).toString(16)}`,
+            gasPrice: gasPrice
+              ? `0x${new BigNumber(gasPrice).toString(16)}`
+              : undefined,
             isSwap: true,
           },
         ],
       });
+
       unTriggerTxCounter.decrease();
+      return tx;
     } catch (e) {
       unTriggerTxCounter.reset();
     }
@@ -541,11 +551,12 @@ export class WalletController extends BaseController {
         ...extra,
       };
     }
-    await this.sendRequest({
+    const txHash: string = await this.sendRequest({
       $ctx,
       method: 'eth_sendTransaction',
       params: [tx],
     });
+    return txHash;
   };
 
   fetchEstimatedL1Fee = async (
@@ -603,46 +614,92 @@ export class WalletController extends BaseController {
   ) => {
     const account = await preferenceService.getCurrentAccount();
     if (!account) throw new Error('no current account');
-    const chainId = Object.values(CHAINS)
-      .find((chain) => chain.serverId === chainServerId)
-      ?.id.toString();
+    const chainId = Object.values(CHAINS).find(
+      (chain) => chain.serverId === chainServerId
+    )?.id;
     if (!chainId) throw new Error('invalid chain id');
-    buildinProvider.currentProvider.currentAccount = account.address;
-    buildinProvider.currentProvider.currentAccountType = account.type;
-    buildinProvider.currentProvider.currentAccountBrand = account.brandName;
-    buildinProvider.currentProvider.chainId = chainId;
-    buildinProvider.currentProvider.$ctx = $ctx;
-
-    const provider = new ethers.providers.Web3Provider(
-      buildinProvider.currentProvider
-    );
-
-    const signer = provider.getSigner();
-
-    try {
-      if (abi === 'ERC721') {
-        const contract = new Contract(contractId, ERC721ABI, signer);
-        await contract['safeTransferFrom(address,address,uint256)'](
-          account.address,
-          to,
-          tokenId
-        );
-      } else if (abi === 'ERC1155') {
-        const contract = new Contract(contractId, ERC1155ABI, signer);
-        await contract.safeTransferFrom(
-          account.address,
-          to,
-          tokenId,
-          amount,
-          []
-        );
-      } else {
-        throw new Error('unknown contract abi');
-      }
-      buildinProvider.currentProvider.$ctx = undefined;
-    } catch (e) {
-      buildinProvider.currentProvider.$ctx = undefined;
-      throw e;
+    if (abi === 'ERC721') {
+      await this.sendRequest({
+        $ctx,
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: account.address,
+            to: contractId,
+            chainId: chainId,
+            data: ((abiCoder as unknown) as AbiCoder).encodeFunctionCall(
+              {
+                constant: false,
+                inputs: [
+                  { internalType: 'address', name: 'from', type: 'address' },
+                  { internalType: 'address', name: 'to', type: 'address' },
+                  {
+                    internalType: 'uint256',
+                    name: 'tokenId',
+                    type: 'uint256',
+                  },
+                ],
+                name: 'safeTransferFrom',
+                outputs: [],
+                payable: false,
+                stateMutability: 'nonpayable',
+                type: 'function',
+              },
+              [account.address, to, tokenId] as any
+            ),
+          },
+        ],
+      });
+    } else if (abi === 'ERC1155') {
+      await this.sendRequest({
+        $ctx,
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: account.address,
+            to: contractId,
+            chainId: chainId,
+            data: ((abiCoder as unknown) as AbiCoder).encodeFunctionCall(
+              {
+                inputs: [
+                  {
+                    internalType: 'address',
+                    name: 'from',
+                    type: 'address',
+                  },
+                  {
+                    internalType: 'address',
+                    name: 'to',
+                    type: 'address',
+                  },
+                  {
+                    internalType: 'uint256',
+                    name: 'id',
+                    type: 'uint256',
+                  },
+                  {
+                    internalType: 'uint256',
+                    name: 'amount',
+                    type: 'uint256',
+                  },
+                  {
+                    internalType: 'bytes',
+                    name: 'data',
+                    type: 'bytes',
+                  },
+                ],
+                name: 'safeTransferFrom',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+              },
+              [account.address, to, tokenId, amount, []] as any
+            ),
+          },
+        ],
+      });
+    } else {
+      throw new Error('unknown contract abi');
     }
   };
 
@@ -905,6 +962,9 @@ export class WalletController extends BaseController {
     preferenceService.updateAddressBalance(address, data);
     return data;
   };
+  updateAddressBalanceCache = (address: string, balance: string) => {
+    preferenceService.updateAddressUSDValueCache(address, Number(balance));
+  };
   getAddressCacheBalance = (address: string | undefined) => {
     if (!address) return null;
     return preferenceService.getAddressBalance(address);
@@ -955,6 +1015,10 @@ export class WalletController extends BaseController {
   setSwapDexId = swapService.setSelectedDex;
   getUnlimitedAllowance = swapService.getUnlimitedAllowance;
   setUnlimitedAllowance = swapService.setUnlimitedAllowance;
+  setSwapView = swapService.setSwapView;
+  setSwapTrade = swapService.setSwapTrade;
+  getSwapViewList = swapService.getSwapViewList;
+  getSwapTradeList = swapService.getSwapTradeList;
 
   setCustomRPC = RPCService.setRPC;
   removeCustomRPC = RPCService.removeCustomRPC;
@@ -1016,19 +1080,24 @@ export class WalletController extends BaseController {
     }
   };
   setSite = (data: ConnectedSite) => {
+    const chainItem = findChainByEnum(data.chain);
+    if (!chainItem) {
+      throw new Error(`[wallet::setSite] Chain ${data.chain} is not supported`);
+    }
+
     permissionService.setSite(data);
     if (data.isConnected) {
       // rabby:chainChanged event must be sent before chainChanged event
       sessionService.broadcastEvent(
         'rabby:chainChanged',
-        CHAINS[data.chain],
+        chainItem,
         data.origin
       );
       sessionService.broadcastEvent(
         'chainChanged',
         {
-          chain: CHAINS[data.chain].hex,
-          networkVersion: CHAINS[data.chain].network,
+          chain: chainItem.hex,
+          networkVersion: chainItem.network,
         },
         data.origin
       );
@@ -1056,18 +1125,22 @@ export class WalletController extends BaseController {
     }
   };
   updateConnectSite = (origin: string, data: ConnectedSite) => {
+    const chainItem = findChainByEnum(data.chain);
+
+    if (!chainItem) {
+      throw new Error(
+        `[wallet::updateConnectSite] Chain ${data.chain} is not supported`
+      );
+    }
+
     permissionService.updateConnectSite(origin, data);
     // rabby:chainChanged event must be sent before chainChanged event
-    sessionService.broadcastEvent(
-      'rabby:chainChanged',
-      CHAINS[data.chain],
-      data.origin
-    );
+    sessionService.broadcastEvent('rabby:chainChanged', chainItem, data.origin);
     sessionService.broadcastEvent(
       'chainChanged',
       {
-        chain: CHAINS[data.chain].hex,
-        networkVersion: CHAINS[data.chain].network,
+        chain: chainItem.hex,
+        networkVersion: chainItem.network,
       },
       data.origin
     );
@@ -1449,6 +1522,10 @@ export class WalletController extends BaseController {
           params: data,
         });
       });
+      keyring.on('error', (error) => {
+        console.error(error);
+        Sentry.captureException(error);
+      });
     }
     return {
       uri,
@@ -1593,12 +1670,21 @@ export class WalletController extends BaseController {
     const serialized = await keyring.serialize();
     const seedWords = serialized.mnemonic;
 
+    this._lastGetAddress = address;
     return seedWords;
+  };
+
+  _lastGetAddress = '';
+
+  getLastGetAddress = () => {
+    return this._lastGetAddress;
   };
 
   clearAddressPendingTransactions = (address: string) => {
     transactionHistoryService.clearPendingTransactions(address);
     transactionWatcher.clearPendingTx(address);
+    sessionService.broadcastToDesktopOnly('clearPendingTransactions', null);
+
     return;
   };
 
@@ -1714,6 +1800,36 @@ export class WalletController extends BaseController {
     });
   };
 
+  _getMnemonicKeyringByAddress = (address: string) => {
+    return keyringService.keyrings.find((item) => {
+      return (
+        item.type === KEYRING_CLASS.MNEMONIC &&
+        item.mnemonic &&
+        Object.keys(item._index2wallet).some((key) => {
+          return (
+            item._index2wallet[key][0].toLowerCase() === address.toLowerCase()
+          );
+        })
+      );
+    });
+  };
+
+  getMnemonicByAddress = (address: string) => {
+    const keyring = this._getMnemonicKeyringByAddress(address);
+    if (!keyring) {
+      throw new Error("Can't find keyring by address");
+    }
+    return keyring.mnemonic;
+  };
+
+  getMnemonicAddressIndex = async (address: string) => {
+    const keyring = this._getMnemonicKeyringByAddress(address);
+    if (!keyring) {
+      throw new Error("Can't find keyring by address");
+    }
+    return await keyring.getIndexByAddress(address);
+  };
+
   generateKeyringWithMnemonic = async (mnemonic: string) => {
     if (!bip39.validateMnemonic(mnemonic)) {
       throw new Error(i18n.t('The seed phrase is invalid, please check!'));
@@ -1734,6 +1850,7 @@ export class WalletController extends BaseController {
       result.keyringId = this.addKeyringToStash(keyring);
     } else {
       result.isExistedKR = true;
+      result.keyringId = this.updateKeyringInStash(keyring);
     }
 
     return result;
@@ -1744,6 +1861,18 @@ export class WalletController extends BaseController {
     stashKeyrings[stashId] = keyring;
 
     return stashId;
+  };
+
+  updateKeyringInStash = (keyring) => {
+    let keyringId = Object.keys(stashKeyrings).find((key) => {
+      return stashKeyrings[key].mnemonic === keyring.mnemonic;
+    }) as number | undefined;
+
+    if (!keyringId) {
+      keyringId = this.addKeyringToStash(keyring);
+    }
+
+    return Number(keyringId);
   };
 
   addKeyring = async (
@@ -1872,13 +2001,28 @@ export class WalletController extends BaseController {
   }) => {
     let keyring;
     let stashKeyringId: number | null = null;
+    let isNew = false;
     try {
       keyring = this._getKeyringByType(type);
     } catch {
       const Keyring = keyringService.getKeyringClassForType(type);
       keyring = new Keyring();
+      isNew = true;
+    }
+
+    Object.keys(stashKeyrings).forEach((key) => {
+      const kr = stashKeyrings[key];
+      if (kr.type === keyring.type) {
+        stashKeyringId = Number(key);
+      }
+    });
+    if (!stashKeyringId) {
       stashKeyringId = Object.values(stashKeyrings).length + 1;
       stashKeyrings[stashKeyringId] = keyring;
+    } else {
+      if (isNew) {
+        stashKeyrings[stashKeyringId] = keyring;
+      }
     }
 
     if (hdPath && keyring.setHdPath) {
@@ -2178,6 +2322,9 @@ export class WalletController extends BaseController {
   // getTxExplainCacheByApprovalId = (id: string) =>
   //   transactionHistoryService.getExplainCacheByApprovalId(id);
 
+  markTransactionAsIndexed = (address: string, chainId: number, hash: string) =>
+    transactionHistoryService.markTransactionAsIndexed(address, chainId, hash);
+
   getTransactionHistory = (address: string) =>
     transactionHistoryService.getList(address);
 
@@ -2207,6 +2354,8 @@ export class WalletController extends BaseController {
     transactionHistoryService.getPendingCount(address);
   getNonceByChain = (address: string, chainId: number) =>
     transactionHistoryService.getNonceByChain(address, chainId);
+  getPendingTxsByNonce = (address: string, chainId: number, nonce: number) =>
+    transactionHistoryService.getPendingTxsByNonce(address, chainId, nonce);
 
   getPreference = (key?: string) => {
     return preferenceService.getPreference(key);
@@ -2368,6 +2517,9 @@ export class WalletController extends BaseController {
       );
     }
 
+    const importedAccounts = await (keyring as any).getAccounts();
+    const addressIndexStart = importedAccounts.length ?? 0;
+
     const accounts = ids
       .sort((a, b) => a - b)
       .map((id, index) => {
@@ -2375,7 +2527,7 @@ export class WalletController extends BaseController {
         const alias = generateAliasName({
           keyringType: KEYRING_TYPE.HdKeyring,
           keyringCount: keyring.index,
-          addressCount: index,
+          addressCount: addressIndexStart + index,
         });
         contactBookService.updateCacheAlias({
           address: address,
@@ -2533,6 +2685,42 @@ export class WalletController extends BaseController {
     securityEngineService.updateUserData(data);
   };
 
+  addContractWhitelist = (contract: ContractAddress) => {
+    securityEngineService.removeContractBlacklistFromAllChains(contract);
+    securityEngineService.addContractWhitelist(contract);
+  };
+
+  addContractBlacklist = (contract: ContractAddress) => {
+    securityEngineService.removeContractWhitelist(contract);
+    securityEngineService.addContractBlacklist(contract);
+  };
+
+  removeContractWhitelist = (contract: ContractAddress) => {
+    securityEngineService.removeContractWhitelist(contract);
+  };
+
+  removeContractBlacklist = (contract: ContractAddress) => {
+    securityEngineService.removeContractBlacklistFromAllChains(contract);
+  };
+
+  addAddressWhitelist = (address: string) => {
+    securityEngineService.removeAddressBlacklist(address);
+    securityEngineService.addAddressWhitelist(address);
+  };
+
+  addAddressBlacklist = (address: string) => {
+    securityEngineService.removeAddressWhitelist(address);
+    securityEngineService.addAddressBlacklist(address);
+  };
+
+  removeAddressWhitelist = (address: string) => {
+    securityEngineService.removeAddressWhitelist(address);
+  };
+
+  removeAddressBlacklist = (address: string) => {
+    securityEngineService.removeAddressBlacklist(address);
+  };
+
   addOriginWhitelist = (origin: string) => {
     securityEngineService.removeOriginBlacklist(origin);
     securityEngineService.addOriginWhitelist(origin);
@@ -2558,6 +2746,89 @@ export class WalletController extends BaseController {
       securityEngineService.disableRule(id);
     }
   };
+
+  mintedRabbyTotal = async () => {
+    const contract = await initMintRabbyContract();
+    const result = await contract.totalSupply();
+
+    return result.toString();
+  };
+
+  mintedRabbyEndDateTime = async () => {
+    const contract = await initMintRabbyContract();
+    const { publicSaleEnd } = await contract.saleDetails();
+
+    try {
+      return new Date(publicSaleEnd.toNumber() * 1000).getTime();
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  getMintedRabby = async () => {
+    const account = await preferenceService.getCurrentAccount();
+    const contract = await initMintRabbyContract();
+    const accountAddress = account!.address;
+    const result = await contract.mintedPerAddress(accountAddress);
+    const isMinted = (result.totalMints as BigNumber).eq(1);
+
+    if (!isMinted) {
+      return false;
+    }
+
+    const nfts = await openapiService.listNFT(accountAddress, true);
+    const contractAddress = getMintRabbyContractAddress();
+    // only one token, so just return the first one
+    const nft = nfts.find((item) =>
+      isSameAddress(item.contract_id, contractAddress)
+    );
+
+    if (!nft) {
+      return {
+        contractAddress,
+      };
+    }
+
+    return {
+      tokenId: nft?.inner_id,
+      contractAddress: nft?.contract_id,
+      detailUrl: nft?.detail_url,
+    };
+  };
+
+  mintRabbyFee = async () => {
+    const contract = await initMintRabbyContract();
+    const feeAmount = (await contract.zoraFeeForAmount(1)).fee;
+
+    return feeAmount.toString();
+  };
+
+  mintRabby = async () => {
+    const account = await preferenceService.getCurrentAccount();
+    const contract = await initMintRabbyContract();
+    const feeAmount = await this.mintRabbyFee();
+    const value = `0x${new BigNumber(feeAmount).toString(16)}`;
+    const contractAddress = getMintRabbyContractAddress();
+
+    const result = await this.sendRequest({
+      method: 'eth_sendTransaction',
+      params: [
+        {
+          chainId: CHAINS['ETH'].id,
+          value,
+          from: account!.address,
+          to: contractAddress,
+          data: contract.interface.encodeFunctionData('purchase', [1]),
+        },
+      ],
+    });
+
+    return result;
+  };
+
+  getEnsContentHash = getEnsContentHash;
+
+  validateSafeConfirmation = validateConfirmation;
 }
 
 export default new WalletController();

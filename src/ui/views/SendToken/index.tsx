@@ -13,11 +13,13 @@ import styled from 'styled-components';
 import {
   CHAINS,
   CHAINS_ENUM,
-  KEYRING_PURPLE_LOGOS,
   KEYRING_CLASS,
   MINIMUM_GAS_LIMIT,
   L2_ENUMS,
 } from 'consts';
+import { 
+  KEYRING_PURPLE_LOGOS,
+} from 'ui/assets-const';
 import { useRabbyDispatch, useRabbySelector, connectStore } from 'ui/store';
 import { Account, ChainGas } from 'background/service/preference';
 import { isSameAddress, useWallet } from 'ui/utils';
@@ -46,6 +48,7 @@ import './style.less';
 import { getKRCategoryByType } from '@/utils/transaction';
 import { filterRbiSource, useRbiSource } from '@/ui/utils/ga-event';
 import { UIContactBookItem } from '@/background/service/contactBook';
+import { findChainByEnum } from '@/utils/chain';
 
 const MaxButton = styled.img`
   cursor: pointer;
@@ -57,6 +60,7 @@ const SendToken = () => {
   const wallet = useWallet();
   const [currentAccount, setCurrentAccount] = useState<Account | null>(null);
   const [chain, setChain] = useState(CHAINS_ENUM.ETH);
+  const chainItem = useMemo(() => findChainByEnum(chain), [chain]);
   const { t } = useTranslation();
   const [tokenAmountForGas, setTokenAmountForGas] = useState('0');
   const { useForm } = Form;
@@ -157,11 +161,12 @@ const SendToken = () => {
     new BigNumber(form.getFieldValue('amount')).gte(0) &&
     !isLoading &&
     (!whitelistEnabled || temporaryGrant || toAddressInWhitelist);
-  const isNativeToken = currentToken.id === CHAINS[chain].nativeTokenAddress;
+  const isNativeToken =
+    !!chainItem && currentToken?.id === chainItem.nativeTokenAddress;
 
   const fetchGasList = async () => {
     const list: GasLevel[] = await wallet.openapi.gasMarket(
-      CHAINS[chain].serverId
+      chainItem?.serverId || ''
     );
     return list;
   };
@@ -577,7 +582,7 @@ const SendToken = () => {
     address: string
   ) => {
     const t = await wallet.openapi.getToken(address, chainId, id);
-    setCurrentToken(t);
+    if (t) setCurrentToken(t);
     setIsLoading(false);
   };
 
@@ -617,7 +622,7 @@ const SendToken = () => {
           }
         }
       }
-      if (needLoadToken.chain !== CHAINS[chain].serverId) {
+      if (chainItem && needLoadToken.chain !== chainItem.serverId) {
         const target = Object.values(CHAINS).find(
           (item) => item.serverId === needLoadToken.chain
         )!;
@@ -851,11 +856,11 @@ const SendToken = () => {
             ) : null}
           </div>
           <Form.Item name="amount">
-            {currentAccount && (
+            {currentAccount && chainItem && (
               <TokenAmountInput
                 token={currentToken}
                 onTokenChange={handleCurrentTokenChange}
-                chainId={CHAINS[chain].serverId}
+                chainId={chainItem.serverId}
                 amountFocus={amountFocus}
                 inlinePrize
               />
@@ -957,7 +962,7 @@ const SendToken = () => {
       <GasSelector
         visible={gasSelectorVisible}
         onClose={handleGasSelectorClose}
-        chainId={CHAINS[chain].id}
+        chainId={chainItem?.id || CHAINS.ETH.id}
         onChange={(val) => {
           setAmountFocus(false);
           setGasSelectorVisible(false);

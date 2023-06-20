@@ -37,6 +37,8 @@ import contactBook from '../contactBook';
 import { generateAliasName } from '@/utils/account';
 import * as Sentry from '@sentry/browser';
 
+import './patch';
+
 export const KEYRING_SDK_TYPES = {
   SimpleKeyring,
   HdKeyring,
@@ -887,6 +889,10 @@ export class KeyringService extends EventEmitter {
           params: data,
         });
       });
+      keyring.on('error', (error) => {
+        console.error(error);
+        Sentry.captureException(error);
+      });
     }
     if (keyring.type === KEYRING_CLASS.GNOSIS) {
       (keyring as GnosisKeyring).on(TransactionBuiltEvent, (data) => {
@@ -953,6 +959,12 @@ export class KeyringService extends EventEmitter {
       }, []);
     });
     return addrs.map(normalizeAddress);
+  }
+
+  resetResend() {
+    this.keyrings.forEach((keyring) => {
+      keyring?.resetResend?.();
+    });
   }
 
   /**

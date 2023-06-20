@@ -32,6 +32,8 @@ import { SvgIconOpenExternal } from 'ui/assets';
 import './style.less';
 import { Account } from '@/background/service/preference';
 import interval from 'interval-promise';
+import { findChainByID } from '@/utils/chain';
+import { getTokenSymbol } from '@/ui/utils/token';
 
 const TransactionExplain = ({
   isFailed,
@@ -318,7 +320,9 @@ const TransactionItem = ({
   const gasUSDValue = gasTokenCount
     ? (item.explain.native_token.price * gasTokenCount).toFixed(2)
     : 0;
-  const gasTokenSymbol = hasTokenPrice ? item.explain.native_token.symbol : '';
+  const gasTokenSymbol = hasTokenPrice
+    ? getTokenSymbol(item.explain.native_token)
+    : '';
 
   const loadTxData = async () => {
     if (gasTokenCount) return;
@@ -497,7 +501,7 @@ const TransactionItem = ({
           <span>{isPending ? null : sinceTime(item.createdAt / 1000)}</span>
           {!item.isSubmitFailed && (
             <span>
-              {chain.name} #{item.nonce}
+              {chain?.name} #{item.nonce}
             </span>
           )}
         </div>
@@ -587,7 +591,9 @@ const TransactionItem = ({
                       )} ${gasTokenSymbol} ($${gasUSDValue})`
                     : txQueues[completedTx!.hash]
                     ? txQueues[completedTx!.hash].tokenCount?.toFixed(8) +
-                      ` ${txQueues[completedTx!.hash].token?.symbol} ($${(
+                      ` ${getTokenSymbol(
+                        txQueues[completedTx!.hash].token
+                      )} ($${(
                         txQueues[completedTx!.hash].tokenCount! *
                         (txQueues[completedTx!.hash].token?.price || 1)
                       ).toFixed(2)})`
@@ -696,30 +702,34 @@ const TransactionHistory = () => {
     <div className="tx-history">
       {pendingList.length > 0 && (
         <div className="tx-history__pending">
-          {pendingList.map((item) => (
-            <TransactionItem
-              item={item}
-              key={`${item.chainId}-${item.nonce}`}
-              canCancel={
-                minBy(
-                  pendingList.filter((i) => i.chainId === item.chainId),
-                  (i) => i.nonce
-                )?.nonce === item.nonce
-              }
-              onComplete={() => handleTxComplete()}
-            />
-          ))}
+          {pendingList.map((item) =>
+            !findChainByID(item?.chainId) ? null : (
+              <TransactionItem
+                item={item}
+                key={`${item.chainId}-${item.nonce}`}
+                canCancel={
+                  minBy(
+                    pendingList.filter((i) => i.chainId === item.chainId),
+                    (i) => i.nonce
+                  )?.nonce === item.nonce
+                }
+                onComplete={() => handleTxComplete()}
+              />
+            )
+          )}
         </div>
       )}
       {completeList.length > 0 && (
         <div className="tx-history__completed">
-          {completeList.map((item) => (
-            <TransactionItem
-              item={item}
-              key={`${item.chainId}-${item.nonce}`}
-              canCancel={false}
-            />
-          ))}
+          {completeList.map((item) =>
+            !findChainByID(item?.chainId) ? null : (
+              <TransactionItem
+                item={item}
+                key={`${item.chainId}-${item.nonce}`}
+                canCancel={false}
+              />
+            )
+          )}
         </div>
       )}
       {completeList.length <= 0 && pendingList.length <= 0 && (

@@ -15,6 +15,7 @@ import Scan from './Scan';
 import { message } from 'antd';
 import { useSessionStatus } from '@/ui/component/WalletConnect/useSessionStatus';
 import { adjustV } from '@/ui/utils/gnosis';
+import { findChainByEnum } from '@/utils/chain';
 
 interface ApprovalParams {
   address: string;
@@ -124,15 +125,20 @@ const WatchAddressWaiting = ({ params }: { params: ApprovalParams }) => {
       if (data.success) {
         let sig = data.data;
         setResult(sig);
-        if (params.isGnosis) {
-          sig = adjustV('eth_signTypedData', sig);
-          const sigs = await wallet.getGnosisTransactionSignatures();
-          if (sigs.length > 0) {
-            await wallet.gnosisAddConfirmation(account.address, sig);
-          } else {
-            await wallet.gnosisAddSignature(account.address, sig);
-            await wallet.postGnosisTransaction();
+        try {
+          if (params.isGnosis) {
+            sig = adjustV('eth_signTypedData', sig);
+            const sigs = await wallet.getGnosisTransactionSignatures();
+            if (sigs.length > 0) {
+              await wallet.gnosisAddConfirmation(account.address, sig);
+            } else {
+              await wallet.gnosisAddSignature(account.address, sig);
+              await wallet.postGnosisTransaction();
+            }
           }
+        } catch (e) {
+          rejectApproval(e.message);
+          return;
         }
         if (!isSignTextRef.current) {
           // const tx = approval.data?.params;
@@ -147,7 +153,7 @@ const WatchAddressWaiting = ({ params }: { params: ApprovalParams }) => {
 
             wallet.reportStats('signedTransaction', {
               type: account.brandName,
-              chainId: CHAINS[chain].serverId,
+              chainId: findChainByEnum(chain)?.serverId || '',
               category: KEYRING_CATEGORY_MAP[account.type],
               success: true,
               preExecSuccess: explain
@@ -177,7 +183,7 @@ const WatchAddressWaiting = ({ params }: { params: ApprovalParams }) => {
 
             wallet.reportStats('signedTransaction', {
               type: account.brandName,
-              chainId: CHAINS[chain].serverId,
+              chainId: findChainByEnum(chain)?.serverId || '',
               category: KEYRING_CATEGORY_MAP[account.type],
               success: false,
               preExecSuccess: explain
@@ -216,7 +222,7 @@ const WatchAddressWaiting = ({ params }: { params: ApprovalParams }) => {
 
               wallet.reportStats('signTransaction', {
                 type: account.brandName,
-                chainId: CHAINS[chain].serverId,
+                chainId: findChainByEnum(chain)?.serverId || '',
                 category: KEYRING_CATEGORY_MAP[account.type],
                 preExecSuccess: explain
                   ? explain?.calcSuccess && explain?.pre_exec.success

@@ -26,6 +26,7 @@ import './style.less';
 import { CHAINS, CHAINS_ENUM } from '@/constant';
 import { useAsync } from 'react-use';
 import { useRabbySelector } from '@/ui/store';
+import { findChainByEnum } from '@/utils/chain';
 
 export default ({
   gnosisPendingCount,
@@ -125,17 +126,19 @@ export default ({
   }, [currentConnectedSiteChainNativeToken]);
 
   const { value: tokenLogo, loading: tokenLoading } = useAsync(async () => {
+    const chainItem = findChainByEnum(currentConnectedSiteChain, {
+      fallback: true,
+    })!;
+
     try {
       const data = await wallet.openapi.getToken(
         account!.address,
-        CHAINS[currentConnectedSiteChain].serverId,
-        CHAINS[currentConnectedSiteChain].nativeTokenAddress
+        chainItem.serverId || '',
+        chainItem.nativeTokenAddress || ''
       );
-      return (
-        data?.logo_url || CHAINS[currentConnectedSiteChain].nativeTokenLogo
-      );
+      return data?.logo_url || chainItem.nativeTokenLogo;
     } catch (error) {
-      return CHAINS[currentConnectedSiteChain].nativeTokenLogo;
+      return chainItem.nativeTokenLogo;
     }
   }, [currentConnectedSiteChain]);
 
@@ -292,7 +295,6 @@ export default ({
       // 'queue',
       'transactions',
       'dapps',
-      'security',
       'address',
       'settings',
     ];
@@ -304,7 +306,6 @@ export default ({
       'gasTopUp',
       'transactions',
       'dapps',
-      'security',
       'address',
       'settings',
     ];

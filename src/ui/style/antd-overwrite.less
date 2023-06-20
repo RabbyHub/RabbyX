@@ -9,7 +9,7 @@
 
 .ant-input {
   border-radius: 6px;
-  &[type="password"] {
+  &[type='password'] {
     letter-spacing: 4px;
     &::placeholder {
       letter-spacing: normal;
@@ -41,18 +41,28 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: rgba(45, 48, 51, 0.1);
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
   }
+
+  &:not(.ant-btn-background-ghost)::before {
+    background-color: rgba(45, 48, 51, 0.1);
+  }
 }
 
-.ant-btn-primary {
+.ant-btn-primary:not(.ant-btn-background-ghost) {
   &:hover,
   &:focus {
     background-color: @primary-color;
     border-color: @primary-color;
     box-shadow: 0px 8px 16px rgba(134, 151, 255, 0.3);
+  }
+  &[disabled] {
+    color: white;
+    background: #e5e9ef;
+    border-color: #e5e9ef;
+    text-shadow: none;
+    box-shadow: none;
   }
 }
 /*---------------------
@@ -234,6 +244,14 @@
 /*---------------------
         Switch
 ---------------------*/
+.ant-switch {
+  background: #b4bdcc;
+}
+
+.ant-switch-disabled {
+  background: rgba(180, 189, 204, 0.3);
+}
+
 .ant-switch-checked {
   background-color: #27c193;
 }

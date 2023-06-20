@@ -5,9 +5,11 @@ import ClipboardJS from 'clipboard';
 import {
   CHAINS,
   KEYRING_CLASS,
-  KEYRING_ICONS_WHITE,
   WALLET_BRAND_CONTENT,
 } from 'consts';
+import { 
+  KEYRING_ICONS_WHITE,
+} from 'ui/assets-const';
 import QRCode from 'qrcode.react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -23,6 +25,7 @@ import { query2obj } from 'ui/utils/url';
 import './style.less';
 import { getKRCategoryByType } from '@/utils/transaction';
 import { filterRbiSource, useRbiSource } from '@/ui/utils/ga-event';
+import { findChainByEnum } from '@/utils/chain';
 
 const useAccount = () => {
   const wallet = useWallet();
@@ -61,7 +64,7 @@ const useAccount = () => {
 
 const useReceiveTitle = (search: string) => {
   const qs = useMemo(() => query2obj(search), [search]);
-  const chain = CHAINS[qs.chain]?.name || 'Ethereum';
+  const chain = findChainByEnum(qs.chain)?.name || 'Ethereum';
   const token = qs.token || 'assets';
 
   return `Receive ${token} on ${chain}`;
@@ -80,7 +83,7 @@ const Receive = () => {
   const qs = useMemo(() => query2obj(history.location.search), [
     history.location.search,
   ]);
-  const chain = CHAINS[qs.chain]?.name ?? 'Ethereum';
+  const chain = findChainByEnum(qs.chain)?.name ?? 'Ethereum';
 
   useEffect(() => {
     const clipboard = new ClipboardJS(ref.current!, {

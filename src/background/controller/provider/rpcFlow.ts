@@ -112,7 +112,7 @@ const flowContext = flow
               params: { origin, name, icon },
               approvalComponent: 'Connect',
             },
-            { height: 800 }
+            { height: 390 }
           );
           connectOrigins.delete(origin);
           permissionService.addConnectedSite(origin, name, icon, defaultChain);
@@ -141,6 +141,9 @@ const flowContext = flow
       windowHeight = options.height;
     } else {
       const minHeight = 500;
+      // if (screen.availHeight > windowHeight) {
+      //   windowHeight = screen.availHeight;
+      // }
       if (screen.availHeight < 880) {
         windowHeight = screen.availHeight;
       }
@@ -269,6 +272,7 @@ export default (request: ProviderRequest) => {
       flow.requestedApproval = false;
       // only unlock notification if current flow is an approval flow
       notificationService.unLock();
+      keyringService.resetResend();
     }
   });
 };

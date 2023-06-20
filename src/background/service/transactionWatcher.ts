@@ -2,6 +2,7 @@ import {
   openapiService,
   i18n,
   transactionHistoryService,
+  sessionService,
 } from 'background/service';
 import { createPersistStore, isSameAddress } from 'background/utils';
 import { notification } from 'background/webapi';
@@ -10,6 +11,7 @@ import { format } from '@/utils';
 import eventBus from '@/eventBus';
 import { EVENTS } from '@/constant';
 import interval from 'interval-promise';
+import { findChainByEnum } from '@/utils/chain';
 
 class Transaction {
   createdTime = 0;
@@ -49,12 +51,23 @@ class TransactionWatcher {
       [id]: new Transaction(nonce, hash, chain),
     };
 
-    const url = format(CHAINS[chain].scanLink, hash);
-    notification.create(
+    const chainItem = findChainByEnum(chain);
+    if (!chainItem) {
+      throw new Error(`[transactionWatcher::addTx] chain ${chain} not found`);
+    }
+
+    const url = format(chainItem.scanLink, hash);
+    // notification.create(
+    //   url,
+    //   i18n.t('Transaction submitted'),
+    //   i18n.t('click to view more information')
+    // );
+    sessionService.broadcastToDesktopOnly('transactionChanged', {
+      type: 'submitted',
       url,
-      i18n.t('Transaction submitted'),
-      i18n.t('click to view more information')
-    );
+      hash,
+      chain,
+    });
   };
 
   checkStatus = async (id: string) => {
@@ -62,9 +75,13 @@ class TransactionWatcher {
       return;
     }
     const { hash, chain } = this.store.pendingTx[id];
+    const chainItem = findChainByEnum(chain);
+    if (!chainItem) {
+      return;
+    }
 
     return openapiService
-      .ethRpc(CHAINS[chain].serverId, {
+      .ethRpc(chainItem.serverId, {
         method: 'eth_getTransactionReceipt',
         params: [hash],
       })
@@ -76,16 +93,20 @@ class TransactionWatcher {
       return;
     }
     const { hash, chain, nonce } = this.store.pendingTx[id];
-    const url = format(CHAINS[chain].scanLink, hash);
+
+    const chainItem = findChainByEnum(chain);
+    if (!chainItem) {
+      throw new Error(`[transactionWatcher::notify] chain ${chain} not found`);
+    }
+
+    const url = format(chainItem.scanLink, hash);
     const [address] = id.split('_');
-    const chainId = Object.values(CHAINS).find((item) => item.enum === chain)!
-      .id;
 
     if (txReceipt) {
       await transactionHistoryService.reloadTx({
         address,
         nonce: Number(nonce),
-        chainId,
+        chainId: chainItem.id,
       });
     }
 
@@ -94,12 +115,18 @@ class TransactionWatcher {
         ? i18n.t('Transaction completed')
         : i18n.t('Transaction failed');
 
-    notification.create(
-      url,
-      title,
-      i18n.t('click to view more information'),
-      2
-    );
+    // notification.create(
+    //   url,
+    //   title,
+    //   i18n.t('click to view more inforwmation'),
+    //   2
+    // );
+    sessionService.broadcastToDesktopOnly('transactionChanged', {
+      type: 'finished',
+      success: txReceipt.status === '0x1',
+      hash,
+      chain,
+    });
 
     eventBus.emit(EVENTS.broadcastToUI, {
       method: EVENTS.TX_COMPLETED,

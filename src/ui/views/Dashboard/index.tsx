@@ -10,13 +10,15 @@ import remarkGfm from 'remark-gfm';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 import {
   KEYRING_CLASS,
-  KEYRING_ICONS,
-  KEYRING_ICONS_WHITE,
   KEYRING_TYPE,
   KEYRING_TYPE_TEXT,
   WALLET_BRAND_CONTENT,
   EVENTS,
 } from 'consts';
+import { 
+  KEYRING_ICONS,
+  KEYRING_ICONS_WHITE
+} from 'ui/assets-const';
 import cloneDeep from 'lodash/cloneDeep';
 import uniqBy from 'lodash/uniqBy';
 import QRCode from 'qrcode.react';
@@ -69,6 +71,7 @@ import { SessionSignal } from '@/ui/component/WalletConnect/SessionSignal';
 import { useWalletConnectIcon } from '@/ui/component/WalletConnect/useWalletConnectIcon';
 import { GridPlusSignal } from '@/ui/component/ConnectStatus/GridPlusSignal';
 import { LedgerSignal } from '@/ui/component/ConnectStatus/LedgerSignal';
+import { CommonSignal } from '@/ui/component/ConnectStatus/CommonSignal';
 
 const GnosisAdminItem = ({
   accounts,
@@ -621,21 +624,11 @@ const Dashboard = () => {
                         KEYRING_ICONS_WHITE[currentAccount.type]
                       }
                     />
-                    {currentAccount.type === KEYRING_CLASS.WALLETCONNECT && (
-                      <SessionSignal
-                        isBadge
-                        address={currentAccount.address}
-                        brandName={currentAccount.brandName}
-                        pendingConnect
-                      />
-                    )}
-                    {currentAccount.type === KEYRING_CLASS.HARDWARE.LEDGER && (
-                      <LedgerSignal isBadge />
-                    )}
-                    {currentAccount.type ===
-                      KEYRING_CLASS.HARDWARE.GRIDPLUS && (
-                      <GridPlusSignal isBadge />
-                    )}
+                    <CommonSignal
+                      type={currentAccount.type}
+                      brandName={currentAccount.brandName}
+                      address={currentAccount.address}
+                    />
                   </div>
                   <div
                     className="text-15 text-white ml-6 mr-6 dashboard-name"

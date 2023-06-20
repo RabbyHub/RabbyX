@@ -20,28 +20,30 @@ export const LedgerAccount: React.FC = () => {
     }
   }, [status]);
 
-  const TipContent = () => {
-    switch (status) {
-      case 'DISCONNECTED':
-        return (
-          <div className="flex justify-between w-full">
-            <div className="text-red-forbidden">Ledger is not connected</div>
-            <div
-              onClick={onClickConnect}
-              className={clsx(
-                'underline cursor-pointer',
-                'text-12 font-medium text-gray-subTitle'
-              )}
-            >
-              Connect
+  const TipContent = React.useMemo(() => {
+    return () => {
+      switch (status) {
+        case 'DISCONNECTED':
+          return (
+            <div className="flex justify-between w-full">
+              <div className="text-red-forbidden">Ledger is not connected</div>
+              <div
+                onClick={onClickConnect}
+                className={clsx(
+                  'underline cursor-pointer',
+                  'text-12 font-medium text-gray-subTitle'
+                )}
+              >
+                Connect
+              </div>
             </div>
-          </div>
-        );
+          );
 
-      default:
-        return <div className="text-gray-subTitle">Ledger is connected</div>;
-    }
-  };
+        default:
+          return <div className="text-gray-subTitle">Ledger is connected</div>;
+      }
+    };
+  }, [status]);
 
   return (
     <CommonAccount signal={signal} icon={LegerIcon} tip={<TipContent />} />

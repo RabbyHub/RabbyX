@@ -1,12 +1,12 @@
 import { message } from 'antd';
 import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
-import { Result } from '@debank/rabby-security-engine';
+import { Result } from '@rabby-wallet/rabby-security-engine';
 import {
   RuleConfig,
   UserData,
   Level,
-} from '@debank/rabby-security-engine/dist/rules';
+} from '@rabby-wallet/rabby-security-engine/dist/rules';
 import { useWallet } from 'ui/utils';
 import UserListDrawer from './UserListDrawer';
 import RuleDrawer from '../SecurityEngine/RuleDrawer';
@@ -94,7 +94,7 @@ const UserDataList = ({
       return hasForbidden;
     } else if (
       ruleResult.level === Level.ERROR ||
-      ruleResult.level === Level.CLOSED ||
+      !ruleResult.enable ||
       ignored
     ) {
       return !hasForbidden;

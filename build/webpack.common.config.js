@@ -39,6 +39,11 @@ const config = {
             sideEffects: true,
             test: /[\\/]pageProvider[\\/]index.ts/,
             loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                outDir: paths.dist,
+              },
+            }
           },
           {
             test: /[\\/]ui[\\/]index.tsx/,
@@ -58,6 +63,7 @@ const config = {
                   }),
                   compilerOptions: {
                     module: 'es2015',
+                    outDir: paths.dist,
                   },
                 },
               },
@@ -96,6 +102,9 @@ const config = {
                   }),
                 ],
               }),
+              compilerOptions: {
+                outDir: paths.dist,
+              }
             },
           },
         ],
@@ -178,9 +187,9 @@ const config = {
     ],
   },
   plugins: [
-    new ESLintWebpackPlugin({
-      extensions: ['ts', 'tsx', 'js', 'jsx'],
-    }),
+    // new ESLintWebpackPlugin({
+    //   extensions: ['ts', 'tsx', 'js', 'jsx'],
+    // }),
     // new AntdDayjsWebpackPlugin(),
     new HtmlWebpackPlugin({
       inject: true,
@@ -222,6 +231,7 @@ const config = {
   resolve: {
     alias: {
       moment: require.resolve('dayjs'),
+      '@debank/common': require.resolve('@debank/common/dist/index-rabby'),
     },
     plugins: [new TSConfigPathsPlugin()],
     fallback: {

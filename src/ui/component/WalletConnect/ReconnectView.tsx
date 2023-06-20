@@ -37,7 +37,7 @@ export const ReconnectView: React.FC = () => {
       await wallet.killWalletConnectConnector(
         account.address,
         account.brandName,
-        true,
+        false,
         true
       );
     }
@@ -98,7 +98,7 @@ export const ReconnectView: React.FC = () => {
 
   return (
     <div className="watchaddress">
-      {currentAccount && (
+      {currentAccount && visible && (
         <Scan
           uri={qrCodeContent}
           bridgeURL={bridgeURL}

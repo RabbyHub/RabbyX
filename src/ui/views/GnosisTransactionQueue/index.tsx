@@ -34,6 +34,8 @@ import IconTagYou from 'ui/assets/tag-you.svg';
 import IconInformation from 'ui/assets/information.svg';
 import './style.less';
 
+import { findChainByEnum } from '@/utils/chain';
+
 interface TransactionConfirmationsProps {
   confirmations: SafeTransactionItem['confirmations'];
   threshold: number;

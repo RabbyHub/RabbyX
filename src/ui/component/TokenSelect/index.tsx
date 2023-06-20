@@ -4,6 +4,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import BigNumber from 'bignumber.js';
 import { TokenItem } from 'background/service/openapi';
 import { useWallet } from 'ui/utils';
+import { getTokenSymbol } from 'ui/utils/token';
 import TokenWithChain from '../TokenWithChain';
 import TokenSelector, { isSwapTokenType } from '../TokenSelector';
 import styled from 'styled-components';
@@ -47,7 +48,7 @@ const Text = styled.span`
   ${ellipsis()}
 `;
 
-interface TokenAmountInputProps {
+export interface TokenSelectProps {
   token?: TokenItem;
   onChange?(amount: string): void;
   onTokenChange(token: TokenItem): void;
@@ -58,6 +59,15 @@ interface TokenAmountInputProps {
   hideChainIcon?: boolean;
   value?: string;
   loading?: boolean;
+  tokenRender?:
+    | (({
+        token,
+        openTokenModal,
+      }: {
+        token?: TokenItem;
+        openTokenModal: () => void;
+      }) => React.ReactNode)
+    | React.ReactNode;
 }
 
 const TokenSelect = ({
@@ -71,7 +81,8 @@ const TokenSelect = ({
   hideChainIcon = true,
   value,
   loading = false,
-}: TokenAmountInputProps) => {
+  tokenRender,
+}: TokenSelectProps) => {
   const [q, setQ] = useState('');
   const [tokenSelectorVisible, setTokenSelectorVisible] = useState(false);
   const wallet = useWallet();
@@ -195,6 +206,27 @@ const TokenSelect = ({
     onChange && onChange(v);
   };
 
+  if (tokenRender) {
+    return (
+      <>
+        {typeof tokenRender === 'function'
+          ? tokenRender?.({ token, openTokenModal: handleSelectToken })
+          : tokenRender}
+        <TokenSelector
+          visible={tokenSelectorVisible}
+          list={availableToken}
+          onConfirm={handleCurrentTokenChange}
+          onCancel={handleTokenSelectorClose}
+          onSearch={handleSearchTokens}
+          isLoading={isListLoading}
+          type={type}
+          placeholder={placeholder}
+          chainId={chainId}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <Wrapper>
@@ -208,7 +240,7 @@ const TokenSelect = ({
                 hideConer
                 hideChainIcon={hideChainIcon}
               />
-              <Text title={token.symbol}>{token.symbol}</Text>
+              <Text title={getTokenSymbol(token)}>{getTokenSymbol(token)}</Text>
               <SvgIconArrowDownTriangle className="ml-[3px]" />
             </TokenWrapper>
           ) : (

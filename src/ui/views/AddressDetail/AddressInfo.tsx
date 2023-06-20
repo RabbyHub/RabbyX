@@ -16,7 +16,8 @@ import IconPen from 'ui/assets/editpen.svg';
 import './style.less';
 import { copyAddress } from '@/ui/utils/clipboard';
 import { useForm } from 'antd/lib/form/Form';
-import { KEYRING_CLASS, KEYRING_ICONS, WALLET_BRAND_CONTENT } from '@/constant';
+import { KEYRING_CLASS, WALLET_BRAND_CONTENT } from '@/constant';
+import { KEYRING_ICONS } from 'ui/assets-const';
 import { useLocation } from 'react-router-dom';
 import { connectStore, useRabbyGetter, useRabbySelector } from '@/ui/store';
 import IconTagYou from 'ui/assets/tag-you.svg';
@@ -28,6 +29,7 @@ import { SvgIconLoading } from 'ui/assets';
 import { SessionStatusBar } from '@/ui/component/WalletConnect/SessionStatusBar';
 import { LedgerStatusBar } from '@/ui/component/ConnectStatus/LedgerStatusBar';
 import { GridPlusStatusBar } from '@/ui/component/ConnectStatus/GridPlusStatusBar';
+import { SeedPhraseBar } from './SeedPhraseBar';
 
 type Props = {
   address: string;
@@ -265,6 +267,11 @@ const AddressInfo1 = ({ address, type, brandName, source }: Props) => {
         {type === KEYRING_CLASS.HARDWARE.GRIDPLUS && (
           <div className="pb-[20px]">
             <GridPlusStatusBar className="text-gray-subTitle bg-gray-bg connect-status" />
+          </div>
+        )}
+        {type === KEYRING_CLASS.MNEMONIC && (
+          <div className="pb-[20px]">
+            <SeedPhraseBar address={address} />
           </div>
         )}
       </div>

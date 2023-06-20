@@ -42,8 +42,8 @@ export const AccountInfo: React.FC<Props> = ({ account, chain }) => {
   return (
     <div
       className={clsx(
-        'bg-[#EFF1FC] rounded-[8px]',
-        'py-[14px] px-[16px]',
+        'bg-[#F6F8FF] rounded-[8px]',
+        'py-[12px] px-[12px] mb-[12px]',
         'space-y-10'
       )}
     >
@@ -52,8 +52,8 @@ export const AccountInfo: React.FC<Props> = ({ account, chain }) => {
           <Tooltip title={nickname}>
             <div
               className={clsx(
-                'text-gray-title text-[17px] font-medium',
-                'max-w-[115px] overflow-ellipsis whitespace-nowrap overflow-hidden',
+                'text-gray-subTitle text-[15px]',
+                'max-w-[170px] overflow-ellipsis whitespace-nowrap overflow-hidden',
                 'leading-[20px]'
               )}
             >
@@ -63,11 +63,11 @@ export const AccountInfo: React.FC<Props> = ({ account, chain }) => {
           <AddressViewer
             showArrow={false}
             address={account.address}
-            className={clsx('text-13 text-gray-subTitle mt-[4px]')}
+            className={clsx('text-13 text-black mt-[4px]')}
           />
         </div>
         <div
-          className="text-13 font-medium text-gray-title mt-[4px]"
+          className="text-13 font-medium text-black mt-[4px]"
           title={displayBalance}
         >
           ${displayBalance}
@@ -81,55 +81,61 @@ export const AccountInfo: React.FC<Props> = ({ account, chain }) => {
       {account?.type === KEYRING_CLASS.HARDWARE.ONEKEY && (
         <CommonAccount
           icon={WALLET_BRAND_CONTENT.ONEKEY.icon}
-          tip="Import by OneKey"
+          tip="OneKey address"
         />
       )}
       {account?.type === KEYRING_CLASS.HARDWARE.TREZOR && (
         <CommonAccount
           icon={WALLET_BRAND_CONTENT.TREZOR.icon}
-          tip="Import by Trezor"
+          tip="Trezor address"
         />
       )}
       {account?.type === KEYRING_CLASS.HARDWARE.BITBOX02 && (
         <CommonAccount
           icon={WALLET_BRAND_CONTENT.BITBOX02.icon}
-          tip="Import by BitBox02"
+          tip="BitBox02 address"
         />
       )}
       {account?.brandName === WALLET_BRAND_TYPES.KEYSTONE && (
         <CommonAccount
           icon={WALLET_BRAND_CONTENT.Keystone.icon}
-          tip="Import by Keystone"
+          tip="Keystone address"
         />
       )}
       {account?.brandName === WALLET_BRAND_TYPES.AIRGAP && (
         <CommonAccount
           icon={WALLET_BRAND_CONTENT.AirGap.icon}
-          tip="Import by AirGap"
+          tip="AirGap address"
         />
       )}
       {account?.brandName === WALLET_BRAND_TYPES.COOLWALLET && (
         <CommonAccount
           icon={WALLET_BRAND_CONTENT.CoolWallet.icon}
-          tip="Import by CoolWallet"
+          tip="CoolWallet address"
         />
       )}
       {account?.type === KEYRING_CLASS.PRIVATE_KEY && (
         <CommonAccount
           icon={KEYRING_ICONS[KEYRING_CLASS.PRIVATE_KEY]}
-          tip="Import by PrivateKey"
+          tip="Private Key address"
         />
       )}
       {account?.type === KEYRING_CLASS.MNEMONIC && (
         <CommonAccount
           icon={KEYRING_ICONS[KEYRING_CLASS.MNEMONIC]}
-          tip="Import by Seed Phrase"
+          tip="Seed Phrase address"
         />
       )}
       {account?.type === KEYRING_CLASS.WATCH && (
         <CommonAccount
           icon={KEYRING_ICONS[KEYRING_CLASS.WATCH]}
           tip="Unable to sign with watch-only address"
+        />
+      )}
+      {account?.type === KEYRING_CLASS.GNOSIS && (
+        <CommonAccount
+          icon={WALLET_BRAND_CONTENT.Gnosis.icon}
+          tip="Safe address"
         />
       )}
     </div>

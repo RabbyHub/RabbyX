@@ -202,12 +202,12 @@ const ResetAccountModal = ({
       <div>
         <p className="reset-account-content mb-16">
           {t(
-            `This will clear all your pending transactions. This can help you solve the problem that in some cases the state of the transaction in Rabby does not match the state on-chain. `
+            'This will clear all your pending transactions. This can help you solve the problem that in some cases the state of the transaction in Rabby does not match the state on-chain. '
           )}
         </p>
         <p className="reset-account-content">
           {t(
-            `This will not change the balances in your accounts or require you to re-enter your seed phrase. All your assets and accounts information will remain secure.`
+            'This will not change the balances in your accounts or require you to re-enter your seed phrase. All your assets and accounts information will remain secure.'
           )}
         </p>
         <div className="flex justify-center mt-24 popup-footer">
@@ -253,7 +253,7 @@ const Settings = ({ visible, onClose }: SettingsProps) => {
         ? 'Once enabled, you can only send assets to the addresses in the whitelist using Rabby.'
         : 'You can send assets to any address once disabled',
       validationHandler: async (password: string) =>
-        await wallet.toggleWhitelist(password, value),
+        await wallet.toggleWhitelist(value),
       onFinished() {
         setWhitelistEnable(value);
         message.success({
@@ -289,7 +289,7 @@ const Settings = ({ visible, onClose }: SettingsProps) => {
   const { value: hasNewVersion = false } = useAsync(async () => {
     const data = await wallet.openapi.getLatestVersion();
 
-    return semver(process.env.release || '0.0.0', data.version_tag) === -1;
+    return semver(globalThis.rabbyDesktop.appVersion || '0.0.0', data.version_tag) === -1;
   });
 
   const updateVersionClassName = useCss({

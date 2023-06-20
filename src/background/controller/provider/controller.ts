@@ -49,6 +49,7 @@ import stats from '@/stats';
 import BigNumber from 'bignumber.js';
 import { AddEthereumChainParams } from 'ui/views/Approval/components/AddChain';
 import { formatTxMetaForRpcResult } from 'background/utils/tx';
+import { findChainByEnum } from '@/utils/chain';
 
 const reportSignText = (params: {
   method: string;
@@ -124,9 +125,10 @@ const signTypedDataVlidation = ({
   const currentChain = permissionService.getConnectedSite(session.origin)
     ?.chain;
   if (jsonData.domain.chainId) {
+    const chainItem = findChainByEnum(currentChain);
     if (
       !currentChain ||
-      Number(jsonData.domain.chainId) !== CHAINS[currentChain].id
+      (chainItem && Number(jsonData.domain.chainId) !== chainItem.id)
     ) {
       throw ethErrors.rpc.invalidParams(
         'chainId should be same as current chainId'
@@ -272,7 +274,7 @@ class ProviderController extends BaseController {
     const origin = session.origin;
     const site = permissionService.getWithoutUpdate(origin);
 
-    return CHAINS[site?.chain || CHAINS_ENUM.ETH].hex;
+    return findChainByEnum(site?.chain, { fallback: CHAINS_ENUM.ETH })!.hex;
   };
 
   @Reflect.metadata('APPROVAL', [
@@ -395,7 +397,9 @@ class ProviderController extends BaseController {
       isSubmitted: true,
     });
 
-    const { explain: cacheExplain, rawTx } = approvingTx;
+    const { explain: cacheExplain, rawTx, action } = approvingTx;
+
+    const chainItem = findChainByEnum(chain);
 
     try {
       const signedTx = await keyringService.signTransaction(
@@ -408,7 +412,7 @@ class ProviderController extends BaseController {
         signedTransactionSuccess = true;
         stats.report('signedTransaction', {
           type: currentAccount.brandName,
-          chainId: CHAINS[chain].serverId,
+          chainId: chainItem?.serverId || '',
           category: KEYRING_CATEGORY_MAP[currentAccount.type],
           success: true,
           preExecSuccess: cacheExplain
@@ -432,9 +436,18 @@ class ProviderController extends BaseController {
           });
         }
 
+        const { r, s, v, ...other } = approvalRes;
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-tx',
+          ...other,
+          value: approvalRes.value || '0x0',
+          hash: hash,
+          chain,
+        });
+
         stats.report('submitTransaction', {
           type: currentAccount.brandName,
-          chainId: CHAINS[chain].serverId,
+          chainId: chainItem?.serverId || '',
           category: KEYRING_CATEGORY_MAP[currentAccount.type],
           success: true,
           preExecSuccess: cacheExplain
@@ -462,6 +475,7 @@ class ProviderController extends BaseController {
             failed: false,
           },
           cacheExplain,
+          action,
           origin,
           options?.data?.$ctx
         );
@@ -505,7 +519,7 @@ class ProviderController extends BaseController {
       signedTransactionSuccess = true;
       stats.report('signedTransaction', {
         type: currentAccount.brandName,
-        chainId: CHAINS[chain].serverId,
+        chainId: chainItem?.serverId || '',
         category: KEYRING_CATEGORY_MAP[currentAccount.type],
         success: true,
         preExecSuccess: cacheExplain
@@ -518,6 +532,7 @@ class ProviderController extends BaseController {
       try {
         validateGasPriceRange(approvalRes);
         let hash = '';
+
         if (RPCService.hasCustomRPC(chain)) {
           const txData: any = {
             ...approvalRes,
@@ -537,7 +552,11 @@ class ProviderController extends BaseController {
             [rawTx]
           );
           try {
-            openapiService.traceTx(hash, traceId || '', CHAINS[chain].serverId);
+            openapiService.traceTx(
+              hash,
+              traceId || '',
+              chainItem?.serverId || ''
+            );
           } catch (e) {
             // DO nothing
           }
@@ -553,6 +572,7 @@ class ProviderController extends BaseController {
             traceId
           );
         }
+
         onTransactionSubmitted(hash);
         return hash;
       } catch (e: any) {
@@ -569,7 +589,7 @@ class ProviderController extends BaseController {
 
         stats.report('submitTransaction', {
           type: currentAccount.brandName,
-          chainId: CHAINS[chain].serverId,
+          chainId: chainItem?.serverId || '',
           category: KEYRING_CATEGORY_MAP[currentAccount.type],
           success: false,
           preExecSuccess: cacheExplain
@@ -599,11 +619,15 @@ class ProviderController extends BaseController {
           );
         }
         const errMsg = e.message || JSON.stringify(e);
-        notification.create(
-          undefined,
-          i18n.t('Transaction push failed'),
-          errMsg
-        );
+        // notification.create(
+        //   undefined,
+        //   i18n.t('Transaction push failed'),
+        //   errMsg
+        // );
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-failed',
+          errMsg,
+        });
         transactionHistoryService.removeSigningTx(signingTxId!);
         throw new Error(errMsg);
       }
@@ -611,7 +635,7 @@ class ProviderController extends BaseController {
       if (!signedTransactionSuccess) {
         stats.report('signedTransaction', {
           type: currentAccount.brandName,
-          chainId: CHAINS[chain].serverId,
+          chainId: chainItem?.serverId || '',
           category: KEYRING_CATEGORY_MAP[currentAccount.type],
           success: false,
           preExecSuccess: cacheExplain
@@ -636,7 +660,7 @@ class ProviderController extends BaseController {
 
   @Reflect.metadata('SAFE', true)
   web3ClientVersion = () => {
-    return `Rabby/${process.env.release}`;
+    return `RabbyX/${globalThis.rabbyDesktop.appVersion}`;
   };
 
   @Reflect.metadata('APPROVAL', ['ETHSign', () => null, { height: 390 }])

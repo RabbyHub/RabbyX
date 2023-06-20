@@ -6,10 +6,11 @@ import { last } from 'lodash';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
-import IconExternal from 'ui/assets/open-external-gray.svg';
+import IconExternal from 'ui/assets/icon-share.svg';
+import IconCopy from 'ui/assets/icon-copy-2.svg';
 import IconPlus from 'ui/assets/plus.svg';
 import IconTrash from 'ui/assets/trash.svg';
-import { Modal, TokenWithChain } from 'ui/component';
+import { Copy, Modal, TokenWithChain } from 'ui/component';
 import { splitNumberByStep, useWallet, openInTab } from 'ui/utils';
 import { getChain } from '@/utils';
 import ChainIcon from '../NFT/ChainIcon';
@@ -17,8 +18,10 @@ import { HistoryItem } from './HistoryItem';
 import { Loading } from './Loading';
 import './style.less';
 import { useRabbySelector } from '@/ui/store';
-import { DEX_SUPPORT_CHAINS } from '@rabby-wallet/rabby-swap';
 import { CHAINS } from 'consts';
+import { ellipsisOverflowedText } from 'ui/utils';
+import { getTokenSymbol } from '@/ui/utils/token';
+import { SWAP_SUPPORT_CHAINS } from '@/constant';
 
 const PAGE_COUNT = 10;
 const ellipsis = (text: string) => {
@@ -42,20 +45,13 @@ const TokenDetail = ({
   const wallet = useWallet();
   const { t } = useTranslation();
 
-  const oDexId = useRabbySelector((state) => state.swap.selectedDex);
-
-  const shouldSelectDex = useMemo(() => !oDexId, [oDexId]);
-
-  const supportChains = useMemo(
-    () => (oDexId ? DEX_SUPPORT_CHAINS[oDexId] || [] : []),
-    [oDexId]
-  );
+  const shouldSelectDex = false;
 
   const tokenSupportSwap = useMemo(() => {
     if (shouldSelectDex || !token.is_core) return false;
     const tokenChain = getChain(token?.chain)?.enum;
-    return !!tokenChain && supportChains.includes(tokenChain);
-  }, [supportChains, token, shouldSelectDex]);
+    return !!tokenChain && SWAP_SUPPORT_CHAINS.includes(tokenChain as any);
+  }, [token, shouldSelectDex]);
 
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -167,7 +163,9 @@ const TokenDetail = ({
               width="24px"
               height="24px"
             ></TokenWithChain>
-            <div className="token-symbol ml-8">{token.symbol}</div>
+            <div className="token-symbol ml-8" title={getTokenSymbol(token)}>
+              {ellipsisOverflowedText(getTokenSymbol(token), 8)}
+            </div>
           </div>
           <div className="address">
             <ChainIcon chain={token.chain}></ChainIcon>
@@ -181,6 +179,11 @@ const TokenDetail = ({
                   onClick={() => {
                     handleClickLink(token);
                   }}
+                />
+                <Copy
+                  data={token.id}
+                  variant="address"
+                  className="w-14 cursor-pointer"
                 />
               </>
             ) : (
@@ -261,7 +264,7 @@ const TokenDetail = ({
             title={
               shouldSelectDex
                 ? 'Please select the dex in swap first'
-                : t('The token on this chain is not supported on current dex')
+                : t('The token on this chain is not supported')
             }
             visible={tokenSupportSwap ? false : undefined}
           >

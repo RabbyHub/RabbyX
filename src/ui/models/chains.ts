@@ -9,6 +9,7 @@ import { crossCompareOwners } from '../utils/gnosis';
 import { RootModel } from '.';
 import { CHAINS, KEYRING_CLASS } from '@/constant';
 import { RabbyRootState } from '../store';
+import { findChainByEnum } from '@/utils/chain';
 
 type IState = {
   currentConnection: ConnectedSite | null | undefined;
@@ -58,9 +59,11 @@ export const chains = createModel<RootModel>()({
             return false;
           }
 
-          const chain = CHAINS[state.currentConnection.chain];
+          const chainItem = findChainByEnum(state.currentConnection.chain);
 
-          return chain.id.toString() !== state.gnosisNetworkId;
+          return (
+            !!chainItem && chainItem.id.toString() !== state.gnosisNetworkId
+          );
         });
       },
     };
