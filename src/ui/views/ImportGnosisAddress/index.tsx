@@ -102,7 +102,6 @@ const ImportGnosisAddress = () => {
                 size="large"
                 autoFocus
                 placeholder={t('Please input address')}
-                autoComplete="off"
                 onChange={(e) => {
                   const value = e.target.value;
                   if (!value) {
