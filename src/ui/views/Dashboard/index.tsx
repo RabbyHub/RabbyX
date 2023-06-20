@@ -69,9 +69,6 @@ import { SessionSignal } from '@/ui/component/WalletConnect/SessionSignal';
 import { useWalletConnectIcon } from '@/ui/component/WalletConnect/useWalletConnectIcon';
 import { GridPlusSignal } from '@/ui/component/ConnectStatus/GridPlusSignal';
 import { LedgerSignal } from '@/ui/component/ConnectStatus/LedgerSignal';
-import { useRequest } from 'ahooks';
-import { useGnosisNetworks } from '@/ui/hooks/useGnosisNetworks';
-import { useGnosisPendingTxs } from '@/ui/hooks/useGnosisPendingTxs';
 import { CommonSignal } from '@/ui/component/ConnectStatus/CommonSignal';
 
 const GnosisAdminItem = ({
@@ -125,6 +122,10 @@ const Dashboard = () => {
     ...s.appVersion,
   }));
 
+  const { gnosisPendingCount, safeInfo } = useRabbySelector((s) => ({
+    ...s.chains,
+  }));
+
   const { sortedAccountsList } = React.useMemo(() => {
     const restAccounts = [...accountsList];
     let highlightedAccounts: typeof accountsList = [];
@@ -173,9 +174,6 @@ const Dashboard = () => {
 
   const [startAnimate, setStartAnimate] = useState(false);
   const isGnosis = useRabbyGetter((s) => s.chains.isCurrentAccountGnosis);
-  const gnosisPendingCount = useRabbySelector(
-    (s) => s.chains.gnosisPendingCount
-  );
   const [isListLoading, setIsListLoading] = useState(false);
   const [isAssetsLoading, setIsAssetsLoading] = useState(true);
 
@@ -199,55 +197,14 @@ const Dashboard = () => {
     getCurrentAccount();
   }, []);
 
-  useGnosisNetworks(
-    {
-      address:
-        currentAccount?.address &&
-        currentAccount?.type === KEYRING_TYPE.GnosisKeyring
-          ? currentAccount.address
-          : '',
-    },
-    {
-      onBefore() {
-        dispatch.chains.setField({
-          gnosisNetworkIds: [],
-        });
-      },
-      onSuccess(res) {
-        if (res) {
-          dispatch.chains.setField({
-            gnosisNetworkIds: res,
-          });
-        }
-      },
-    }
-  );
-
-  useGnosisPendingTxs(
-    {
-      address:
-        currentAccount?.address &&
-        currentAccount?.type === KEYRING_TYPE.GnosisKeyring
-          ? currentAccount.address
-          : '',
-    },
-    {
-      onBefore() {
-        dispatch.chains.setField({
-          gnosisPendingCount: 0,
-        });
-      },
-      onSuccess(res) {
-        dispatch.chains.setField({
-          gnosisPendingCount: res?.total || 0,
-        });
-      },
-    }
-  );
-
   useEffect(() => {
     if (currentAccount) {
-      if (currentAccount.type !== KEYRING_TYPE.GnosisKeyring) {
+      if (currentAccount.type === KEYRING_TYPE.GnosisKeyring) {
+        dispatch.chains.setField({
+          safeInfo: null,
+        });
+        dispatch.chains.getGnosisPendingCountAsync();
+      } else {
         dispatch.transactions.getPendingTxCountAsync(currentAccount.address);
       }
 
@@ -1009,7 +966,7 @@ const Dashboard = () => {
               <QRCode value={currentAccount?.address} size={100} />
             </div>
           </div>
-          {/* {isGnosis && (
+          {isGnosis && (
             <div className="address-popover__gnosis">
               <h4 className="text-15 mb-4">Admins</h4>
               {safeInfo ? (
@@ -1042,7 +999,7 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-          )} */}
+          )}
         </div>
       </Modal>
       {!(showToken || showAssets || showNFT) && <DefaultWalletSetting />}

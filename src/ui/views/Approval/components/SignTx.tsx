@@ -1135,13 +1135,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
         value: tx.value,
       };
       params.nonce = realNonce;
-      await wallet.buildGnosisTransaction(
-        tx.from,
-        account,
-        params,
-        safeInfo.version,
-        chain.network
-      );
+      await wallet.buildGnosisTransaction(tx.from, account, params);
     }
     const typedData = await wallet.gnosisGenerateTypedData();
     resolveApproval({
@@ -1386,13 +1380,9 @@ const SignTx = ({ params, origin }: SignTxProps) => {
       );
     }
     if (currentAccount.type === KEYRING_TYPE.GnosisKeyring || isGnosis) {
-      const networkIds = await wallet.getGnosisNetworkIds(
-        currentAccount.address
-      );
+      const networkId = await wallet.getGnosisNetworkId(currentAccount.address);
 
-      if (
-        !networkIds.includes((chainId || CHAINS[site!.chain].id).toString())
-      ) {
+      if ((chainId || CHAINS[site!.chain].id) !== Number(networkId)) {
         setCanProcess(false);
         setCantProcessReason(
           <div className="flex items-center gap-6">
@@ -1406,7 +1396,7 @@ const SignTx = ({ params, origin }: SignTxProps) => {
 
   const getSafeInfo = async () => {
     const currentAccount = (await wallet.getCurrentAccount())!;
-    const networkId = String(chainId);
+    const networkId = await wallet.getGnosisNetworkId(currentAccount.address);
     const safeInfo = await Safe.getSafeInfo(currentAccount.address, networkId);
     const pendingTxs = await Safe.getPendingTransactions(
       currentAccount.address,
@@ -1417,12 +1407,11 @@ const SignTx = ({ params, origin }: SignTxProps) => {
 
     setSafeInfo(safeInfo);
     setRecommendNonce(`0x${recommendSafeNonce.toString(16)}`);
-
     if (
       Number(tx.nonce || '0') >= safeInfo.nonce &&
       origin === INTERNAL_REQUEST_ORIGIN
     ) {
-      recommendSafeNonce = Number(tx.nonce || '0');
+      recommendSafeNonce = Number(tx.nonce);
       setRecommendNonce(tx.nonce || '0x0');
     }
     if (Number(tx.nonce || 0) < safeInfo.nonce) {

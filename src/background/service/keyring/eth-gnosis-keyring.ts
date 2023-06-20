@@ -8,7 +8,6 @@ import {
 } from '@gnosis.pm/safe-core-sdk-types';
 import semverSatisfies from 'semver/functions/satisfies';
 import EthSignSignature from '@gnosis.pm/safe-core-sdk/dist/src/utils/signatures/SafeSignature';
-import { SafeInfo } from '@rabby-wallet/gnosis-sdk/dist/api';
 
 export const keyringType = 'Gnosis';
 export const TransactionBuiltEvent = 'TransactionBuilt';
@@ -23,7 +22,6 @@ interface SignTransactionOptions {
 interface DeserializeOption {
   accounts?: string[];
   networkIdMap?: Record<string, string>;
-  networkIdsMap?: Record<string, string[]>;
 }
 
 function sanitizeHex(hex: string): string {
@@ -174,11 +172,7 @@ class GnosisKeyring extends EventEmitter {
   type = keyringType;
   accounts: string[] = [];
   accountToAdd: string | null = null;
-  /**
-   * @deprecated
-   */
   networkIdMap: Record<string, string> = {};
-  networkIdsMap: Record<string, string[]> = {};
   currentTransaction: SafeTransaction | null = null;
   currentTransactionHash: string | null = null;
   onExecedTransaction: ((hash: string) => void) | null = null;
@@ -196,20 +190,9 @@ class GnosisKeyring extends EventEmitter {
     if (opts.networkIdMap) {
       this.networkIdMap = opts.networkIdMap;
     }
-    if (opts.networkIdsMap) {
-      this.networkIdsMap = opts.networkIdsMap;
-    } else {
-      this.networkIdsMap = Object.entries(opts.networkIdMap || {}).reduce(
-        (res, [key, value]) => {
-          res[key] = Array.isArray(value) ? value : [value];
-          return res;
-        },
-        {} as Record<string, string[]>
-      );
-    }
     // filter address which dont have networkId in cache
     this.accounts = this.accounts.filter(
-      (account) => account.toLowerCase() in this.networkIdsMap
+      (account) => account.toLowerCase() in this.networkIdMap
     );
   }
 
@@ -217,31 +200,14 @@ class GnosisKeyring extends EventEmitter {
     return Promise.resolve({
       accounts: this.accounts,
       networkIdMap: this.networkIdMap,
-      networkIdsMap: this.networkIdsMap,
     });
   }
 
-  /**
-   * @deprecated
-   */
   setNetworkId = (address: string, networkId: string) => {
     this.networkIdMap = {
       ...this.networkIdMap,
       [address.toLowerCase()]: networkId,
     };
-  };
-
-  setNetworkIds = (address: string, networkIds: string | string[]) => {
-    this.networkIdsMap = {
-      ...this.networkIdsMap,
-      [address.toLowerCase()]: Array.isArray(networkIds)
-        ? networkIds
-        : [networkIds],
-    };
-    this.setNetworkId(
-      address,
-      Array.isArray(networkIds) ? networkIds[0] : networkIds
-    );
   };
 
   setAccountToAdd = (account: string) => {
@@ -384,11 +350,12 @@ class GnosisKeyring extends EventEmitter {
     }
     const sig = new EthSignSignature(address, signature);
     this.currentTransaction.addSignature(sig);
+    console.log(this.currentTransaction);
   }
 
-  async getOwners(address: string, version: string, provider, networkId) {
-    const networkIds = this.networkIdsMap[address.toLowerCase()];
-    if (!networkId || !networkIds || !networkIds.includes(networkId)) {
+  async getOwners(address: string, version: string, provider) {
+    const networkId = this.networkIdMap[address.toLowerCase()];
+    if (!networkId) {
       throw new Error(`No networkId in keyring for address ${address}`);
     }
     const safe = new Safe(address, version, provider, networkId);
@@ -448,9 +415,7 @@ class GnosisKeyring extends EventEmitter {
   async buildTransaction(
     address: string,
     transaction: SafeTransactionDataPartial,
-    provider,
-    version: string,
-    networkId: string
+    provider
   ) {
     if (
       !this.accounts.find(
@@ -470,8 +435,14 @@ class GnosisKeyring extends EventEmitter {
       baseGas: transaction.baseGas,
       operation: transaction.operation,
     };
-
-    const safe = new Safe(checksumAddress, version, provider, networkId);
+    const networkId = this.networkIdMap[address.toLowerCase()];
+    const safeInfo = await Safe.getSafeInfo(checksumAddress, networkId);
+    const safe = new Safe(
+      checksumAddress,
+      safeInfo.version,
+      provider,
+      networkId
+    );
     this.safeInstance = safe;
     const safeTransaction = await safe.buildTransaction(tx);
     this.currentTransaction = safeTransaction;
@@ -479,48 +450,6 @@ class GnosisKeyring extends EventEmitter {
       safeTransaction
     );
     return safeTransaction;
-  }
-
-  async validateTransaction(
-    {
-      address,
-      transaction,
-      provider,
-      version,
-      networkId,
-    }: {
-      address: string;
-      transaction: SafeTransactionDataPartial;
-      provider;
-      version: string;
-      networkId: string;
-    },
-    hash: string
-  ) {
-    if (
-      !this.accounts.find(
-        (account) => account.toLowerCase() === address.toLowerCase()
-      )
-    ) {
-      throw new Error('Can not find this address');
-    }
-    const checksumAddress = toChecksumAddress(address);
-    const tx = {
-      data: transaction.data,
-      from: address,
-      to: this._normalize(transaction.to),
-      value: this._normalize(transaction.value) || '0x0', // prevent 0x
-      safeTxGas: transaction.safeTxGas,
-      nonce: transaction.nonce ? Number(transaction.nonce) : undefined,
-      baseGas: transaction.baseGas,
-      operation: transaction.operation,
-    };
-    const safe = new Safe(checksumAddress, version, provider, networkId);
-    const safeTransaction = await safe.buildTransaction(tx);
-    const currentTransactionHash = await safe.getTransactionHash(
-      safeTransaction
-    );
-    return currentTransactionHash === hash;
   }
 
   async signTransaction(
@@ -538,7 +467,7 @@ class GnosisKeyring extends EventEmitter {
     }
     let safeTransaction: SafeTransaction;
     let transactionHash: string;
-    const networkId = transaction?.chainId?.toString();
+    const networkId = this.networkIdMap[address.toLowerCase()];
     const checksumAddress = toChecksumAddress(address);
     const safeInfo = await Safe.getSafeInfo(checksumAddress, networkId);
     const safe = new Safe(
