@@ -1,4 +1,5 @@
 import { Input, message, Popover } from 'antd';
+import { Account } from 'background/service/preference';
 import ClipboardJS from 'clipboard';
 import clsx from 'clsx';
 import { Trans } from 'react-i18next';
@@ -18,6 +19,7 @@ import QRCode from 'qrcode.react';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useInterval } from 'react-use';
+import { SvgIconLoading } from 'ui/assets';
 import IconAddressCopy from 'ui/assets/address-copy.png';
 import IconCorrect from 'ui/assets/dashboard/contacts/correct.png';
 import IconUnCorrect from 'ui/assets/dashboard/contacts/uncorrect.png';
@@ -25,7 +27,8 @@ import IconEditPen from 'ui/assets/editpen.svg';
 import { ReactComponent as RcIconCopy } from 'ui/assets/icon-copy.svg';
 
 import IconSuccess from 'ui/assets/success.svg';
-import { AddressViewer, Modal } from 'ui/component';
+import IconTagYou from 'ui/assets/tag-you.svg';
+import { AddressViewer, Modal, NameAndAddress } from 'ui/component';
 import {
   connectStore,
   useRabbyDispatch,
@@ -43,6 +46,7 @@ import './style.less';
 
 import PendingApproval from './components/PendingApproval';
 import PendingTxs from './components/PendingTxs';
+import { sortAccountsByBalance } from '@/ui/utils/account';
 import { getKRCategoryByType } from '@/utils/transaction';
 import eventBus from '@/eventBus';
 
@@ -51,19 +55,47 @@ import { ReactComponent as IconArrowRight } from 'ui/assets/dashboard/arrow-righ
 import Queue from './components/Queue';
 import { copyAddress } from '@/ui/utils/clipboard';
 import { useWalletConnectIcon } from '@/ui/component/WalletConnect/useWalletConnectIcon';
-import { useGnosisNetworks } from '@/ui/hooks/useGnosisNetworks';
-import { useGnosisPendingTxs } from '@/ui/hooks/useGnosisPendingTxs';
 import { CommonSignal } from '@/ui/component/ConnectStatus/CommonSignal';
+
+const GnosisAdminItem = ({
+  accounts,
+  address,
+}: {
+  accounts: Account[];
+  address: string;
+}) => {
+  const addressInWallet = accounts.find((account) =>
+    isSameAddress(account.address, address)
+  );
+  return (
+    <li>
+      <NameAndAddress address={address} nameClass="max-143" />
+      {addressInWallet ? (
+        <img src={IconTagYou} className="icon icon-tag" />
+      ) : (
+        <></>
+      )}
+    </li>
+  );
+};
 
 const Dashboard = () => {
   const history = useHistory();
   const wallet = useWallet();
   const dispatch = useRabbyDispatch();
 
-  const { alianName, currentAccount, accountsList } = useRabbySelector((s) => ({
+  const {
+    alianName,
+    currentAccount,
+    accountsList,
+    loadingAccounts,
+    highlightedAddresses,
+  } = useRabbySelector((s) => ({
     alianName: s.account.alianName,
     currentAccount: s.account.currentAccount,
     accountsList: s.accountToDisplay.accountsList,
+    loadingAccounts: s.accountToDisplay.loadingAccounts,
+    highlightedAddresses: s.addressManagement.highlightedAddresses,
   }));
 
   const { pendingTransactionCount: pendingTxCount } = useRabbySelector((s) => ({
@@ -73,6 +105,33 @@ const Dashboard = () => {
   const { firstNotice, updateContent } = useRabbySelector((s) => ({
     ...s.appVersion,
   }));
+
+  const { gnosisPendingCount, safeInfo } = useRabbySelector((s) => ({
+    ...s.chains,
+  }));
+
+  const { sortedAccountsList } = React.useMemo(() => {
+    const restAccounts = [...accountsList];
+    let highlightedAccounts: typeof accountsList = [];
+
+    highlightedAddresses.forEach((highlighted) => {
+      const idx = restAccounts.findIndex(
+        (account) =>
+          account.address === highlighted.address &&
+          account.brandName === highlighted.brandName
+      );
+      if (idx > -1) {
+        highlightedAccounts.push(restAccounts[idx]);
+        restAccounts.splice(idx, 1);
+      }
+    });
+
+    highlightedAccounts = sortAccountsByBalance(highlightedAccounts);
+
+    return {
+      sortedAccountsList: highlightedAccounts.concat(restAccounts),
+    };
+  }, [accountsList, highlightedAddresses]);
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -89,9 +148,6 @@ const Dashboard = () => {
   const [accountBalanceUpdateNonce, setAccountBalanceUpdateNonce] = useState(0);
 
   const isGnosis = useRabbyGetter((s) => s.chains.isCurrentAccountGnosis);
-  const gnosisPendingCount = useRabbySelector(
-    (s) => s.chains.gnosisPendingCount
-  );
 
   const [dashboardReload, setDashboardReload] = useState(false);
   const getCurrentAccount = async () => {
@@ -113,55 +169,14 @@ const Dashboard = () => {
     getCurrentAccount();
   }, []);
 
-  useGnosisNetworks(
-    {
-      address:
-        currentAccount?.address &&
-        currentAccount?.type === KEYRING_TYPE.GnosisKeyring
-          ? currentAccount.address
-          : '',
-    },
-    {
-      onBefore() {
-        dispatch.chains.setField({
-          gnosisNetworkIds: [],
-        });
-      },
-      onSuccess(res) {
-        if (res) {
-          dispatch.chains.setField({
-            gnosisNetworkIds: res,
-          });
-        }
-      },
-    }
-  );
-
-  useGnosisPendingTxs(
-    {
-      address:
-        currentAccount?.address &&
-        currentAccount?.type === KEYRING_TYPE.GnosisKeyring
-          ? currentAccount.address
-          : '',
-    },
-    {
-      onBefore() {
-        dispatch.chains.setField({
-          gnosisPendingCount: 0,
-        });
-      },
-      onSuccess(res) {
-        dispatch.chains.setField({
-          gnosisPendingCount: res?.total || 0,
-        });
-      },
-    }
-  );
-
   useEffect(() => {
     if (currentAccount) {
-      if (currentAccount.type !== KEYRING_TYPE.GnosisKeyring) {
+      if (currentAccount.type === KEYRING_TYPE.GnosisKeyring) {
+        dispatch.chains.setField({
+          safeInfo: null,
+        });
+        dispatch.chains.getGnosisPendingCountAsync();
+      } else {
         dispatch.transactions.getPendingTxCountAsync(currentAccount.address);
       }
 
@@ -550,6 +565,40 @@ const Dashboard = () => {
               <QRCode value={currentAccount?.address} size={100} />
             </div>
           </div>
+          {isGnosis && (
+            <div className="address-popover__gnosis">
+              <h4 className="text-15 mb-4">Admins</h4>
+              {safeInfo ? (
+                <>
+                  <p className="text-black text-12 mb-8">
+                    Any transaction requires the confirmation of{' '}
+                    <span className="ml-8 font-medium threshold">
+                      {safeInfo.threshold}/{safeInfo.owners.length}
+                    </span>
+                  </p>
+                  <ul className="admin-list">
+                    {safeInfo.owners.map((owner, index) => (
+                      <GnosisAdminItem
+                        address={owner}
+                        accounts={sortedAccountsList}
+                        key={index}
+                      />
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <div className="loading-wrapper">
+                  <SvgIconLoading
+                    className="icon icon-loading"
+                    fill="#707280"
+                  />
+                  <p className="text-14 text-gray-light mb-0">
+                    Loading address
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Modal>
       {!(showToken || showAssets || showNFT) && <DefaultWalletSetting />}
