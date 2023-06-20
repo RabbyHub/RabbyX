@@ -6,7 +6,6 @@ type DelectModalProps = {
   visible: boolean;
   onClose(): void;
   onSubmit(deleteSeedPhrase: boolean): void;
-  emptyAddress: boolean;
 };
 
 const list = [
@@ -23,20 +22,16 @@ export const SeedPhraseDeleteModal = ({
   visible,
   onClose,
   onSubmit,
-  emptyAddress = false,
 }: DelectModalProps) => {
   return (
     <Popup
       visible={visible}
       title={'Delete seed phrase?'}
-      height={emptyAddress ? 150 : 224}
+      height={224}
       onClose={onClose}
     >
       <div className="flex flex-col ">
-        {list.map((item, i) => {
-          if (emptyAddress && i === 0) {
-            return null;
-          }
+        {list.map((item) => {
           return (
             <Field
               key={item.title}
