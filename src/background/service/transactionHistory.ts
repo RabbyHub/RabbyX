@@ -58,6 +58,8 @@ export interface TransactionGroup {
   txs: TransactionHistoryItem[];
   isPending: boolean;
   createdAt: number;
+  completedAt?: number;
+  dbIndexed: boolean;
   explain: ObjectType.Merge<
     ExplainTxResponse,
     { approvalId: string; calcSuccess: boolean }
@@ -71,7 +73,7 @@ export interface TransactionGroup {
   $ctx?: any;
 }
 
-interface TxHistoryStore {
+export interface TxHistoryStore {
   transactions: {
     [addr: string]: Record<string, TransactionGroup>;
   };
@@ -277,6 +279,7 @@ class TxHistory {
             explain: explain,
             isFailed: false,
             isSubmitFailed: true,
+            dbIndexed: true,
           },
         },
       });
@@ -336,6 +339,7 @@ class TxHistory {
             explain,
             action: actionData,
             isFailed: false,
+            dbIndexed: false,
             $ctx,
           },
         },
@@ -670,6 +674,7 @@ class TxHistory {
     if (!target.isPending) {
       return;
     }
+    target.completedAt = Date.now();
     target.isPending = false;
     target.isFailed = !success;
     const index = target.txs.findIndex(
@@ -959,6 +964,25 @@ class TxHistory {
     if (!target) return null;
     return target;
   };
+  markTransactionAsIndexed(address: string, chainId: number, hash: string) {
+    const list = Object.values(
+      this.store.transactions[address.toLowerCase()] || {}
+    );
+    const target = list.find((item) => {
+      return item.chainId === chainId && item.txs.find((i) => i.hash === hash);
+    });
+    if (!target) return;
+    this.store.transactions = {
+      ...this.store.transactions,
+      [address.toLowerCase()]: {
+        ...this.store.transactions[address.toLowerCase()],
+        [`${chainId}-${target.nonce}`]: {
+          ...target,
+          dbIndexed: true,
+        },
+      },
+    };
+  }
 }
 
 export default new TxHistory();
