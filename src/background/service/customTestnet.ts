@@ -24,6 +24,7 @@ import {
 } from 'viem/actions';
 import { http as axios } from '../utils/http';
 import { matomoRequestEvent } from '@/utils/matomo-request';
+import { sessionService } from '.';
 
 const MAX_READ_CONTRACT_TIME = 8000;
 
@@ -638,6 +639,9 @@ class CustomTestnetService {
   syncChainList = () => {
     const testnetList = this.getList();
     updateChainStore({
+      testnetList: testnetList,
+    });
+    sessionService.broadcastToDesktopOnly('syncChainList', {
       testnetList: testnetList,
     });
   };
