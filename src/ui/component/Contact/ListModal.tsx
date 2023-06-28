@@ -92,7 +92,7 @@ const ListModal = ({ visible, onOk, onCancel }: ListModalProps) => {
       cancelText: t('global.Cancel'),
       title: t('component.Contact.ListModal.authModal.title'),
       validationHandler: async (password: string) =>
-        wallet.setWhitelist(password, list),
+        wallet.setWhitelist(list),
       onFinished() {
         setEditWhitelistVisible(false);
         message.success({
