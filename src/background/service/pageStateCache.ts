@@ -24,7 +24,7 @@ class PageStateCacheService {
       },
       hasCache: false,
     };
-    await browser.storage.session.set({
+    await browser.storage.local.set({
       pageStateCache: init,
     });
     this.store = init;
@@ -66,7 +66,7 @@ class PageStateCacheService {
   };
 
   syncData = async () => {
-    await browser.storage.session.set({
+    await browser.storage.local.set({
       pageStateCache: this.store,
     });
   };

@@ -3,9 +3,11 @@ import {
   CHECK_METAMASK_INSTALLED_URL,
   WALLET_BRAND_CONTENT,
   KEYRING_CLASS,
+} from 'consts';
+import {
   KEYRINGS_LOGOS,
   KEYRING_PURPLE_LOGOS,
-} from 'consts';
+} from 'ui/assets-const';
 import { Account } from 'background/service/preference';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export const noop = () => {};
