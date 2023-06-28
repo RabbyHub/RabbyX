@@ -481,16 +481,10 @@ class LedgerBridgeKeyring extends EventEmitter {
   async _reconnect() {
     if (this.isWebHID) {
       await this.cleanUp();
-
-      let count = 0;
       // wait connect the WebHID
-      while (!this.app) {
-        await this.makeApp();
-        await wait(() => {
-          if (count++ > 50) {
-            throw new Error('Ledger: Failed to connect to Ledger');
-          }
-        }, 100);
+      await this.makeApp();
+      if (!this.app) {
+        throw new Error('Ledger: Failed to connect to Ledger');
       }
     }
   }
