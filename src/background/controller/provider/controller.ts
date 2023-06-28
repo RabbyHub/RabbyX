@@ -489,6 +489,13 @@ class ProviderController extends BaseController {
         if (hash) {
           swapService.postSwap(chain, hash, other);
         }
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-tx',
+          ...other,
+          value: approvalRes.value || '0x0',
+          hash: hash,
+          chain,
+        });
 
         // stats.report('submitTransaction', {
         //   type: currentAccount.brandName,
@@ -740,6 +747,16 @@ class ProviderController extends BaseController {
         statsData.signed = true;
         statsData.signedSuccess = false;
       }
+      const errMsg = e.message || JSON.stringify(e);
+      // notification.create(
+      //   undefined,
+      //   i18n.t('background.error.txPushFailed'),
+      //   errMsg
+      // );
+      sessionService.broadcastToDesktopOnly('transactionChanged', {
+        type: 'push-failed',
+        errMsg,
+      });
       // transactionHistoryService.removeSigningTx(signingTxId!);
       notificationService.setStatsData(statsData);
       throw new Error(e);
@@ -755,7 +772,7 @@ class ProviderController extends BaseController {
 
   @Reflect.metadata('SAFE', true)
   web3ClientVersion = () => {
-    return `Rabby/${process.env.release}`;
+    return `RabbyX/${globalThis.rabbyDesktop.appVersion}`;
   };
 
   @Reflect.metadata('APPROVAL', ['ETHSign', () => null, { height: 390 }])
