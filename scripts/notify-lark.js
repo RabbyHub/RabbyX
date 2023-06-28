@@ -19,8 +19,8 @@ function makeSign(secret) {
     };
 }
 
-const chatURL = process.env.RABBY_LARK_CHAT_URL;
-const secret = process.env.RABBY_LARK_CHAT_SECRET;
+const chatURL = process.env.LARK_CHAT_URL || process.env.RABBY_LARK_CHAT_URL;
+const secret = process.env.LARK_CHAT_SECRET || process.env.RABBY_LARK_CHAT_SECRET;
 
 if (!chatURL) {
     throw new Error('LARK_CHAT_URL is not set');
@@ -60,10 +60,10 @@ async function sendMessage({
         content: {
             post: {
                 "zh_cn": {
-                    "title": "🚀 New Rabby Debug Package comes 🌟",
+                    "title": "🚀 新的 Rabbyx 包打好了 🌟",
                     "content": [
                         [
-                            { "tag": "text", "text": `Download URL: ` },
+                            { "tag": "text", "text": `下载链接: ` },
                             { "tag": "a", "href": downloadURL, "text": downloadURL }
                         ],
                         [
