@@ -350,7 +350,11 @@ class NotificationService extends Events {
           focused: true,
         });
       } else {
-        this.openNotification(approval.winProps);
+        this.openNotification(
+          approval.winProps,
+          false,
+          approval.data.approvalComponent
+        );
       }
     });
   };
@@ -389,7 +393,7 @@ class NotificationService extends Events {
     this.isLocked = true;
   };
 
-  openNotification = (winProps, ignoreLock = false) => {
+  openNotification = (winProps, ignoreLock = false, approvalType?: string) => {
     // Only use ignoreLock flag when approval exist but no notification window exist
     if (!ignoreLock) {
       if (this.isLocked) return;
@@ -399,6 +403,10 @@ class NotificationService extends Events {
       winMgr.remove(this.notifiWindowId);
       this.notifiWindowId = null;
     }
+    if (approvalType) {
+      winProps.query = `type=${approvalType}`;
+    }
+
     winMgr.openNotification(winProps).then((winId) => {
       this.notifiWindowId = winId!;
     });
