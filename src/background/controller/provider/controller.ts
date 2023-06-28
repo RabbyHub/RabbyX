@@ -453,6 +453,13 @@ class ProviderController extends BaseController {
 
         const { r, s, v, ...other } = approvalRes;
         swapService.postSwap(chain, hash, other);
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-tx',
+          ...other,
+          value: approvalRes.value || '0x0',
+          hash: hash,
+          chain,
+        });
 
         stats.report('submitTransaction', {
           type: currentAccount.brandName,
@@ -548,6 +555,7 @@ class ProviderController extends BaseController {
       try {
         validateGasPriceRange(approvalRes);
         let hash = '';
+
         if (RPCService.hasCustomRPC(chain)) {
           const txData: any = {
             ...approvalRes,
@@ -587,6 +595,7 @@ class ProviderController extends BaseController {
             traceId
           );
         }
+
         onTransactionSubmitted(hash);
         return hash;
       } catch (e: any) {
@@ -638,6 +647,10 @@ class ProviderController extends BaseController {
         //   i18n.t('background.error.txPushFailed'),
         //   errMsg
         // );
+        sessionService.broadcastToDesktopOnly('transactionChanged', {
+          type: 'push-failed',
+          errMsg,
+        });
         // transactionHistoryService.removeSigningTx(signingTxId!);
         throw new Error(errMsg);
       }
@@ -670,7 +683,7 @@ class ProviderController extends BaseController {
 
   @Reflect.metadata('SAFE', true)
   web3ClientVersion = () => {
-    return `Rabby/${process.env.release}`;
+    return `RabbyX/${globalThis.rabbyDesktop.appVersion}`;
   };
 
   @Reflect.metadata('APPROVAL', ['ETHSign', () => null, { height: 390 }])

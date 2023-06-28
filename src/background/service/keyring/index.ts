@@ -38,6 +38,8 @@ import contactBook from '../contactBook';
 import { generateAliasName } from '@/utils/account';
 import * as Sentry from '@sentry/browser';
 
+import './patch';
+
 export const KEYRING_SDK_TYPES = {
   SimpleKeyring,
   HdKeyring,
@@ -119,11 +121,40 @@ export class KeyringService extends EventEmitter {
     this.store = new ObservableStore(initState);
   }
 
-  async boot(password: string) {
+  // /**
+  //  * @description reset lock and clear all keyrings
+  //  */
+  // async resetKeyringState() {
+  //   this.password = null;
+  //   this.store.updateState({ booted: '', vault: '' });
+
+  //   this.memStore.updateState({ isUnlocked: false, keyrings: [] });
+  //   this.keyrings = [];
+
+  //   this.emit('resetKeyringState');
+  // }
+
+  async _setupBoot(password: string) {
     this.password = password;
     const encryptBooted = await this.encryptor.encrypt(password, 'true');
     this.store.updateState({ booted: encryptBooted });
+  }
+
+  async boot(password: string) {
+    this._setupBoot(password);
     this.memStore.updateState({ isUnlocked: true });
+  }
+
+  async updatePassword(oldPassword: string, newPassword: string) {
+    await this.verifyPassword(oldPassword);
+
+    this.emit('beforeUpdatePassword', {
+      keyringState: this.store.getState()
+    });
+
+    // reboot it
+    this._setupBoot(newPassword);
+    this.persistAllKeyrings();
   }
 
   isBooted() {
