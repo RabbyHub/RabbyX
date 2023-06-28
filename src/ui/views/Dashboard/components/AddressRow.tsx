@@ -12,11 +12,11 @@ import { ReactComponent as RcIconPinnedFill } from 'ui/assets/icon-pinned-fill.s
 import { splitNumberByStep, useWallet } from 'ui/utils';
 import { message } from 'antd';
 import {
-  KEYRING_ICONS,
   KEYRING_WITH_INDEX,
   KeyringWithIcon,
   WALLET_BRAND_CONTENT,
 } from '@/constant';
+import { KEYRING_ICONS } from 'ui/assets-const';
 import { AddressViewer } from '@/ui/component';
 import { connectStore, useRabbyDispatch, useRabbySelector } from '@/ui/store';
 import useIsMountedRef from '@/ui/hooks/useMountedRef';
