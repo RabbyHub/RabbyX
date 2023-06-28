@@ -26,6 +26,7 @@ import UserListDrawer from './UserListDrawer';
 import { EIP6963ProviderInfo, SelectWallet } from './SelectWallet';
 import { ConnectedSite } from '@/background/service/permission';
 import { ReactComponent as RcIconMetamask } from 'ui/assets/metamask-mode-circle-cc.svg';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface ConnectProps {
   params: any;
@@ -84,6 +85,11 @@ const ConnectWrapper = styled.div`
         color: var(--r-neutral-title-1, #192945);
         word-wrap: break-word;
         max-width: 100%;
+
+        white-space: pre-wrap;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
     }
   }
@@ -616,6 +622,9 @@ const Connect = (props: ConnectProps) => {
     });
     activePopup('CancelConnect');
   };
+  const originToShow = useMemo(() => {
+    return formatDappURLToShow(origin);
+  }, [origin]);
 
   return (
     <Spin spinning={isLoading}>
@@ -647,7 +656,7 @@ const Connect = (props: ConnectProps) => {
                     <div className="chain-selector-tips">
                       {t('page.connect.selectChainToConnect')}
                     </div>
-                    <div className="chain-selector-site">{origin}</div>
+                    <div className="chain-selector-site">{originToShow}</div>
                   </div>
                 }
                 value={defaultChain}
@@ -659,7 +668,11 @@ const Connect = (props: ConnectProps) => {
             </div>
             <div className="connect-card">
               <div className="relative">
-                <FallbackSiteLogo url={icon} origin={origin} width="40px" />
+                <FallbackSiteLogo
+                  url={icon}
+                  origin={originToShow}
+                  width="40px"
+                />
                 {currentSite?.isMetamaskMode ? (
                   <div className="absolute top-[-4px] right-[-4px] text-r-neutral-title-2">
                     <RcIconMetamask
@@ -670,7 +683,7 @@ const Connect = (props: ConnectProps) => {
                   </div>
                 ) : null}
               </div>
-              <p className="connect-origin">{origin}</p>
+              <p className="connect-origin">{originToShow}</p>
             </div>
           </div>
 
@@ -825,7 +838,7 @@ const Connect = (props: ConnectProps) => {
             onClose={handleRuleDrawerClose}
           />
           <UserListDrawer
-            origin={origin}
+            origin={originToShow}
             logo={icon}
             onWhitelist={isInWhitelist}
             onBlacklist={isInBlacklist}
