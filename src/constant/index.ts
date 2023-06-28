@@ -351,6 +351,7 @@ export enum WALLET_BRAND_TYPES {
   COOLWALLET = 'CoolWallet',
   DEFIANT = 'Defiant',
   WALLETCONNECT = 'WALLETCONNECT',
+  WalletConnect = 'WalletConnect',
   AIRGAP = 'AirGap',
   Rainbow = 'Rainbow',
   Bitkeep = 'Bitkeep',
@@ -432,6 +433,15 @@ export const WALLET_BRAND_CONTENT: {
     brand: WALLET_BRAND_TYPES.WALLETCONNECT,
     icon: LogoWalletConnect,
     image: LogoWalletConnectWhite,
+    connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
+    category: WALLET_BRAND_CATEGORY.MOBILE,
+  },
+  [WALLET_BRAND_TYPES.WalletConnect]: {
+    id: 100,
+    name: 'Wallet Connect',
+    brand: WALLET_BRAND_TYPES.WalletConnect,
+    icon: LogoWalletConnect,
+    image: LogoWalletConnect,
     connectType: BRAND_WALLET_CONNECT_TYPE.WalletConnect,
     category: WALLET_BRAND_CATEGORY.MOBILE,
   },
@@ -617,6 +627,7 @@ export const KEYRING_ICONS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: LogoOnekey,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const KEYRING_ICONS_WHITE = {
@@ -645,6 +656,7 @@ export const KEYRINGS_LOGOS = {
   [HARDWARE_KEYRING_TYPES.Onekey.type]: IconOneKey18,
   [HARDWARE_KEYRING_TYPES.Trezor.type]: IconTrezor24Border,
   [HARDWARE_KEYRING_TYPES.GridPlus.type]: IconGridPlus,
+  [HARDWARE_KEYRING_TYPES.Keystone.type]: LogoKeystone,
 };
 
 export const NOT_CLOSE_UNFOCUS_LIST: string[] = [
