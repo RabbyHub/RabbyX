@@ -93,10 +93,10 @@ const remove = async (winId) => {
   return browser.windows.remove(winId);
 };
 
-const openNotification = ({ route = '', ...rest } = {}): Promise<
+const openNotification = ({ route = '', query = '', ...rest } = {}): Promise<
   number | undefined
 > => {
-  const url = `notification.html${route && `#${route}`}`;
+  const url = `notification.html${query && `?${query}`}${route && `#${route}`}`;
 
   return create({ url, ...rest });
 };

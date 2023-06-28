@@ -28,6 +28,7 @@ import IconSuccess from 'ui/assets/success.svg';
 import PQueue from 'p-queue';
 import { SignTestnetPermission } from './SignTestnetPermission';
 import { ReactComponent as ArrowDownSVG } from '@/ui/assets/approval/arrow-down-blue.svg';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface ConnectProps {
   params: any;
@@ -84,6 +85,11 @@ const ConnectWrapper = styled.div`
         line-height: 26px;
         text-align: center;
         color: var(--r-neutral-title-1, #192945);
+        
+        white-space: pre-wrap;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
     }
   }
@@ -608,6 +614,9 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
     });
     activePopup('CancelConnect');
   };
+  const originToShow = useMemo(() => {
+    return formatDappURLToShow(origin);
+  }, [origin]);
 
   return (
     <Spin spinning={isLoading}>
@@ -621,7 +630,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
                   <div className="chain-selector-tips">
                     {t('page.connect.selectChainToConnect')}
                   </div>
-                  <div className="chain-selector-site">{origin}</div>
+                  <div className="chain-selector-site">{originToShow}</div>
                 </div>
               }
               value={defaultChain}
@@ -633,7 +642,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
           </div>
           <div className="connect-card">
             <FallbackSiteLogo url={icon} origin={origin} width="40px" />
-            <p className="connect-origin">{origin}</p>
+            <p className="connect-origin">{originToShow}</p>
           </div>
         </div>
 
@@ -760,7 +769,7 @@ const Connect = ({ params: { icon, origin } }: ConnectProps) => {
           onClose={handleRuleDrawerClose}
         />
         <UserListDrawer
-          origin={origin}
+          origin={originToShow}
           logo={icon}
           onWhitelist={isInWhitelist}
           onBlacklist={isInBlacklist}
