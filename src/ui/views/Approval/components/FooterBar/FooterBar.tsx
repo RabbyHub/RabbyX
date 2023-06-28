@@ -18,11 +18,11 @@ import { ActionGroup, Props as ActionGroupProps } from './ActionGroup';
 import { useThemeMode } from '@/ui/hooks/usePreference';
 import { findChain } from '@/utils/chain';
 import {
-  GasLessToSign,
   GasLessNotEnough,
   GasLessActivityToSign,
   GasLessConfig,
 } from './GasLessComponents';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface Props extends Omit<ActionGroupProps, 'account'> {
   chain?: Chain;
