@@ -2,6 +2,8 @@ const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
+const { manifestVersion } = require('./patches');
+
 const sentrySourceMap = !!process.env.sourcemap || false;
 
 const config = {
@@ -23,7 +25,7 @@ const config = {
         ignore: ['node_modules', 'webpack.config.js'],
         configFile: 'sentry.properties',
         release: {
-          name: process.env.VERSION,
+          name: manifestVersion,
         },
         org: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,

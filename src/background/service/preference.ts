@@ -23,7 +23,7 @@ import dayjs from 'dayjs';
 import type { IExtractFromPromise } from '@/ui/utils/type';
 import { OpenApiService } from '@rabby-wallet/rabby-api';
 
-const version = process.env.release || '0';
+const version = globalThis.rabbyDesktop.appVersion || '0';
 
 export interface Account {
   type: string;
@@ -465,6 +465,18 @@ class PreferenceService {
   };
 
   getPopupOpen = () => this.popupOpen;
+
+  updateAddressUSDValueCache = (address: string, balance: number) => {
+    const balanceMap = this.store.balanceMap || {};
+    const before = this.store.balanceMap[address.toLowerCase()];
+    this.store.balanceMap = {
+      ...balanceMap,
+      [address.toLowerCase()]: {
+        total_usd_value: balance,
+        chain_list: before.chain_list || [],
+      },
+    };
+  };
 
   updateTestnetAddressBalance = (
     address: string,

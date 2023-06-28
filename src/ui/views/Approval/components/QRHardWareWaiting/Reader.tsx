@@ -48,7 +48,7 @@ const Reader = ({ requestId, setErrorMessage, brandName, onScan }) => {
       params: {},
       states: form.getFieldsValue(),
     });
-    openInternalPageInTab('request-permission?type=camera');
+    // openInternalPageInTab('request-permission?type=camera');
   };
 
   return (
