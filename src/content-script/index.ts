@@ -19,7 +19,11 @@ const injectProviderScript = (isDefaultWallet: boolean) => {
   content += `var __rabby__isDefaultWallet = ${isDefaultWallet};`;
   content += `var __rabby__uuid = '${uuid()}';`;
   content += `var __rabby__isOpera = ${isOpera};`;
+  content += `if (!window.__RD_isDappSafeView && window.__RD_isDappView) {
+    ;`;
   content += '#PAGEPROVIDER#';
+  content += `
+  };`;
   content += '\n})();';
   ele.textContent = content;
   container.insertBefore(ele, container.children[0]);
