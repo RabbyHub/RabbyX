@@ -20,17 +20,37 @@ const createDefer = <T>() => {
   };
 };
 
-const injectProviderScript = (isDefaultWallet: boolean) => {
+declare global {
+  interface Window {
+    __RD_isDappSafeView?: boolean;
+    __RD_isDappView?: boolean;
+  }
+}
+
+const injectProviderScript = () => {
   // the script element with src won't execute immediately
   // use inline script element instead!
-  const container = document.head || document.documentElement;
-  const ele = document.createElement('script');
   // in prevent of webpack optimized code do some magic(e.g. double/sigle quote wrap),
   // separate content assignment to two line
   // use AssetReplacePlugin to replace pageprovider content
-  ele.setAttribute('src', chrome.runtime.getURL('pageProvider.js'));
+  const pageProviderURL = chrome.runtime.getURL('pageProvider.js');
+
+  const outerContainer = document.head || document.documentElement;
+  const outerScriptEle = document.createElement('script');
+  
+  const outerScript = `
+if (!window.__RD_isDappSafeView && window.__RD_isDappView) {
+  var container = document.head || document.documentElement;
+  var ele = document.createElement('script');
+
+  ele.setAttribute('src', '${pageProviderURL}');
   container.insertBefore(ele, container.children[0]);
   container.removeChild(ele);
+}
+`;
+  outerScriptEle.textContent = outerScript;
+  outerContainer.insertBefore(outerScriptEle, outerContainer.children[0]);
+  outerContainer.removeChild(outerScriptEle);
 };
 
 const { BroadcastChannelMessage } = Message;
@@ -86,4 +106,4 @@ const onMessageSetUpExtensionStreams = (msg) => {
 };
 browser.runtime.onMessage.addListener(onMessageSetUpExtensionStreams);
 
-injectProviderScript(false);
+injectProviderScript();

@@ -62,7 +62,7 @@ const useAutoLock = () => {
 };
 
 const Main = () => {
-  useAutoLock();
+  // useAutoLock();
   useThemeModeOnMain();
   useSubscribeCurrentAccountChanged();
 
