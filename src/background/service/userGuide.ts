@@ -60,4 +60,5 @@ class UserGuideService {
   };
 }
 
+/** @deprecated not enabled for desktop */
 export const userGuideService = new UserGuideService();
