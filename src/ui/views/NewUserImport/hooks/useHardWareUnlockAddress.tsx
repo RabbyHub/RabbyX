@@ -45,6 +45,7 @@ export const useHDWalletUnlockAndRedirect = (
       );
 
       if (accounts && accounts.length) {
+        if (!store.password) throw new Error('empty password');
         await wallet.boot(store.password);
         await wallet.unlockHardwareAccount(
           type,
