@@ -2,6 +2,7 @@ import {
   openapiService,
   i18n,
   transactionHistoryService,
+  sessionService,
 } from 'background/service';
 import { createPersistStore, isSameAddress } from 'background/utils';
 import { notification } from 'background/webapi';
@@ -56,11 +57,17 @@ class TransactionWatcher {
     }
 
     const url = format(chainItem.scanLink, hash);
-    notification.create(
+    // notification.create(
+    //   url,
+    //   i18n.t('Transaction submitted'),
+    //   i18n.t('click to view more information')
+    // );
+    sessionService.broadcastToDesktopOnly('transactionChanged', {
+      type: 'submitted',
       url,
-      i18n.t('Transaction submitted'),
-      i18n.t('click to view more information')
-    );
+      hash,
+      chain,
+    });
   };
 
   checkStatus = async (id: string) => {
@@ -108,12 +115,18 @@ class TransactionWatcher {
         ? i18n.t('Transaction completed')
         : i18n.t('Transaction failed');
 
-    notification.create(
-      url,
-      title,
-      i18n.t('click to view more information'),
-      2
-    );
+    // notification.create(
+    //   url,
+    //   title,
+    //   i18n.t('click to view more inforwmation'),
+    //   2
+    // );
+    sessionService.broadcastToDesktopOnly('transactionChanged', {
+      type: 'finished',
+      success: txReceipt.status === '0x1',
+      hash,
+      chain,
+    });
 
     eventBus.emit(EVENTS.broadcastToUI, {
       method: EVENTS.TX_COMPLETED,
