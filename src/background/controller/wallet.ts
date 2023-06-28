@@ -95,6 +95,10 @@ import { CoboSafeAccount } from '@/utils/cobo-agrus-sdk/cobo-agrus-sdk';
 import CoboArgusKeyring from '../service/keyring/eth-cobo-argus-keyring';
 import { GET_WALLETCONNECT_CONFIG } from '@/utils/walletconnect';
 import { estimateL1Fee } from '@/utils/l2';
+import { getMintRabbyContractAddress } from '@/constant/mint-rabby/mint-rabby-abi';
+import { initMintRabbyContract } from './mint-rabby';
+import { validateConfirmation } from './safe';
+import { getEnsContentHash } from './ens';
 
 const stashKeyrings: Record<string | number, any> = {};
 
@@ -109,24 +113,34 @@ export class WalletController extends BaseController {
   isBooted = () => keyringService.isBooted();
   verifyPassword = (password: string) =>
     keyringService.verifyPassword(password);
+  safeVerifyPassword = async (password: string) => {
+    const result = { success: false, error: null as null | Error };
+    try {
+      await keyringService.verifyPassword(password);
+      result.success = true;
+    } catch (error) {
+      result.success = false;
+      result.error = error?.message;
+    }
 
-  setWhitelist = async (password: string, addresses: string[]) => {
-    await this.verifyPassword(password);
+    return result;
+  };
+  updatePassword = (oldPassword: string, newPassword: string) =>
+    keyringService.updatePassword(oldPassword, newPassword);
+
+  setWhitelist = async (addresses: string[]) => {
     whitelistService.setWhitelist(addresses);
   };
 
-  addWhitelist = async (password: string, address: string) => {
-    await this.verifyPassword(password);
+  addWhitelist = async (address: string) => {
     whitelistService.addWhitelist(address);
   };
 
-  removeWhitelist = async (password: string, address: string) => {
-    await this.verifyPassword(password);
+  removeWhitelist = async (address: string) => {
     whitelistService.removeWhitelist(address);
   };
 
-  toggleWhitelist = async (password: string, enable: boolean) => {
-    await this.verifyPassword(password);
+  toggleWhitelist = async (enable: boolean) => {
     if (enable) {
       whitelistService.enableWhitelist();
     } else {
@@ -424,9 +438,10 @@ export class WalletController extends BaseController {
     if (!chainObj)
       throw new Error(t('background.error.notFindChain', { chain }));
     try {
+      let approvalTxHash: string | undefined;
       if (shouldTwoStepApprove) {
         unTriggerTxCounter.increase(3);
-        await this.approveToken(
+        approvalTxHash = await this.approveToken(
           chainObj.serverId,
           pay_token_id,
           spender,
@@ -447,7 +462,7 @@ export class WalletController extends BaseController {
         if (!shouldTwoStepApprove) {
           unTriggerTxCounter.increase(2);
         }
-        await this.approveToken(
+        approvalTxHash = await this.approveToken(
           chainObj.serverId,
           pay_token_id,
           spender,
@@ -464,10 +479,15 @@ export class WalletController extends BaseController {
         unTriggerTxCounter.decrease();
       }
 
+      if (approvalTxHash) {
+        return approvalTxHash;
+      }
+
       if (postSwapParams) {
         swapService.addTx(chain, quote.tx.data, postSwapParams);
       }
-      await this.sendRequest({
+
+      const tx: string = await this.sendRequest({
         $ctx:
           needApprove && pay_token_id !== chainObj.nativeTokenAddress
             ? {
@@ -492,7 +512,9 @@ export class WalletController extends BaseController {
           },
         ],
       });
+
       unTriggerTxCounter.decrease();
+      return tx;
     } catch (e) {
       unTriggerTxCounter.reset();
     }
@@ -604,11 +626,12 @@ export class WalletController extends BaseController {
         ...extra,
       };
     }
-    await this.sendRequest({
+    const txHash: string = await this.sendRequest({
       $ctx,
       method: 'eth_sendTransaction',
       params: [tx],
     });
+    return txHash;
   };
 
   fetchEstimatedL1Fee = async (
@@ -1045,6 +1068,9 @@ export class WalletController extends BaseController {
     return this.getTotalBalanceCached([address], address, force);
   };
 
+  updateAddressBalanceCache = (address: string, balance: string) => {
+    preferenceService.updateAddressUSDValueCache(address, Number(balance));
+  };
   getAddressCacheBalance = (address: string | undefined, isTestnet = false) => {
     if (!address) return null;
     if (isTestnet) {
@@ -1949,6 +1975,8 @@ export class WalletController extends BaseController {
     transactionHistoryService.clearPendingTransactions(address);
     transactionWatcher.clearPendingTx(address);
     transactionBroadcastWatchService.clearPendingTx(address);
+    sessionService.broadcastToDesktopOnly('clearPendingTransactions', null);
+
     return;
   };
 
@@ -2689,6 +2717,9 @@ export class WalletController extends BaseController {
   // getTxExplainCacheByApprovalId = (id: string) =>
   //   transactionHistoryService.getExplainCacheByApprovalId(id);
 
+  markTransactionAsIndexed = (address: string, chainId: number, hash: string) =>
+    transactionHistoryService.markTransactionAsIndexed(address, chainId, hash);
+
   getTransactionHistory = (address: string) =>
     transactionHistoryService.getList(address);
 
@@ -3354,6 +3385,88 @@ export class WalletController extends BaseController {
 
     return await keyring.scanAccount();
   };
+  mintedRabbyTotal = async () => {
+    const contract = await initMintRabbyContract();
+    const result = await contract.totalSupply();
+
+    return result.toString();
+  };
+
+  mintedRabbyEndDateTime = async () => {
+    const contract = await initMintRabbyContract();
+    const { publicSaleEnd } = await contract.saleDetails();
+
+    try {
+      return new Date(publicSaleEnd.toNumber() * 1000).getTime();
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  getMintedRabby = async () => {
+    const account = await preferenceService.getCurrentAccount();
+    const contract = await initMintRabbyContract();
+    const accountAddress = account!.address;
+    const result = await contract.mintedPerAddress(accountAddress);
+    const isMinted = (result.totalMints as BigNumber).eq(1);
+
+    if (!isMinted) {
+      return false;
+    }
+
+    const nfts = await openapiService.listNFT(accountAddress, true);
+    const contractAddress = getMintRabbyContractAddress();
+    // only one token, so just return the first one
+    const nft = nfts.find((item) =>
+      isSameAddress(item.contract_id, contractAddress)
+    );
+
+    if (!nft) {
+      return {
+        contractAddress,
+      };
+    }
+
+    return {
+      tokenId: nft?.inner_id,
+      contractAddress: nft?.contract_id,
+      detailUrl: nft?.detail_url,
+    };
+  };
+
+  mintRabbyFee = async () => {
+    const contract = await initMintRabbyContract();
+    const feeAmount = (await contract.zoraFeeForAmount(1)).fee;
+
+    return feeAmount.toString();
+  };
+
+  mintRabby = async () => {
+    const account = await preferenceService.getCurrentAccount();
+    const contract = await initMintRabbyContract();
+    const feeAmount = await this.mintRabbyFee();
+    const value = `0x${new BigNumber(feeAmount).toString(16)}`;
+    const contractAddress = getMintRabbyContractAddress();
+
+    const result = await this.sendRequest({
+      method: 'eth_sendTransaction',
+      params: [
+        {
+          chainId: CHAINS['ETH'].id,
+          value,
+          from: account!.address,
+          to: contractAddress,
+          data: contract.interface.encodeFunctionData('purchase', [1]),
+        },
+      ],
+    });
+
+    return result;
+  };
+
+  getEnsContentHash = getEnsContentHash;
+
+  validateSafeConfirmation = validateConfirmation;
 }
 
 const wallet = new WalletController();
