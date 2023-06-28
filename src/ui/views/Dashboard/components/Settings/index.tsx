@@ -533,7 +533,7 @@ const SettingsInner = ({
         ? t('page.dashboard.settings.enableWhitelistTip')
         : t('page.dashboard.settings.disableWhitelistTip'),
       validationHandler: async (password: string) =>
-        await wallet.toggleWhitelist(password, value),
+        await wallet.toggleWhitelist(value),
       onFinished() {
         setWhitelistEnable(value);
       },
@@ -557,7 +557,7 @@ const SettingsInner = ({
   const { value: hasNewVersion = false } = useAsync(async () => {
     const data = await wallet.openapi.getLatestVersion();
 
-    return semver(process.env.release || '0.0.0', data.version_tag) === -1;
+    return semver(globalThis.rabbyDesktop.appVersion || '0.0.0', data.version_tag) === -1;
   });
 
   const handleSwitchIsShowTestnet = (value: boolean) => {
