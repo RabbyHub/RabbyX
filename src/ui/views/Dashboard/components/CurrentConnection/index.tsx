@@ -1,8 +1,9 @@
 import { message, Tooltip } from 'antd';
+import browser, { Tabs } from 'webextension-polyfill';
 import { ConnectedSite } from 'background/service/permission';
 import clsx from 'clsx';
 import { CHAINS_ENUM } from 'consts';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import IconDisconnect from 'ui/assets/icon-disconnect.svg';
 import IconDapps from 'ui/assets/dapps.svg';
@@ -63,7 +64,7 @@ export const CurrentConnection = memo((props: CurrentConnectionProps) => {
       ...site!,
       chain,
     };
-    setSite(_site);
+    // setSite(_site);
     setVisible(false);
     onChainChange?.(chain);
     await wallet.setSite(_site);
@@ -76,8 +77,58 @@ export const CurrentConnection = memo((props: CurrentConnectionProps) => {
     }
   };
 
+  const handleFavoriteChnage = async (value: boolean) => {
+    const _site = {
+      ...site!,
+      isFavorite: value,
+    };
+    setSite(_site);
+    setVisible(false);
+    await wallet.setSite(_site);
+    if (value) {
+      await wallet.updateSiteBasicInfo(_site.origin);
+    }
+  };
+
+  const activeTabIdRef = useRef<Tabs.Tab['id']>(-1);
+  
   useEffect(() => {
     getCurrentSite();
+
+    const handleCreated = (tab: Tabs.Tab) => {
+      // generally, tab.status is 'loading' when created, we deplay to get current site
+      setTimeout(() => {
+        getCurrentSite();
+      }, 1000);
+      activeTabIdRef.current = tab.id;
+    };
+    const handleActivated = (activeInfo: Tabs.OnActivatedActiveInfoType) => {
+      if (activeInfo.tabId !== activeTabIdRef.current) {
+        getCurrentSite();
+      }
+      activeTabIdRef.current = activeInfo.tabId;
+    };
+    const handleRemoved = (tabId: number) => {
+      if (activeTabIdRef.current === tabId) {
+        activeTabIdRef.current = -1;
+      }
+    };
+
+    browser.tabs.onCreated.addListener(handleCreated);
+    browser.tabs.onActivated.addListener(handleActivated);
+    browser.tabs.onRemoved.addListener(handleRemoved);
+
+    const dispose1 = window.rabbyDesktop?.ipcRenderer.on('__internal_push:rabby:chainChanged', () => {
+      getCurrentSite();
+    });
+
+    return () => {
+      browser.tabs.onCreated.removeListener(handleCreated);
+      browser.tabs.onActivated.removeListener(handleActivated);
+      browser.tabs.onRemoved.removeListener(handleRemoved);
+
+      dispose1?.();
+    }
   }, []);
 
   const Content = site && (
