@@ -21,6 +21,7 @@ import { matomoRequestEvent } from '@/utils/matomo-request';
 import RPCService, { RPCServiceStore } from './rpc';
 import { storage } from '../webapi';
 import { ga4 } from '@/utils/ga4';
+import { sessionService } from '.';
 
 const MAX_READ_CONTRACT_TIME = 15_000;
 
@@ -694,6 +695,9 @@ class CustomTestnetService {
   syncChainList = () => {
     const testnetList = this.getList();
     updateChainStore({
+      testnetList: testnetList,
+    });
+    sessionService.broadcastToDesktopOnly('syncChainList', {
       testnetList: testnetList,
     });
   };
