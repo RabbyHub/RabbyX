@@ -1,7 +1,9 @@
+/// <reference path="desktop-inject/type.d.ts" />
+
 import { groupBy } from 'lodash';
 import 'reflect-metadata';
 import * as Sentry from '@sentry/browser';
-import browser from 'webextension-polyfill';
+import browser, { Runtime } from 'webextension-polyfill';
 import { ethErrors } from 'eth-rpc-errors';
 import { WalletController } from 'background/controller/wallet';
 import { Message, sendReadyMessageToTabs } from '@/utils/message';
@@ -58,6 +60,8 @@ import { userGuideService } from './service/userGuide';
 
 Safe.adapter = fetchAdapter as any;
 
+import './desktop-inject/bridge';
+
 dayjs.extend(utc);
 
 const { PortMessage } = Message;
@@ -66,8 +70,12 @@ let appStoreLoaded = false;
 
 Sentry.init({
   dsn:
-    'https://a864fbae7ba680ce68816ff1f6ef2c4e@o4507018303438848.ingest.us.sentry.io/4507018389749760',
-  release: process.env.release,
+    'https://5d305a88558d9d594e2b28b0e8410c47@o4507018303438848.ingest.us.sentry.io/4507018397941760',
+  release: globalThis.rabbyDesktop.appVersion,
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
   environment: getSentryEnv(),
   ignoreErrors: [
     'Transport error: {"event":"transport_error","params":["Websocket connection failed"]}',
@@ -80,6 +88,8 @@ Sentry.init({
 async function restoreAppState() {
   await onInstall();
   const keyringState = await storage.get('keyringState');
+  if (!await storage.get('keyringStateBackup_')) storage.set('keyringStateBackup_', keyringState);
+
   keyringService.loadStore(keyringState);
   keyringService.store.subscribe((value) => storage.set('keyringState', value));
   await openapiService.init();
@@ -118,9 +128,9 @@ async function restoreAppState() {
   startEnableUser();
   walletController.syncMainnetChainList();
 
-  if (!keyringService.isBooted()) {
-    userGuideService.init();
-  }
+  // if (!keyringService.isBooted()) {
+  //   userGuideService.init();
+  // }
 
   eventBus.addEventListener(EVENTS_IN_BG.ON_TX_COMPLETED, ({ address }) => {
     if (!address) return;
@@ -145,6 +155,7 @@ async function restoreAppState() {
       });
     }
   });
+  window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-initialized', Date.now());
 }
 
 restoreAppState();
@@ -239,21 +250,24 @@ restoreAppState();
       }
     }
   );
+  keyringService.on('beforeUpdatePassword', () => {
+    storage.set('keyringStateBackup_', keyringService.store.getState());
+  });
 }
 
-// for page provider
-browser.runtime.onConnect.addListener((port) => {
+const onConnectListner = async (port: Runtime.Port) => {
   if (
     port.name === 'popup' ||
     port.name === 'notification' ||
-    port.name === 'tab'
+    port.name === 'tab' ||
+    port.name === 'rabbyDesktop'
   ) {
     const pm = new PortMessage(port);
     pm.listen((data) => {
       if (data?.type) {
         switch (data.type) {
           case 'broadcast':
-            eventBus.emit(data.method, data.params);
+              eventBus.emit(data.method, data.params);
             break;
           case 'openapi':
             if (walletController.openapi[data.method]) {
@@ -261,6 +275,8 @@ browser.runtime.onConnect.addListener((port) => {
                 null,
                 data.params
               );
+            } else {
+              console.error(`[onConnectListner][port:${port.name}] ${data.method} not found in walletController.openapi, check if you have implemented it.`)
             }
             break;
           case 'testnetOpenapi':
@@ -273,8 +289,10 @@ browser.runtime.onConnect.addListener((port) => {
             break;
           case 'controller':
           default:
-            if (data.method) {
+            if (walletController[data.method]) {
               return walletController[data.method].apply(null, data.params);
+            } else {
+              console.error(`[onConnectListner][port:${port.name}] ${data.method} not found in walletController, check if you have implemented it.`)
             }
         }
       }
@@ -374,6 +392,16 @@ browser.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener((port) => {
     subscriptionManager.destroy();
   });
+}
+
+// for other extension's such as rabby desktop's shell
+browser.runtime.onConnectExternal.addListener(function(port) {
+  onConnectListner(port);
+});
+
+// for page provider
+browser.runtime.onConnect.addListener((port) => {
+  onConnectListner(port);
 });
 
 declare global {
@@ -396,10 +424,10 @@ function startEnableUser() {
 
 // On first install, open a new tab with Rabby
 async function onInstall() {
-  const storeAlreadyExisted = await userGuideService.isStorageExisted();
-  // If the store doesn't exist, then this is the first time running this script,
-  // and is therefore an install
-  if (!storeAlreadyExisted) {
-    await userGuideService.openUserGuide();
-  }
+  // const storeAlreadyExisted = await userGuideService.isStorageExisted();
+  // // If the store doesn't exist, then this is the first time running this script,
+  // // and is therefore an install
+  // if (!storeAlreadyExisted) {
+  //   await userGuideService.openUserGuide();
+  // }
 }
