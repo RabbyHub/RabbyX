@@ -18,3 +18,7 @@ export const obj2query = (obj: Record<string, string>) => {
 export const isValidateUrl = (url: string) => {
   return /^(https?|http?):\/\/(localhost|\S)+/.test(url);
 };
+
+export const formatDappURLToShow = (url: string) => {
+  return window.rabbyDesktop?.rendererHelpers?.formatDappURLToShow?.(url) || url;
+}
