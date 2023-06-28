@@ -20,6 +20,7 @@ const BUILD_GIT_HASH = child_process
   .execSync('git log --format="%h" -n 1')
   .toString()
   .trim();
+const { manifestVersion } = require('./patches');
 
 const config = {
   entry: {
@@ -47,6 +48,11 @@ const config = {
             sideEffects: true,
             test: /[\\/]pageProvider[\\/]index.ts/,
             loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                outDir: paths.dist,
+              },
+            }
           },
           {
             test: /[\\/]ui[\\/]index.tsx/,
@@ -66,6 +72,7 @@ const config = {
                   }),
                   compilerOptions: {
                     module: 'es2015',
+                    outDir: paths.dist,
                   },
                 },
               },
@@ -104,6 +111,9 @@ const config = {
                   }),
                 ],
               }),
+              compilerOptions: {
+                outDir: paths.dist,
+              }
             },
           },
         ],
@@ -186,9 +196,9 @@ const config = {
     ],
   },
   plugins: [
-    new ESLintWebpackPlugin({
-      extensions: ['ts', 'tsx', 'js', 'jsx'],
-    }),
+    // new ESLintWebpackPlugin({
+    //   extensions: ['ts', 'tsx', 'js', 'jsx'],
+    // }),
     // new AntdDayjsWebpackPlugin(),
     new HtmlWebpackPlugin({
       inject: true,
@@ -226,54 +236,32 @@ const config = {
       dayjs: 'dayjs',
     }),
     new webpack.DefinePlugin({
-      'process.env.version': JSON.stringify(`version: ${process.env.VERSION}`),
-      'process.env.release': JSON.stringify(process.env.VERSION),
+      'process.env.version': JSON.stringify(`version: ${manifestVersion}`),
+      'process.env.release': JSON.stringify(manifestVersion),
       'process.env.RABBY_BUILD_GIT_HASH': JSON.stringify(BUILD_GIT_HASH),
     }),
     new CopyPlugin({
       patterns: [
-        { from: paths.rootResolve('_raw'), to: paths.rootResolve('dist') },
+        { from: paths.rootResolve('_raw'), to: paths.dist },
         {
           from: process.env.ENABLE_MV3
             ? paths.rootResolve('src/manifest/mv3/manifest.json')
             : paths.rootResolve('src/manifest/mv2/manifest.json'),
           to: paths.dist,
         },
-        process.env.ENABLE_MV3
-          ? {
-              from: require.resolve(
-                '@trezor/connect-webextension/build/content-script.js'
-              ),
-              to: paths.rootResolve(
-                'dist/vendor/trezor/trezor-content-script.js'
-              ),
-            }
-          : {
-              from: require.resolve(
-                '@trezor/connect-web/lib/webextension/trezor-content-script.js'
-              ),
-              to: paths.rootResolve(
-                'dist/vendor/trezor/trezor-content-script.js'
-              ),
-            },
-        process.env.ENABLE_MV3
-          ? {
-              from: require.resolve(
-                '@trezor/connect-webextension/build/trezor-connect-webextension.js'
-              ),
-              to: paths.rootResolve(
-                'dist/vendor/trezor/trezor-connect-webextension.js'
-              ),
-            }
-          : {
-              from: require.resolve(
-                '@trezor/connect-web/lib/webextension/trezor-usb-permissions.js'
-              ),
-              to: paths.rootResolve(
-                'dist/vendor/trezor/trezor-usb-permissions.js'
-              ),
-            },
-      ],
+        {
+          from: process.env.ENABLE_MV3
+          ? require.resolve('@trezor/connect-webextension/build/content-script.js')
+          : require.resolve('@trezor/connect-web/lib/webextension/trezor-content-script.js'),
+          to: paths.distResolve('vendor/trezor/trezor-content-script.js'),
+        },
+        process.env.ENABLE_MV3 && {
+          from: require.resolve(
+            '@trezor/connect-webextension/build/trezor-connect-webextension.js'
+          ),
+          to: paths.distResolve('vendor/trezor/trezor-connect-webextension.js'),
+        },
+      ].filter(Boolean),
     }),
   ],
   resolve: {
