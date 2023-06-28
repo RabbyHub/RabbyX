@@ -21,7 +21,7 @@ import { syncStateToUI } from '../utils/broadcastToUI';
 import { BROADCAST_TO_UI_EVENTS } from '@/utils/broadcastToUI';
 import dayjs from 'dayjs';
 
-const version = process.env.release || '0';
+const version = globalThis.rabbyDesktop.appVersion || '0';
 
 export interface Account {
   type: string;
@@ -422,6 +422,18 @@ class PreferenceService {
   };
 
   getPopupOpen = () => this.popupOpen;
+
+  updateAddressUSDValueCache = (address: string, balance: number) => {
+    const balanceMap = this.store.balanceMap || {};
+    const before = this.store.balanceMap[address.toLowerCase()];
+    this.store.balanceMap = {
+      ...balanceMap,
+      [address.toLowerCase()]: {
+        total_usd_value: balance,
+        chain_list: before.chain_list || [],
+      },
+    };
+  };
 
   updateTestnetAddressBalance = (
     address: string,
