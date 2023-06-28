@@ -7,13 +7,15 @@ import remarkGfm from 'remark-gfm';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 import {
   KEYRING_CLASS,
-  KEYRING_ICONS,
-  KEYRING_ICONS_WHITE,
   KEYRING_TYPE,
   KEYRING_TYPE_TEXT,
   WALLET_BRAND_CONTENT,
   EVENTS,
 } from 'consts';
+import { 
+  KEYRING_ICONS,
+  KEYRING_ICONS_WHITE
+} from 'ui/assets-const';
 import QRCode from 'qrcode.react';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
