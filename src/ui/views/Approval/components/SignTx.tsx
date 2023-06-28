@@ -93,6 +93,7 @@ interface BasicCoboArgusInfo {
   networkId: string;
   delegates: string[];
 }
+import { genMintRabbyTxDetail } from '@/constant/mint-rabby/gen-tx-detail';
 
 const normalizeHex = (value: string | number) => {
   if (typeof value === 'number') {
@@ -160,9 +161,9 @@ export const TxTypeComponent = ({
   onChange,
   isSpeedUp,
   engineResults,
-  txDetail,
   origin,
   originLogo,
+  txDetail: oldTxDetail,
 }: {
   actionRequireData: ActionRequireData;
   actionData: ParsedTransactionActionData;
@@ -177,6 +178,11 @@ export const TxTypeComponent = ({
   originLogo?: string;
 }) => {
   if (!isReady) return <Loading />;
+
+  const txDetail = useMemo(() => genMintRabbyTxDetail(oldTxDetail), [
+    oldTxDetail,
+  ]);
+
   if (actionData && actionRequireData) {
     return (
       <Actions
