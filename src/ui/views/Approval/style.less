@@ -26,6 +26,55 @@
     }
   }
 
+  .approval-connect {
+    padding-top: 32px;
+    .connect-card {
+      // width: 90%;
+      // margin: 24px auto;
+      background-color: @color-bg;
+      border-radius: 6px;
+      padding: 10px;
+      .site-info {
+        display: flex;
+        position: relative;
+        padding-bottom: 16px;
+        &::after {
+          .part-border(345px);
+          background-color: rgba(255, 255, 255, 0.1);
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+        .site-info__icon {
+          width: 44px;
+          margin-left: 0;
+          margin-right: 12px;
+          flex-shrink: 0;
+        }
+        .site-info__text {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          width: 100%;
+          overflow: hidden;
+          p {
+            margin-bottom: 0;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+      .site-chain {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0 6px 6px;
+      }
+    }
+  }
+
   .approval-public-key {
     .content {
       padding: 20px 20px 28px;
@@ -1745,6 +1794,97 @@
   }
 }
 
+html.page-notification.__rabbyx-shell-page body.__rabbyx-approval-connect {
+  overflow-y: hidden;
+}
+
+html.page-notification.__rabbyx-shell-page body.__rabbyx-approval-connect #root {
+  background: #3e4351;
+
+  .site-info__text {
+    color: white;
+  }
+
+  .connect-card {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .approval-connect, .chain-selector {
+    color: white;
+  }
+  
+  .site-chain > p {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .site-info__icon {
+    .fallback-site-logo .img-wrapper {
+      width: 36px;
+      height: 36px;
+  
+      > img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+
+  .connect-footer {
+    background-color: #3e4351;
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+html.page-notification.__rabbyx-shell-page {
+  @account-card-h: 58px;
+  background: #fff;
+
+  &.__rabbyx-center-sign-window {
+    background-color: transparent;
+
+    body {
+      background-color: transparent;
+      max-width: 100vw !important;
+    }
+    
+    #root {
+      background: #fff;
+      width: 100vw !important;
+    }
+  }
+
+  &.os-win32 body {
+    max-width: 399px;
+    overflow-x: hidden;
+  }
+
+  &.os-darwin {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+  }
+
+  body {
+    background-color: transparent;
+  }
+
+  body #root {
+    width: 400px !important;
+  }
+
+  .account-card {
+    background: none;
+    background-color: #8697FF;
+    height: @account-card-h;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    .account-detail {
+      background-color: #8697ff;
+      padding: 0;
+    }
+  }
+}
+
 .account-card {
   background: @primary-linear;
   width: 100%;
@@ -1906,6 +2046,14 @@
       z-index: 999;
       pointer-events: none;
     }
+  }
+}
+
+.page-LedgerHardwareWaiting {
+  background-color: white !important;
+
+  .ledger-waiting {
+    background-color: white !important;
   }
 }
 .ledger-waiting {
@@ -2379,5 +2527,17 @@
   }
   .ant-modal-confirm-btns {
     display: none;
+  }
+}
+.action-buttons {
+  .ant-btn-background-ghost:hover,
+  .ant-btn-background-ghost:focus {
+    background-color: rgba(134, 151, 255, 0.1) !important;
+    color: @primary-color;
+    border-color: @primary-color;
+
+    &::before {
+      background-color: transparent;
+    }
   }
 }

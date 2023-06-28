@@ -1,7 +1,6 @@
 import { ledgerUSBVendorId } from '@ledgerhq/devices';
-import { useEffect, useState } from 'react';
-import browser from 'webextension-polyfill';
-import { hasConnectedLedgerDevice } from '@/ui/utils';
+import { atom, useAtom } from 'jotai';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export enum LedgerHDPathType {
   LedgerLive = 'LedgerLive',
@@ -15,39 +14,71 @@ export const LedgerHDPathTypeLabel = {
   [LedgerHDPathType.Legacy]: 'Ledger Legacy',
 };
 
-export const useLedgerDeviceConnected = () => {
-  const [connected, setConnected] = useState(false);
+const hidDevicesAtom = atom<any[]>([]);
 
-  const onConnect = async ({ device }) => {
-    if (device.vendorId === ledgerUSBVendorId) {
-      setConnected(true);
-    }
-  };
+export function useHIDDevices() {
+  const [devices, setDevices] = useAtom(hidDevicesAtom);
+  const isFetchingRef = React.useRef(false);
 
-  const onDisconnect = ({ device }) => {
-    if (device.vendorId === ledgerUSBVendorId) {
-      setConnected(false);
-    }
-  };
+  const fetchDevices = useCallback(() => {
+    if (isFetchingRef.current) return;
 
-  const detectDevice = async () => {
-    hasConnectedLedgerDevice().then((state) => {
-      setConnected(state);
-    });
-  };
+    isFetchingRef.current = true;
+    window.rabbyDesktop.ipcRenderer
+      .invoke('get-hid-devices')
+      .then((res: any) => {
+        if (res?.error) {
+          return;
+        }
+        setDevices(res?.devices);
+      })
+      .finally(() => {
+        isFetchingRef.current = false;
+      });
+  }, [setDevices]);
 
   useEffect(() => {
-    detectDevice();
-    navigator.hid.addEventListener('connect', onConnect);
-    navigator.hid.addEventListener('disconnect', onDisconnect);
-    browser.windows.onFocusChanged.addListener(detectDevice);
+    fetchDevices();
 
-    return () => {
-      navigator.hid.removeEventListener('connect', onConnect);
-      navigator.hid.removeEventListener('disconnect', onDisconnect);
-      browser.windows.onFocusChanged.removeListener(detectDevice);
-    };
-  }, []);
+    return window.rabbyDesktop.ipcRenderer.on(
+      '__internal_push:webusb:events',
+      (event) => {
+        switch (event.eventType) {
+          case 'change-detected': {
+            fetchDevices();
+            break;
+          }
+          case 'push-hiddevice-list': {
+            setDevices(event.deviceList);
+            break;
+          }
+        }
+      }
+    );
+  }, [fetchDevices]);
+
+  return {
+    isFetchingDevice: isFetchingRef.current,
+    devices,
+    fetchDevices,
+  };
+}
+
+export const useLedgerDeviceConnected = () => {
+  const [connected, setConnected] = useState(false);
+  const { devices } = useHIDDevices();
+
+  useEffect(() => {
+    const hasLedger = devices.some(
+      (item) => item.vendorId === ledgerUSBVendorId
+    );
+
+    if (hasLedger) {
+      setConnected(true);
+    } else {
+      setConnected(false);
+    }
+  }, [devices]);
 
   return connected;
 };

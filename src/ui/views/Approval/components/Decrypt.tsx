@@ -121,6 +121,7 @@ const GetEncryptionPublicKey = ({ params }: ConnectProps) => {
           {canProcess ? (
             <Button
               type="primary"
+              ghost
               size="large"
               className="w-[172px]"
               onClick={() => handleAllow()}
@@ -137,6 +138,7 @@ const GetEncryptionPublicKey = ({ params }: ConnectProps) => {
             >
               <Button
                 type="primary"
+                ghost
                 size="large"
                 className="w-[172px]"
                 onClick={() => handleAllow()}

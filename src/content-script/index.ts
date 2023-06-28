@@ -6,6 +6,13 @@ import { v4 as uuid } from 'uuid';
 const channelName = nanoid();
 const isOpera = /Opera|OPR\//i.test(navigator.userAgent);
 
+declare global {
+  interface Window {
+    __RD_isDappSafeView?: boolean;
+    __RD_isDappView?: boolean;
+  }
+}
+
 const injectProviderScript = (isDefaultWallet: boolean) => {
   // the script element with src won't execute immediately
   // use inline script element instead!
@@ -18,9 +25,11 @@ const injectProviderScript = (isDefaultWallet: boolean) => {
   localStorage.setItem('rabby:isDefaultWallet', isDefaultWallet.toString());
   localStorage.setItem('rabby:uuid', uuid());
   localStorage.setItem('rabby:isOpera', isOpera.toString());
-  ele.setAttribute('src', chrome.runtime.getURL('pageProvider.js'));
-  container.insertBefore(ele, container.children[0]);
-  container.removeChild(ele);
+  if (!window.__RD_isDappSafeView && window.__RD_isDappView) {
+    ele.setAttribute('src', chrome.runtime.getURL('pageProvider.js'));
+    container.insertBefore(ele, container.children[0]);
+    container.removeChild(ele);
+  }
 };
 
 const { BroadcastChannelMessage, PortMessage } = Message;

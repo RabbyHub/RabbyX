@@ -1363,10 +1363,10 @@
   resolved "https://registry.yarnpkg.com/@debank/common/-/common-0.3.0.tgz#9c67288816d62e3548e0c2193ec4cd73758f5b26"
   integrity sha512-PWdFuKuqDtGdYALFToDQQCyas3Tgz1tXXlir6UVTVHz2MPi4uK6ZK8UUNrWdU6lncHNvcRsNf3Xamk0Ga9jxeg==
 
-"@debank/festats@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.1.tgz#8f76b0919a6c8a7d938a42946272abaff2b971be"
-  integrity sha512-mr2N1oqOTYQJ4ezIGn4EWkSuioh5fiAkX82oZnzaLsG1Y71P10HvBb136Cag46m9CRUCsUNG0/wxmvPhHHGUaQ==
+"@debank/festats@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@debank/festats/-/festats-1.0.3.tgz#68ea438d89f09de565d4d4336d82c29f6a0484a1"
+  integrity sha512-pANPwkNkqfxCBA9MUswRJsRplqgwSBZ5fXiUUfqioc64+lgzShuddSgAlyL0icShwvjM+5FtV4qqQBh2Gti8fw==
 
 "@discoveryjs/json-ext@^0.5.0":
   version "0.5.7"
@@ -11959,6 +11959,10 @@ jiti@^1.21.0:
   version "1.21.0"
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.0.tgz#7c97f8fe045724e136a397f7340475244156105d"
   integrity sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==
+jotai@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.1.0.tgz#b1a9525345518453802e4a64d99e2800598bab76"
+  integrity sha512-fR82PtHAmEQrc/daMEYGc4EteW96/b6wodtDSCzLvoJA/6y4YG70er4hh2f8CYwYjqwQ0eZUModGfG4DmwkTyQ==
 
 js-cookie@^2.2.1, js-cookie@^2.x.x:
   version "2.2.1"

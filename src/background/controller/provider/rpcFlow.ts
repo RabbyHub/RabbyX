@@ -123,7 +123,7 @@ const flowContext = flow
               params: { origin, name, icon },
               approvalComponent: 'Connect',
             },
-            { height: 800 }
+            { height: 390 }
           );
           connectOrigins.delete(origin);
           permissionService.addConnectedSiteV2({
