@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { BrowserQRCodeReader } from '@zxing/browser';
 import './style.less';
 import { openInternalPageInTab } from 'ui/utils';
@@ -30,27 +36,37 @@ const QRCodeReader = ({
     });
   }, []);
   const videoEl = useRef<HTMLVideoElement>(null);
-  const checkCameraPermission = async () => {
+  const [deviceId, setDeviceId] = useState<string | null>();
+
+  const findDevices = useCallback(async () => {
     const devices = await window.navigator.mediaDevices.enumerateDevices();
-    const webcams = devices.filter((device) => device.kind === 'videoinput');
-    const hasWebcamPermissions = webcams.some(
-      (webcam) => webcam.label && webcam.label.length > 0
+    const videoDevices = devices.filter(
+      (device) => device.kind === 'videoinput'
     );
-    if (!hasWebcamPermissions && needAccessRedirect) {
-      openInternalPageInTab('request-permission?type=camera', true, false);
+    const { constrains } = (await window.rabbyDesktop.ipcRenderer.invoke(
+      'rabbyx:get-selected-camera'
+    )) as any;
+
+    if (constrains?.label) {
+      const device = videoDevices.find((d) => d.label === constrains.label);
+      if (device) {
+        setDeviceId(device.deviceId);
+      }
     }
-  };
-  useEffect(() => {
-    checkCameraPermission();
   }, []);
+
   useEffect(() => {
+    findDevices();
+  }, [findDevices]);
+  useEffect(() => {
+    if (!deviceId) return;
     const videoElem = document.getElementById('video');
     const canplayListener = () => {
       setCanplay(true);
     };
     videoElem!.addEventListener('canplay', canplayListener);
     const promise = codeReader.decodeFromVideoDevice(
-      undefined,
+      deviceId,
       'video',
       (result) => {
         if (result) {
@@ -68,7 +84,7 @@ const QRCodeReader = ({
         })
         .catch(console.log);
     };
-  }, []);
+  }, [deviceId]);
 
   return (
     <video

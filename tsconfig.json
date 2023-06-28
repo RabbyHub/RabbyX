@@ -35,9 +35,11 @@
         "validate": true
       }
     ],
-    "outDir": "./dist",
+    "outDir": "../../assets/chrome_exts/rabby",
     "sourceMap": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationDir": "../../assets/rabby-types"
   },
   "exclude": ["./node_modules"],
   "include": ["src", "__tests__"]
