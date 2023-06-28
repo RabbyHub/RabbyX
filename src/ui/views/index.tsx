@@ -60,7 +60,7 @@ const useAutoLock = () => {
 };
 
 const Main = () => {
-  useAutoLock();
+  // useAutoLock();
   return (
     <>
       <Route exact path="/">
