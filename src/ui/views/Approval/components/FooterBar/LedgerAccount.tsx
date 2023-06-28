@@ -40,7 +40,7 @@ export const LedgerAccount: React.FC = () => {
               {t('page.signFooterBar.connectButton')}
             </div>
           </div>
-        );
+          );
 
       default:
         return (
