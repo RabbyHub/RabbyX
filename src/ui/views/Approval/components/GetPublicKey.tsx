@@ -1,3 +1,4 @@
+import { formatDappURLToShow } from '@/ui/utils/url';
 import { Button, message, Tooltip } from 'antd';
 import clsx from 'clsx';
 import { KEYRING_TYPE } from 'consts';
@@ -69,7 +70,7 @@ const GetEncryptionPublicKey = ({ params }: ConnectProps) => {
             origin={origin}
             width="44px"
           />
-          <div className="site-origin">{origin}</div>
+          <div className="site-origin">{formatDappURLToShow(origin)}</div>
         </div>
         <div className="desc">
           This website would like your public encryption key. By consenting,

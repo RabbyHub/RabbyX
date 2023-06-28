@@ -38,6 +38,8 @@ import contactBook from '../contactBook';
 import { generateAliasName } from '@/utils/account';
 import * as Sentry from '@sentry/browser';
 
+import './patch';
+
 export const KEYRING_SDK_TYPES = {
   SimpleKeyring,
   HdKeyring,
