@@ -103,6 +103,7 @@ export const NewUserImportKeystone = () => {
       keyringId,
       HDPathType.BIP44
     );
+    if (!store.password) throw new Error('empty password');
     await wallet.boot(store.password);
     await wallet.unlockHardwareAccount(KEYSTONE_TYPE, [0], keyringId);
     history.push({

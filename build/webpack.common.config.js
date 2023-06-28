@@ -20,6 +20,7 @@ const BUILD_GIT_HASH = child_process
   .execSync('git log --format="%h" -n 1')
   .toString()
   .trim();
+const { manifestVersion } = require('./patches');
 
 const {
   transformer: tsStyledComponentTransformer,
@@ -32,7 +33,8 @@ const {
 });
 // 'chrome-mv2', 'chrome-mv3', 'firefox-mv2', 'firefox-mv3'
 const MANIFEST_TYPE = process.env.MANIFEST_TYPE || 'chrome-mv2';
-const IS_MANIFEST_MV3 = MANIFEST_TYPE.includes('-mv3');
+// const IS_MANIFEST_MV3 = MANIFEST_TYPE.includes('-mv3');
+const IS_MANIFEST_MV3 = false;
 const FINAL_DIST = IS_MANIFEST_MV3 ? paths.dist : paths.distMv2;
 const IS_FIREFOX = MANIFEST_TYPE.includes('firefox');
 
@@ -62,6 +64,11 @@ const config = {
             sideEffects: true,
             test: /[\\/]pageProvider[\\/]index.ts/,
             loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                outDir: FINAL_DIST,
+              },
+            }
           },
           {
             test: /[\\/]ui[\\/]index.tsx/,
@@ -81,6 +88,7 @@ const config = {
                   }),
                   compilerOptions: {
                     module: 'es2015',
+                    outDir: FINAL_DIST,
                   },
                 },
               },
@@ -114,6 +122,9 @@ const config = {
                   tsStyledComponentTransformer,
                 ],
               }),
+              compilerOptions: {
+                outDir: FINAL_DIST,
+              }
             },
           },
         ],
@@ -196,9 +207,9 @@ const config = {
     ],
   },
   plugins: [
-    new ESLintWebpackPlugin({
-      extensions: ['ts', 'tsx', 'js', 'jsx'],
-    }),
+    // new ESLintWebpackPlugin({
+    //   extensions: ['ts', 'tsx', 'js', 'jsx'],
+    // }),
     // new AntdDayjsWebpackPlugin(),
     new HtmlWebpackPlugin({
       inject: true,
@@ -236,8 +247,8 @@ const config = {
       dayjs: 'dayjs',
     }),
     new webpack.DefinePlugin({
-      'process.env.version': JSON.stringify(`version: ${process.env.VERSION}`),
-      'process.env.release': JSON.stringify(process.env.VERSION),
+      'process.env.version': JSON.stringify(`version: ${manifestVersion}`),
+      'process.env.release': JSON.stringify(manifestVersion),
       'process.env.RABBY_BUILD_GIT_HASH': JSON.stringify(BUILD_GIT_HASH),
       'process.env.ETHERSCAN_KEY': JSON.stringify(process.env.ETHERSCAN_KEY),
     }),
