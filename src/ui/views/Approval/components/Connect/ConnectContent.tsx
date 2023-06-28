@@ -25,6 +25,7 @@ import { useSecurityEngine } from 'ui/utils/securityEngine';
 import RuleDrawer from '../SecurityEngine/RuleDrawer';
 import RuleResult from './RuleResult';
 import UserListDrawer from './UserListDrawer';
+import { formatDappURLToShow } from '@/ui/utils/url';
 
 interface ConnectProps {
   params: any;
@@ -227,6 +228,9 @@ export const ConnectContent = (props: ConnectProps) => {
     level?: Level;
     ignored: boolean;
   } | null>(null);
+  const originToShow = useMemo(() => {
+    return formatDappURLToShow(origin);
+  }, [origin]);
 
   const [currentSite, setCurrentSite] = useState<ConnectedSite>();
 
@@ -625,7 +629,7 @@ export const ConnectContent = (props: ConnectProps) => {
                   <div className="chain-selector-tips">
                     {t('page.connect.selectChainToConnect')}
                   </div>
-                  <div className="chain-selector-site">{origin}</div>
+                  <div className="chain-selector-site">{originToShow}</div>
                 </div>
               }
               value={defaultChain}
@@ -637,14 +641,14 @@ export const ConnectContent = (props: ConnectProps) => {
           </div>
           <div className="connect-card">
             <div className="relative">
-              <FallbackSiteLogo url={icon} origin={origin} width="40px" />
+              <FallbackSiteLogo url={icon} origin={originToShow} width="40px" />
               {currentSite?.isMetamaskMode ? (
                 <div className="absolute top-[-4px] right-[-4px] text-r-neutral-title-2">
                   <img src={IconMetamask} className="w-[20px] h-[20px]" />
                 </div>
               ) : null}
             </div>
-            <p className="connect-origin">{origin}</p>
+            <p className="connect-origin">{originToShow}</p>
           </div>
         </div>
 
@@ -806,7 +810,7 @@ export const ConnectContent = (props: ConnectProps) => {
           onClose={handleRuleDrawerClose}
         />
         <UserListDrawer
-          origin={origin}
+          origin={originToShow}
           logo={icon}
           onWhitelist={isInWhitelist}
           onBlacklist={isInBlacklist}

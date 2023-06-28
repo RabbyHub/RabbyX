@@ -1,6 +1,6 @@
 import { ga4 } from '@/utils/ga4';
 import { matomoRequestEvent } from '@/utils/matomo-request';
-import { useMemoizedFn, useMount, useRequest } from 'ahooks';
+import { useMemoizedFn, useMount } from 'ahooks';
 import { CHAINS_ENUM } from 'consts';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

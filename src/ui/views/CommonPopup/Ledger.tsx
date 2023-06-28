@@ -54,14 +54,14 @@ export const Ledger: React.FC<{
         src="/images/ledger-plug.png"
         className="w-[240px] bg-r-neutral-card1 rounded-[4px] mt-[20px] mx-auto py-20 px-40"
       />
-      <div className="mt-[24px] text-13 text-r-neutral-body text-center">
+      {/* <div className="mt-[24px] text-13 text-r-neutral-body text-center">
         <Trans t={t} i18nKey="page.dashboard.hd.ledger.reconnect">
           If it doesn't work, try
           <span className="underline cursor-pointer" onClick={handleClick}>
             reconnecting from the beginning.
           </span>
         </Trans>
-      </div>
+      </div> */}
     </div>
   );
 };
