@@ -41,13 +41,16 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: rgba(45, 48, 51, 0.1);
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
   }
+
+  &:not(.ant-btn-background-ghost)::before {
+    background-color: rgba(45, 48, 51, 0.1);
+  }
 }
 
-.ant-btn-primary {
+.ant-btn-primary:not(.ant-btn-background-ghost) {
   &:hover,
   &:focus {
     background-color: var(--r-blue-default, #7084ff);
@@ -62,6 +65,8 @@
     color: var(--r-neutral-title-2, #FFF);
     background-color: var(--r-blue-disable, rgba(219, 224, 255, 1));
     border-color: var(--r-blue-disable, rgba(219, 224, 255, 1));
+    text-shadow: none;
+    box-shadow: none;
   }
 }
 /*---------------------

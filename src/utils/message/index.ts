@@ -6,12 +6,12 @@ import { EventEmitter } from 'events';
 import { ethErrors } from 'eth-rpc-errors';
 import PQueue from 'p-queue';
 
-const pQueue = new PQueue({ concurrency: 1000 });
+const pQueue = new PQueue({ concurrency: 10000 });
 
 abstract class Message extends EventEmitter {
   // avaiable id list
   // max concurrent request limit
-  private _requestIdPool = [...Array(1000).keys()];
+  private _requestIdPool = [...Array(10000).keys()];
   protected _EVENT_PRE = 'ETH_WALLET_';
   protected listenCallback: any;
 
