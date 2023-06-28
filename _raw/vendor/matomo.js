@@ -7,7 +7,7 @@ _paq.push(['enableLinkTracking']);
     chrome.storage.local.get('extensionId', function (result) {
       var u = 'https://matomo.debank.com/';
       _paq.push(['setTrackerUrl', u + 'matomo.php']);
-      _paq.push(['setSiteId', '2']);
+      _paq.push(['setSiteId', '4']);
       if (result.extensionId) {
         _paq.push(['setVisitorId', result.extensionId]);
       }

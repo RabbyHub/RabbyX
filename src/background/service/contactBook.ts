@@ -1,4 +1,6 @@
 import { createPersistStore } from 'background/utils';
+import { BROADCAST_TO_UI_EVENTS } from '@/utils/broadcastToUI';
+import { syncStateToUI } from '../utils/broadcastToUI';
 
 export interface ContactBookItem {
   name: string;

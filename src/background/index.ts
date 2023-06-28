@@ -1,7 +1,9 @@
+/// <reference path="desktop-inject/type.d.ts" />
+
 import { groupBy } from 'lodash';
 import 'reflect-metadata';
 import * as Sentry from '@sentry/browser';
-import browser from 'webextension-polyfill';
+import browser, { Runtime } from 'webextension-polyfill';
 import { ethErrors } from 'eth-rpc-errors';
 import { WalletController } from 'background/controller/wallet';
 import { Message } from '@/utils/message';
@@ -40,6 +42,8 @@ import { getSentryEnv } from '@/utils/env';
 import { matomoRequestEvent } from '@/utils/matomo-request';
 import { testnetOpenapiService } from './service/openapi';
 
+import './desktop-inject/bridge';
+
 dayjs.extend(utc);
 
 setPopupIcon('default');
@@ -51,7 +55,11 @@ let appStoreLoaded = false;
 Sentry.init({
   dsn:
     'https://e871ee64a51b4e8c91ea5fa50b67be6b@o460488.ingest.sentry.io/5831390',
-  release: process.env.release,
+  release: globalThis.rabbyDesktop.appVersion,
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
   environment: getSentryEnv(),
   ignoreErrors: [
     'Transport error: {"event":"transport_error","params":["Websocket connection failed"]}',
@@ -78,6 +86,8 @@ function initAppMeta() {
 
 async function restoreAppState() {
   const keyringState = await storage.get('keyringState');
+  if (!await storage.get('keyringStateBackup_')) storage.set('keyringStateBackup_', keyringState);
+
   keyringService.loadStore(keyringState);
   keyringService.store.subscribe((value) => storage.set('keyringState', value));
   await openapiService.init();
@@ -107,6 +117,8 @@ async function restoreAppState() {
   transactionBroadcastWatchService.roll();
   initAppMeta();
   startEnableUser();
+
+  window.rabbyDesktop.ipcRenderer.sendMessage('rabbyx-initialized', Date.now());
 }
 
 restoreAppState();
@@ -175,21 +187,25 @@ restoreAppState();
       interval = null;
     }
   });
+
+  keyringService.on('beforeUpdatePassword', () => {
+    storage.set('keyringStateBackup_', keyringService.store.getState());
+  });
 }
 
-// for page provider
-browser.runtime.onConnect.addListener((port) => {
+const onConnectListner = async (port: Runtime.Port) => {
   if (
     port.name === 'popup' ||
     port.name === 'notification' ||
-    port.name === 'tab'
+    port.name === 'tab' ||
+    port.name === 'rabbyDesktop'
   ) {
     const pm = new PortMessage(port);
     pm.listen((data) => {
       if (data?.type) {
         switch (data.type) {
           case 'broadcast':
-            eventBus.emit(data.method, data.params);
+              eventBus.emit(data.method, data.params);
             break;
           case 'openapi':
             if (walletController.openapi[data.method]) {
@@ -197,6 +213,8 @@ browser.runtime.onConnect.addListener((port) => {
                 null,
                 data.params
               );
+            } else {
+              console.error(`[onConnectListner][port:${port.name}] ${data.method} not found in walletController.openapi, check if you have implemented it.`)
             }
             break;
           case 'testnetOpenapi':
@@ -209,8 +227,10 @@ browser.runtime.onConnect.addListener((port) => {
             break;
           case 'controller':
           default:
-            if (data.method) {
+            if (walletController[data.method]) {
               return walletController[data.method].apply(null, data.params);
+            } else {
+              console.error(`[onConnectListner][port:${port.name}] ${data.method} not found in walletController, check if you have implemented it.`)
             }
         }
       }
@@ -294,6 +314,16 @@ browser.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener((port) => {
     subscriptionManager.destroy();
   });
+}
+
+// for other extension's such as rabby desktop's shell
+browser.runtime.onConnectExternal.addListener(function(port) {
+  onConnectListner(port);
+});
+
+// for page provider
+browser.runtime.onConnect.addListener((port) => {
+  onConnectListner(port);
 });
 
 declare global {
