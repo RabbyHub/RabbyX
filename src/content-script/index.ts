@@ -16,7 +16,11 @@ const injectProviderScript = (isDefaultWallet: boolean) => {
   let content = `var __rabby__channelName = '${channelName}';`;
   content += `var __rabby__isDefaultWallet = ${isDefaultWallet};`;
   content += `var __rabby__uuid = '${uuid()}';`;
+  content += `if (!window.__RD_isDappSafeView && window.__RD_isDappView) {
+    ;`;
   content += '#PAGEPROVIDER#';
+  content += `
+  };`;
   ele.textContent = content;
   container.insertBefore(ele, container.children[0]);
   container.removeChild(ele);
