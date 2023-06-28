@@ -1,6 +1,8 @@
 const webpack = require('webpack');
 const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
+const { manifestVersion } = require('./patches');
+
 const config = {
   mode: 'production',
   devtool: 'hidden-source-map',
@@ -19,7 +21,7 @@ const config = {
       ignore: ['node_modules', 'webpack.config.js'],
       configFile: 'sentry.properties',
       release: {
-        name: process.env.VERSION
+        name: manifestVersion
       },
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,

@@ -3,6 +3,7 @@ import { TxRequest } from '@rabby-wallet/rabby-api/dist/types';
 import {
   bridgeService,
   openapiService,
+  sessionService,
   swapService,
   transactionWatchService,
 } from 'background/service';
@@ -43,6 +44,13 @@ class TransactionBroadcastWatcher {
       ...this.store.pendingTx,
       [reqId]: data,
     };
+
+    sessionService.broadcastToDesktopOnly('transactionChanged', {
+      type: 'submitted',
+      url: null,
+      hash: null,
+      chain: findChainByID(data.chainId)?.enum,
+    });
   };
 
   updateTx = (id: string, data: Partial<WatcherItem>) => {
