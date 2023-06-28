@@ -9,6 +9,11 @@ import { GridPlusProcessActions } from './GridPlusProcessActions';
 import { LedgerProcessActions } from './LedgerProcessActions';
 import { ImKeyProcessActions } from './ImKeyProcessActions';
 
+const MAP_TREZOR_LIKE_KEY = {
+  [KEYRING_CLASS.HARDWARE.TREZOR]: 'trezor',
+  [KEYRING_CLASS.HARDWARE.ONEKEY]: 'onekey',
+}
+
 export const ActionGroup: React.FC<Props> = (props) => {
   const { account } = props;
 
@@ -38,5 +43,31 @@ export const ActionGroup: React.FC<Props> = (props) => {
     return <ImKeyProcessActions {...props} />;
   }
 
-  return <ProcessActions {...props} />;
+  return (
+    <ProcessActions
+      {...props}
+      onSubmit={async (...args) => {
+        try {
+          if (MAP_TREZOR_LIKE_KEY[account.type]) {
+            const connKey = MAP_TREZOR_LIKE_KEY[account.type];
+            const { couldContinue } = (await window.rabbyDesktop.ipcRenderer.invoke(
+              'rabbyx:check-trezor-like-cannot-use', {
+                openType: connKey,
+                alertModal: true,
+              }
+            )) as any;
+
+            if (!couldContinue) {
+              window.close();
+              return;
+            }
+          }
+          props.onSubmit(...args);
+        } catch (err) {
+          console.error(err);
+          props.onSubmit(...args);
+        }
+      }}
+    />
+  );
 };
