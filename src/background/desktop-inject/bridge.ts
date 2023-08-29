@@ -1,5 +1,6 @@
 import { walletController } from "../controller";
 import { openapiService, permissionService, sessionService } from "../service";
+import { testnetOpenapiService } from "../service/openapi";
 
 import { BridgePayload, runAndCatchErr } from "./utils";
 
@@ -90,6 +91,10 @@ async function onRabbyxRpcQuery (payload: BridgePayload) {
             } else if (ns === 'openapi' && typeof openapiService[method] === 'function') {
                 retPayload = await runAndCatchErr(() => {
                     return openapiService[method].apply(openapiService, payload.params);
+                }, payload.method)
+            } else if (ns === 'testnetOpenapi' && typeof testnetOpenapiService[method] === 'function') {
+                retPayload = await runAndCatchErr(() => {
+                    return testnetOpenapiService[method].apply(testnetOpenapiService, payload.params);
                 }, payload.method)
             } else {
                 retPayload.error = {
