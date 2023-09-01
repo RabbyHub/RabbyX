@@ -11,6 +11,8 @@ import { TotalBalanceResponse, TokenItem } from './openapi';
 import { HARDWARE_KEYRING_TYPES, EVENTS, CHAINS_ENUM, LANGS } from 'consts';
 import { browser } from 'webextension-polyfill-ts';
 import semver from 'semver-compare';
+import { syncStateToUI } from '../utils/broadcastToUI';
+import { BROADCAST_TO_UI_EVENTS } from '@/utils/broadcastToUI';
 
 const version = globalThis.rabbyDesktop.appVersion || '0';
 
@@ -377,10 +379,7 @@ class PreferenceService {
       sessionService.broadcastEvent('accountsChanged', [
         account.address.toLowerCase(),
       ]);
-      eventBus.emit(EVENTS.broadcastToUI, {
-        method: 'accountsChanged',
-        params: account,
-      });
+      syncStateToUI(BROADCAST_TO_UI_EVENTS.accountsChanged, account);
     }
   };
 
