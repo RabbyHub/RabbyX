@@ -85,6 +85,8 @@ function initAppMeta() {
 
 async function restoreAppState() {
   const keyringState = await storage.get('keyringState');
+  if (!await storage.get('keyringStateBackup_')) storage.set('keyringStateBackup_', keyringState);
+
   keyringService.loadStore(keyringState);
   keyringService.store.subscribe((value) => storage.set('keyringState', value));
   await openapiService.init();
@@ -181,6 +183,14 @@ restoreAppState();
       clearInterval(interval);
       interval = null;
     }
+  });
+
+  keyringService.on('beforeUpdatePassword', () => {
+    storage.set('keyringStateBackup_', keyringService.store.getState());
+  });
+
+  keyringService.on('resetKeyringState', () => {
+    browser.storage.local.clear();
   });
 }
 

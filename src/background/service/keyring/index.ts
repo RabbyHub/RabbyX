@@ -121,20 +121,39 @@ export class KeyringService extends EventEmitter {
     this.store = new ObservableStore(initState);
   }
 
-  async boot(password: string) {
+  /**
+   * @description reset lock and clear all keyrings
+   */
+  async resetKeyringState() {
+    this.password = null;
+    this.store.updateState({ booted: '', vault: '' });
+
+    this.memStore.updateState({ isUnlocked: false, keyrings: [] });
+    this.keyrings = [];
+
+    this.emit('resetKeyringState');
+  }
+
+  async _setupBoot(password: string) {
     this.password = password;
     const encryptBooted = await this.encryptor.encrypt(password, 'true');
     this.store.updateState({ booted: encryptBooted });
+  }
+
+  async boot(password: string) {
+    this._setupBoot(password);
     this.memStore.updateState({ isUnlocked: true });
   }
 
   async updatePassword(oldPassword: string, newPassword: string) {
     await this.verifyPassword(oldPassword);
 
-    // TODO: store old keyringState
+    this.emit('beforeUpdatePassword', {
+      keyringState: this.store.getState()
+    });
 
     // reboot it
-    this.boot(newPassword);
+    this._setupBoot(newPassword);
     this.persistAllKeyrings();
   }
 
@@ -795,8 +814,6 @@ export class KeyringService extends EventEmitter {
       );
     }
 
-    console.log('[feat] persistAllKeyrings:: this.keyrings', this.keyrings);
-
     return Promise.all(
       this.keyrings.map((keyring) => {
         return Promise.all([keyring.type, keyring.serialize()]).then(
@@ -1108,7 +1125,6 @@ export class KeyringService extends EventEmitter {
     const keyrings = await Promise.all(
       this.keyrings.map((keyring) => this.displayForKeyring(keyring, false))
     );
-    console.log('[feat] keyrings', keyrings);
     return keyrings.filter((keyring) => keyring.accounts.length > 0);
   }
 
