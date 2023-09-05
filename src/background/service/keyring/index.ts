@@ -128,6 +128,16 @@ export class KeyringService extends EventEmitter {
     this.memStore.updateState({ isUnlocked: true });
   }
 
+  async updatePassword(oldPassword: string, newPassword: string) {
+    await this.verifyPassword(oldPassword);
+
+    // TODO: store old keyringState
+
+    // reboot it
+    this.boot(newPassword);
+    this.persistAllKeyrings();
+  }
+
   isBooted() {
     return !!this.store.getState().booted;
   }
@@ -785,6 +795,8 @@ export class KeyringService extends EventEmitter {
       );
     }
 
+    console.log('[feat] persistAllKeyrings:: this.keyrings', this.keyrings);
+
     return Promise.all(
       this.keyrings.map((keyring) => {
         return Promise.all([keyring.type, keyring.serialize()]).then(
@@ -1096,6 +1108,7 @@ export class KeyringService extends EventEmitter {
     const keyrings = await Promise.all(
       this.keyrings.map((keyring) => this.displayForKeyring(keyring, false))
     );
+    console.log('[feat] keyrings', keyrings);
     return keyrings.filter((keyring) => keyring.accounts.length > 0);
   }
 

@@ -116,6 +116,7 @@ export class WalletController extends BaseController {
   isBooted = () => keyringService.isBooted();
   verifyPassword = (password: string) =>
     keyringService.verifyPassword(password);
+  updatePassword = (oldPassword: string, newPassword: string) => keyringService.updatePassword(oldPassword, newPassword);
 
   setWhitelist = async (addresses: string[]) => {
     whitelistService.setWhitelist(addresses);
