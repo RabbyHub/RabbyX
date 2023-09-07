@@ -188,10 +188,6 @@ restoreAppState();
   keyringService.on('beforeUpdatePassword', () => {
     storage.set('keyringStateBackup_', keyringService.store.getState());
   });
-
-  keyringService.on('resetKeyringState', () => {
-    browser.storage.local.clear();
-  });
 }
 
 const onConnectListner = async (port: Runtime.Port) => {

@@ -121,18 +121,18 @@ export class KeyringService extends EventEmitter {
     this.store = new ObservableStore(initState);
   }
 
-  /**
-   * @description reset lock and clear all keyrings
-   */
-  async resetKeyringState() {
-    this.password = null;
-    this.store.updateState({ booted: '', vault: '' });
+  // /**
+  //  * @description reset lock and clear all keyrings
+  //  */
+  // async resetKeyringState() {
+  //   this.password = null;
+  //   this.store.updateState({ booted: '', vault: '' });
 
-    this.memStore.updateState({ isUnlocked: false, keyrings: [] });
-    this.keyrings = [];
+  //   this.memStore.updateState({ isUnlocked: false, keyrings: [] });
+  //   this.keyrings = [];
 
-    this.emit('resetKeyringState');
-  }
+  //   this.emit('resetKeyringState');
+  // }
 
   async _setupBoot(password: string) {
     this.password = password;
