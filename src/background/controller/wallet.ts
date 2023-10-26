@@ -130,8 +130,9 @@ export class WalletController extends BaseController {
     }
 
     return result;
-  }
-  updatePassword = (oldPassword: string, newPassword: string) => keyringService.updatePassword(oldPassword, newPassword);
+  };
+  updatePassword = (oldPassword: string, newPassword: string) =>
+    keyringService.updatePassword(oldPassword, newPassword);
 
   setWhitelist = async (addresses: string[]) => {
     whitelistService.setWhitelist(addresses);
@@ -483,7 +484,7 @@ export class WalletController extends BaseController {
         );
         unTriggerTxCounter.decrease();
       }
-      
+
       if (approvalTxHash) {
         return approvalTxHash;
       }
@@ -1750,6 +1751,21 @@ export class WalletController extends BaseController {
       }
     } catch (e) {
       // ignore
+    }
+    return null;
+  };
+
+  walletConnectSwitchChain = async (account: Account, chainId: number) => {
+    const keyringType = KEYRING_CLASS.WALLETCONNECT;
+    try {
+      const keyring: WalletConnectKeyring = this._getKeyringByType(keyringType);
+      if (keyring) {
+        await keyring.switchEthereumChain(account.brandName, chainId);
+      }
+    } catch (e) {
+      // ignore
+      console.log('walletconnect error', e);
+      this.killWalletConnectConnector(account.address, account.brandName, true);
     }
     return null;
   };
