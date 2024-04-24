@@ -5177,14 +5177,6 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-2.0.0.tgz#f544a148d3ab35801c1f633a7441fd87c2e484bf"
   integrity sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==
 
-"@trezor/analytics@1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@trezor/analytics/-/analytics-1.0.15.tgz#87faeae9b98c1f9109bd9110cff4fc6ade980999"
-  integrity sha512-HSo/1kYyiouLJBOJPLUidEgHQA85b9yioTjvTY4fP2MIRfJ9sblioihq8BOjW1n+CV914z2y/SLLfnbRgFYGcw==
-  dependencies:
-    "@trezor/env-utils" "1.0.14"
-    "@trezor/utils" "9.0.22"
-
 "@trezor/analytics@1.0.16":
   version "1.0.16"
   resolved "https://registry.yarnpkg.com/@trezor/analytics/-/analytics-1.0.16.tgz#77618db567272de88a454bbf1480363e02809201"
@@ -5192,16 +5184,6 @@
   dependencies:
     "@trezor/env-utils" "1.0.15"
     "@trezor/utils" "9.0.23"
-
-"@trezor/blockchain-link-types@1.0.14":
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/@trezor/blockchain-link-types/-/blockchain-link-types-1.0.14.tgz#bc79ecee1eee78b485a4a321bc42f64009197372"
-  integrity sha512-UDzLCRY7Kig+79KWrbMeiVd1tHQwNaSRFbkJPptkuANIQpQpHRBxOdKk526Fd2EHnCHQa6WVBUhNjAhhzk2hjQ==
-  dependencies:
-    "@solana/web3.js" "^1.90.0"
-    "@trezor/type-utils" "1.0.5"
-    "@trezor/utxo-lib" "2.0.7"
-    socks-proxy-agent "6.1.1"
 
 "@trezor/blockchain-link-types@1.0.15":
   version "1.0.15"
@@ -5213,16 +5195,6 @@
     "@trezor/utxo-lib" "2.0.8"
     socks-proxy-agent "6.1.1"
 
-"@trezor/blockchain-link-utils@1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@trezor/blockchain-link-utils/-/blockchain-link-utils-1.0.15.tgz#c4fc7901b6512e0331bc1bbb24eba2ab98d4727b"
-  integrity sha512-2iwPbfYUKBEQqx7awXlq6yqtPNAT7c1fWHJMzW36EvzHW3Nh5lwAtBWaeKUtEsRJmAF0VRfj5Dc7gRnO9Cb8Vw==
-  dependencies:
-    "@mobily/ts-belt" "^3.13.1"
-    "@solana/web3.js" "^1.90.0"
-    "@trezor/utils" "9.0.22"
-    bignumber.js "^9.1.2"
-
 "@trezor/blockchain-link-utils@1.0.16":
   version "1.0.16"
   resolved "https://registry.yarnpkg.com/@trezor/blockchain-link-utils/-/blockchain-link-utils-1.0.16.tgz#9339a40b256f021e35492f8384cf363a7557b470"
@@ -5232,24 +5204,6 @@
     "@solana/web3.js" "^1.90.0"
     "@trezor/utils" "9.0.23"
     bignumber.js "^9.1.2"
-
-"@trezor/blockchain-link@2.1.27":
-  version "2.1.27"
-  resolved "https://registry.yarnpkg.com/@trezor/blockchain-link/-/blockchain-link-2.1.27.tgz#0952ea770f36dc0af8edcfaaabea0a4c1b5706c4"
-  integrity sha512-BMoMwjd+3ZeuHrhtphQnPOvJPcyi69NYJ0JGah/+zj3UkrRPodvEf+44qlA0pxCBUjYMjHEDqekppuuuD1hRsg==
-  dependencies:
-    "@solana/buffer-layout" "^4.0.1"
-    "@solana/web3.js" "^1.90.0"
-    "@trezor/blockchain-link-types" "1.0.14"
-    "@trezor/blockchain-link-utils" "1.0.15"
-    "@trezor/utils" "9.0.22"
-    "@trezor/utxo-lib" "2.0.7"
-    "@types/web" "^0.0.138"
-    bignumber.js "^9.1.2"
-    events "^3.3.0"
-    ripple-lib "^1.10.1"
-    socks-proxy-agent "6.1.1"
-    ws "^8.16.0"
 
 "@trezor/blockchain-link@2.1.28":
   version "2.1.28"
@@ -5269,27 +5223,12 @@
     socks-proxy-agent "6.1.1"
     ws "^8.16.0"
 
-"@trezor/connect-analytics@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/@trezor/connect-analytics/-/connect-analytics-1.0.13.tgz#e53d28339846d0feda3da5514f89a4b7611376b1"
-  integrity sha512-Cbbv2UpX5zqmf1fB1yYuITO3gOctcxyl4Uxu9X/Sh/qgckU6FrJGJLMMJjUlC5+4DZWegmkhDMaZHXdtNPydZA==
-  dependencies:
-    "@trezor/analytics" "1.0.15"
-
 "@trezor/connect-analytics@1.0.14":
   version "1.0.14"
   resolved "https://registry.yarnpkg.com/@trezor/connect-analytics/-/connect-analytics-1.0.14.tgz#a7eac60ef6988e47141ee8d02459f1ebaf6ebcf6"
   integrity sha512-IAXeOptCg6klHFKYnTmFHLFcPBf7CguWTglmJTGkxWGGcirc8jQY0pu7bFow0J2qL5ClcUIiQd29ExzjiHBwmQ==
   dependencies:
     "@trezor/analytics" "1.0.16"
-
-"@trezor/connect-common@0.0.30":
-  version "0.0.30"
-  resolved "https://registry.yarnpkg.com/@trezor/connect-common/-/connect-common-0.0.30.tgz#4849a5cda86fca0a095f9528408f5fc1f7663b20"
-  integrity sha512-F7O3rH4G/U4djv3EqW3vL+f7PCXquNs01sYpgTE/JHjfODp1yoQGnQC+wy3QhAWW+6bETCz9LyIaTZgZ4n/uTQ==
-  dependencies:
-    "@trezor/env-utils" "1.0.14"
-    "@trezor/utils" "9.0.22"
 
 "@trezor/connect-common@0.0.31":
   version "0.0.31"
@@ -5304,7 +5243,7 @@
   resolved "https://registry.yarnpkg.com/@trezor/connect-plugin-ethereum/-/connect-plugin-ethereum-9.0.3.tgz#141791925c241ada9f2f5959dfdfe7c674d6ed70"
   integrity sha512-xwsrebfuJ6vq7dFUNEEaLMHgktTKR1UtbP8jIo52dYVy7Nk0YIo7GueMFzKJTpeXE5AUPKUKB71sU0DP0/OGgQ==
 
-"@trezor/connect-web@9.2.2":
+"@trezor/connect-web@9.2.2", "@trezor/connect-web@^9.2.1":
   version "9.2.2"
   resolved "https://registry.yarnpkg.com/@trezor/connect-web/-/connect-web-9.2.2.tgz#583a607045e189fdd3bbf674e1861ea635fa0def"
   integrity sha512-THYlFAt5R3o4rg52dMOrSmfuWzFIxFUu6Oeqj0f9vALzUU4Wzm2nMDIG0Y3MyB5mVzFg70lwmx73tuznx/rfUw==
@@ -5312,16 +5251,6 @@
     "@trezor/connect" "9.2.2"
     "@trezor/connect-common" "0.0.31"
     "@trezor/utils" "9.0.23"
-    events "^3.3.0"
-
-"@trezor/connect-web@^9.2.1":
-  version "9.2.1"
-  resolved "https://registry.yarnpkg.com/@trezor/connect-web/-/connect-web-9.2.1.tgz#6e6fa95e93a7c8ea927d0324b60046ce1618844a"
-  integrity sha512-PjZQTJsEP9TVZ9gimN1j16CxdLcZoj2kLzXokli+bsgz9IxzuHSAwNYAGIjUWetGydAApQYHTcI+enPXHVi0rg==
-  dependencies:
-    "@trezor/connect" "9.2.1"
-    "@trezor/connect-common" "0.0.30"
-    "@trezor/utils" "9.0.22"
     events "^3.3.0"
 
 "@trezor/connect-webextension@9.2.2":
@@ -5333,31 +5262,6 @@
     "@trezor/connect-common" "0.0.31"
     "@trezor/connect-web" "9.2.2"
     "@trezor/utils" "9.0.23"
-    events "^3.3.0"
-
-"@trezor/connect@9.2.1":
-  version "9.2.1"
-  resolved "https://registry.yarnpkg.com/@trezor/connect/-/connect-9.2.1.tgz#362b1dba4ccb24c2c8ce96e02c6d820c8507fca5"
-  integrity sha512-FYiPNT1/GKLu692MjXGsTimvkPSGWEuWJ53jVWEfTiLGy1QhAxoG5ZTmrVe4lqdQ+hbG+AKylrPSuvtOvBsJsA==
-  dependencies:
-    "@ethereumjs/common" "^4.2.0"
-    "@ethereumjs/tx" "^5.2.1"
-    "@fivebinaries/coin-selection" "2.2.1"
-    "@trezor/blockchain-link" "2.1.27"
-    "@trezor/blockchain-link-types" "1.0.14"
-    "@trezor/connect-analytics" "1.0.13"
-    "@trezor/connect-common" "0.0.30"
-    "@trezor/protobuf" "1.0.10"
-    "@trezor/protocol" "1.0.6"
-    "@trezor/schema-utils" "1.0.2"
-    "@trezor/transport" "1.1.26"
-    "@trezor/utils" "9.0.22"
-    "@trezor/utxo-lib" "2.0.7"
-    bignumber.js "^9.1.2"
-    blakejs "^1.2.1"
-    bs58 "^5.0.0"
-    bs58check "^3.0.1"
-    cross-fetch "^4.0.0"
     events "^3.3.0"
 
 "@trezor/connect@9.2.2":
@@ -5386,14 +5290,6 @@
     cross-fetch "^4.0.0"
     events "^3.3.0"
 
-"@trezor/env-utils@1.0.14":
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/@trezor/env-utils/-/env-utils-1.0.14.tgz#eeaad825bd56de2729c59013770a0bdd8e9bf96c"
-  integrity sha512-hwJtoLhLEZeUQu2FR1NZk1AhHnck8W5Pc1f385i5VKqwHSuORKvz0ufjMbHrvqj1GBJdXbhE3WXMJI31SkZimw==
-  dependencies:
-    expo-constants "15.4.5"
-    ua-parser-js "^1.0.37"
-
 "@trezor/env-utils@1.0.15":
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/@trezor/env-utils/-/env-utils-1.0.15.tgz#08679e49536db7061a1f5d752fa49e2176a65e17"
@@ -5401,15 +5297,6 @@
   dependencies:
     expo-constants "15.4.5"
     ua-parser-js "^1.0.37"
-
-"@trezor/protobuf@1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@trezor/protobuf/-/protobuf-1.0.10.tgz#94eebced4934105c59de79791012e88c900329ad"
-  integrity sha512-XsWmHjaBcSRrga/y2gfPCwtx5Cjh+ONqgg043Dj+nwqSEu/G2HKzJeHO915piPWtQBW1nmtnh3FsSo2FltCASw==
-  dependencies:
-    "@trezor/schema-utils" "1.0.2"
-    long "^4.0.0"
-    protobufjs "7.2.6"
 
 "@trezor/protobuf@1.0.11":
   version "1.0.11"
@@ -5420,23 +5307,10 @@
     long "^4.0.0"
     protobufjs "7.2.6"
 
-"@trezor/protocol@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@trezor/protocol/-/protocol-1.0.6.tgz#27295d29929b7249cd18524f36da85cdc43eb927"
-  integrity sha512-5agka7qFoS8DysFT+/sJbfV4IJniy+yaUHf4KKhx24CtgtxmqJFNEMF13HzEZeGPLHHg59FAK29G3tSl+I9alw==
-
 "@trezor/protocol@1.0.7":
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/@trezor/protocol/-/protocol-1.0.7.tgz#d4bd9b0734c23d8fbc6cea7c14c7122b5e47b438"
   integrity sha512-IYpmureV9cqle7HxSuGkYh4GT5SY1CVbad7zYJn3MgFk1jQpdENQQSK5KpdD2xHoKnoRqyz4TSOHQzhjgqIDLA==
-
-"@trezor/schema-utils@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@trezor/schema-utils/-/schema-utils-1.0.2.tgz#187bcaf4455dbe277585d9d8e097bbc98b76edaa"
-  integrity sha512-VqD0m/nm0x4fRkK0NXLQMg7sDvQwZLSei/TRjrynXn4LOrL7RhuEbaVTTIUqI536+lNnDEo0d4GwPE38aT0/1g==
-  dependencies:
-    "@sinclair/typebox" "^0.31.28"
-    ts-mixer "^6.0.3"
 
 "@trezor/schema-utils@1.0.3":
   version "1.0.3"
@@ -5445,19 +5319,6 @@
   dependencies:
     "@sinclair/typebox" "^0.31.28"
     ts-mixer "^6.0.3"
-
-"@trezor/transport@1.1.26":
-  version "1.1.26"
-  resolved "https://registry.yarnpkg.com/@trezor/transport/-/transport-1.1.26.tgz#c4e29d1dc305aa9e6393929e29dfb76efd153a11"
-  integrity sha512-Wb1ht0zy3o+9gKhI3fZZrvIwoGTinWQ3DWIkJlzlimrz+DkVe45Kfar9eqvncBaoc7LbT+F3jK/65+r3QeFlHA==
-  dependencies:
-    "@trezor/protobuf" "1.0.10"
-    "@trezor/protocol" "1.0.6"
-    "@trezor/utils" "9.0.22"
-    json-stable-stringify "^1.1.1"
-    long "^4.0.0"
-    protobufjs "7.2.6"
-    usb "^2.11.0"
 
 "@trezor/transport@1.1.27":
   version "1.1.27"
@@ -5477,39 +5338,10 @@
   resolved "https://registry.yarnpkg.com/@trezor/type-utils/-/type-utils-1.0.5.tgz#5efdd6ab1ebd5086878d9123cfe4eb70440072e6"
   integrity sha512-AK8Gg5yoPAMvxqK49LXr8yoop1oxIXRxkOhCuWGV51fDM02/L1dhGNKC04UyCTyG7jZ+H1f5ywuna81BVT/ptQ==
 
-"@trezor/utils@9.0.22":
-  version "9.0.22"
-  resolved "https://registry.yarnpkg.com/@trezor/utils/-/utils-9.0.22.tgz#f17483f33c7a78a0547d39ff7a6198c12cd3286e"
-  integrity sha512-DJ7pORsIoS79cqac/p1hXmf7N72jCleifQqDUGicPOF+fIDiRoAtRSnrtwiwOF3vOXLMa//zXylA15CZl3RSjQ==
-
 "@trezor/utils@9.0.23":
   version "9.0.23"
   resolved "https://registry.yarnpkg.com/@trezor/utils/-/utils-9.0.23.tgz#1dd3977362be9e3ab2a4429c078b3fe1259ef91f"
   integrity sha512-lxdGo6j2gzSy5PFSyjxEg/1p3cRGLPyhfC+53OGi002PE7q4uUzU8yUFqJxC7zEXmfeY3HkkJEqqois3rWE66w==
-
-"@trezor/utxo-lib@2.0.7":
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/@trezor/utxo-lib/-/utxo-lib-2.0.7.tgz#b634f3ed2da8279701eae536b54a560ead1c3a3d"
-  integrity sha512-st0HI0cK+wDCnWGM3zJx0N3eja96uGquJ80iODkGUb/Zp/E/ILyDzh9Idh+SiOCvA6II+YIQIRnhltu/iHq4rg==
-  dependencies:
-    "@trezor/utils" "9.0.22"
-    bchaddrjs "^0.5.2"
-    bech32 "^2.0.0"
-    bip66 "^1.1.5"
-    bitcoin-ops "^1.4.1"
-    blake-hash "^2.0.0"
-    blakejs "^1.2.1"
-    bn.js "^5.2.1"
-    bs58 "^5.0.0"
-    bs58check "^3.0.1"
-    create-hash "^1.2.0"
-    create-hmac "^1.1.7"
-    int64-buffer "^1.0.1"
-    pushdata-bitcoin "^1.0.1"
-    tiny-secp256k1 "^1.1.6"
-    typeforce "^1.18.0"
-    varuint-bitcoin "^1.1.2"
-    wif "^4.0.0"
 
 "@trezor/utxo-lib@2.0.8":
   version "2.0.8"
@@ -12293,6 +12125,7 @@ jiti@^1.21.0:
   version "1.21.0"
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.0.tgz#7c97f8fe045724e136a397f7340475244156105d"
   integrity sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==
+
 jotai@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.1.0.tgz#b1a9525345518453802e4a64d99e2800598bab76"
