@@ -4409,10 +4409,10 @@
     ethereumjs-util "^7.1.5"
     hdkey "0.8.0"
 
-"@rabby-wallet/eth-walletconnect-keyring@2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@rabby-wallet/eth-walletconnect-keyring/-/eth-walletconnect-keyring-2.1.1.tgz#29cca74100508fe6be2fbd97d1a4476bb7faf60d"
-  integrity sha512-JNZoT7/dUTDo1b8n26eN5OTP+wonAYS8JST+2AQO7tLUEM84v1obMwCIXJ6pLUzfpZLaWzpuV2dEyVFc6TKWYw==
+"@rabby-wallet/eth-walletconnect-keyring@2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@rabby-wallet/eth-walletconnect-keyring/-/eth-walletconnect-keyring-2.1.3.tgz#8ea63178e2fa4c9369ba2ea1df6940d016d32c2a"
+  integrity sha512-Yvx1uCC/E8Zv53vx0ZjHpXL+udZLgLfnER37O04i6pN2aRFmh9SFPh9nnNn7+Nh/i/Q2gz4UziCu6AjIdq5I1w==
   dependencies:
     "@ethereumjs/tx" "^3.5.2"
     "@rabby-wallet/wc-client" "^1.8.10"
@@ -12293,6 +12293,7 @@ jiti@^1.21.0:
   version "1.21.0"
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.0.tgz#7c97f8fe045724e136a397f7340475244156105d"
   integrity sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==
+
 jotai@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.1.0.tgz#b1a9525345518453802e4a64d99e2800598bab76"
