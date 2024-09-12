@@ -1636,8 +1636,20 @@ export class WalletController extends BaseController {
     return this.getTotalBalanceCached.isExpired(address);
   };
 
-  updateAddressBalanceCache = (address: string, balance: string) => {
-    preferenceService.updateAddressUSDValueCache(address, Number(balance));
+  updateAddressBalanceCache = async (address: string, balance: string) => {
+    let totalBalance = this.getAddressCacheBalance(address);
+
+    // if not in cache, fetch from openapi
+    if (!totalBalance) {
+      totalBalance = await openapiService.getTotalBalance(address);
+    }
+    // update balance
+    preferenceService.updateBalanceAboutCache(address, {
+      totalBalance: {
+        ...totalBalance,
+        total_usd_value: Number(balance),
+      },
+    });
   };
   getAddressCacheBalance = (address: string | undefined, isTestnet = false) => {
     if (!address) return null;

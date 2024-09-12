@@ -467,18 +467,6 @@ class PreferenceService {
 
   getPopupOpen = () => this.popupOpen;
 
-  updateAddressUSDValueCache = (address: string, balance: number) => {
-    const balanceMap = this.store.balanceMap || {};
-    const before = this.store.balanceMap[address.toLowerCase()];
-    this.store.balanceMap = {
-      ...balanceMap,
-      [address.toLowerCase()]: {
-        total_usd_value: balance,
-        chain_list: before.chain_list || [],
-      },
-    };
-  };
-
   updateTestnetAddressBalance = (
     address: string,
     data: TotalBalanceResponse
