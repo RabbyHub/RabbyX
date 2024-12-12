@@ -98,7 +98,7 @@ import {
   findChainByEnum,
   findChainByServerID,
   getChainList,
-  getMainnetListFromLocal
+  getMainnetListFromLocal,
 } from '@/utils/chain';
 import { cached } from '../utils/cache';
 import { createSafeService } from '../utils/safe';
@@ -824,6 +824,7 @@ export class WalletController extends BaseController {
       gasPrice,
       info,
       value,
+      isBuild = true,
     }: {
       data: string;
       to: string;
@@ -836,6 +837,7 @@ export class WalletController extends BaseController {
       payTokenRawAmount: string;
       gasPrice?: number;
       info: BridgeRecord;
+      isBuild?: boolean;
     },
     $ctx?: any
   ) => {
@@ -864,7 +866,7 @@ export class WalletController extends BaseController {
           },
           gasPrice,
           { isBridge: true },
-          true
+          isBuild
         );
         txs.push(res.params[0]);
         unTriggerTxCounter.decrease();
@@ -887,7 +889,7 @@ export class WalletController extends BaseController {
           },
           gasPrice,
           { isBridge: true },
-          true
+          isBuild
         );
         txs.push(res.params[0]);
         unTriggerTxCounter.decrease();
@@ -922,7 +924,7 @@ export class WalletController extends BaseController {
             },
           ],
         },
-        true
+        isBuild
       );
       txs.push(res.params[0]);
       unTriggerTxCounter.decrease();
