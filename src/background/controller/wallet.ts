@@ -98,7 +98,7 @@ import {
   findChainByEnum,
   findChainByServerID,
   getChainList,
-  getMainnetListFromLocal
+  getMainnetListFromLocal,
 } from '@/utils/chain';
 import { cached } from '../utils/cache';
 import { createSafeService } from '../utils/safe';
@@ -737,10 +737,12 @@ export class WalletController extends BaseController {
       throw new Error(
         t('background.error.notFindChain', { payTokenChainServerId })
       );
+
+    const txs = [] as string[];
     try {
       if (shouldTwoStepApprove) {
         unTriggerTxCounter.increase(3);
-        await this.approveToken(
+        const tx = await this.approveToken(
           payTokenChainServerId,
           payTokenId,
           to,
@@ -754,6 +756,7 @@ export class WalletController extends BaseController {
           gasPrice,
           { isBridge: true }
         );
+        txs.push(tx);
         unTriggerTxCounter.decrease();
       }
 
@@ -761,7 +764,7 @@ export class WalletController extends BaseController {
         if (!shouldTwoStepApprove) {
           unTriggerTxCounter.increase(2);
         }
-        await this.approveToken(
+        const tx = await this.approveToken(
           payTokenChainServerId,
           payTokenId,
           to,
@@ -775,13 +778,14 @@ export class WalletController extends BaseController {
           gasPrice,
           { isBridge: true }
         );
+        txs.push(tx);
         unTriggerTxCounter.decrease();
       }
 
       if (info) {
         bridgeService.addTx(chainObj.enum, data, info);
       }
-      await this.sendRequest({
+      const tx = await this.sendRequest({
         $ctx:
           shouldApprove && payTokenId !== chainObj.nativeTokenAddress
             ? {
@@ -806,10 +810,13 @@ export class WalletController extends BaseController {
           },
         ],
       });
+      txs.push(tx);
       unTriggerTxCounter.decrease();
     } catch (e) {
       unTriggerTxCounter.reset();
     }
+
+    return txs;
   };
 
   buildBridgeToken = async (
