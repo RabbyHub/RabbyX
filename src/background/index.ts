@@ -131,9 +131,9 @@ async function restoreAppState() {
   startEnableUser();
   walletController.syncMainnetChainList();
 
-  if (!keyringService.isBooted()) {
-    userGuideService.init();
-  }
+  // if (!keyringService.isBooted()) {
+  //   userGuideService.init();
+  // }
 
   eventBus.addEventListener(EVENTS_IN_BG.ON_TX_COMPLETED, ({ address }) => {
     if (!address) return;
@@ -429,10 +429,10 @@ function startEnableUser() {
 
 // On first install, open a new tab with Rabby
 async function onInstall() {
-  const storeAlreadyExisted = await userGuideService.isStorageExisted();
-  // If the store doesn't exist, then this is the first time running this script,
-  // and is therefore an install
-  if (!storeAlreadyExisted) {
-    await userGuideService.openUserGuide();
-  }
+  // const storeAlreadyExisted = await userGuideService.isStorageExisted();
+  // // If the store doesn't exist, then this is the first time running this script,
+  // // and is therefore an install
+  // if (!storeAlreadyExisted) {
+  //   await userGuideService.openUserGuide();
+  // }
 }
