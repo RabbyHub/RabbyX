@@ -150,7 +150,7 @@ export class WalletController extends BaseController {
   /* wallet */
   boot = async (password: string) => {
     await keyringService.boot(password);
-    userGuideService.destroy();
+    // userGuideService.destroy();
     const hasOtherProvider = preferenceService.getHasOtherProvider();
     const isDefaultWallet = preferenceService.getIsDefaultWallet();
     if (!hasOtherProvider) {
@@ -4958,7 +4958,7 @@ export class WalletController extends BaseController {
     if (this.isBooted()) {
       return false;
     }
-    await userGuideService.activeUserGuide();
+    // await userGuideService.activeUserGuide();
     return true;
   };
 
