@@ -1,4 +1,4 @@
-# Rabby [![DavidDM](https://img.shields.io/david/RabbyHub/rabby)](https://david-dm.org/RabbyHub/rabby)
+# Rabby [DavidDM](https://david-dm.org/RabbyHub/rabby)
 
 Rabby is an open source browser plugin for the DeFi ecosystem, providing users with a better-to-use and more secure multi-chain experience.
 
