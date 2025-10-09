@@ -104,6 +104,7 @@ jobs:
           GIT_REF_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+          MOBILE_SAFE_API_KEY: ${{ secrets.MOBILE_SAFE_API_KEY }}
       # - name: Upload artifact
       #   uses: actions/upload-artifact@v3
       #   if: ${{ github.event_name == 'pull_request' }}
