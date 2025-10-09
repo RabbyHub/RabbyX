@@ -16,6 +16,7 @@ import {
   IS_FIREFOX,
   KEYRING_CATEGORY_MAP,
   KEYRING_TYPE,
+  SAFE_API_KEY,
 } from 'consts';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -61,6 +62,7 @@ import { ga4 } from '@/utils/ga4';
 import { ALARMS_USER_ENABLE } from './utils/alarms';
 
 Safe.adapter = fetchAdapter as any;
+Safe.apiKey = SAFE_API_KEY;
 
 import './desktop-inject/bridge';
 
