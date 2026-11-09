@@ -25,6 +25,36 @@ const pathBase = 'm';
 const MAX_INDEX = 1000;
 const DELAY_BETWEEN_POPUPS = 1000;
 const ONEKEY_SESSION_STATE_KEY = 'onekeySessionState';
+// HardwareErrorCode.DeviceNotOpenedPassphrase from @onekeyfe/hd-shared
+const DEVICE_NOT_OPENED_PASSPHRASE = 113;
+
+function toError(e: unknown): Error {
+  if (e instanceof Error) {
+    return e;
+  }
+  if (typeof e === 'string') {
+    return new Error(e);
+  }
+  const message = (e as { message?: unknown } | null)?.message;
+  if (typeof message === 'string' && message) {
+    return new Error(message);
+  }
+  try {
+    return new Error(JSON.stringify(e) ?? 'Unknown error');
+  } catch {
+    return new Error('Unknown error');
+  }
+}
+
+function isPassphraseDisabledError(payload?: {
+  code?: unknown;
+  error?: unknown;
+}) {
+  return (
+    payload?.code === DEVICE_NOT_OPENED_PASSPHRASE ||
+    /passphrase disabled/i.test(String(payload?.error ?? ''))
+  );
+}
 
 interface OneKeySessionState {
   passphraseState: string | undefined;
@@ -156,7 +186,12 @@ class OneKeyKeyring extends EventEmitter {
     // if (this.isUnlocked()) {
     //   return Promise.resolve('already unlocked');
     // }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, rejectRaw) => {
+      // Reject with real Errors: the UI<->background channel only forwards
+      // error.message, so string rejections reached the UI as `{}`.
+      const reject = (e: any) => {
+        rejectRaw(toError(e));
+      };
       this.init()
         .then(() => this.bridge.searchDevices())
         .then(async (result) => {
@@ -196,20 +231,50 @@ class OneKeyKeyring extends EventEmitter {
             }
             this.deviceId = deviceId;
             this.connectId = connectId;
-            const passphraseState = await this.bridge.getPassphraseState(
-              connectId
+            // Protocol V2 (Pro 2): getPassphraseState() without options always
+            // opens wallet selection, and answering it with "passphrase on
+            // device" fails with "Passphrase disabled" when the device has
+            // passphrase protection off. Select the standard wallet instead.
+            const passphraseProtectionOff =
+              (state.payload as any).status?.passphraseProtection === false;
+            let standardWallet = passphraseProtectionOff;
+            let passphraseState = await this.bridge.getPassphraseState(
+              connectId,
+              standardWallet ? { useEmptyPassphrase: true } : undefined
             );
+            if (
+              !passphraseState.success &&
+              !standardWallet &&
+              isPassphraseDisabledError(passphraseState.payload)
+            ) {
+              standardWallet = true;
+              passphraseState = await this.bridge.getPassphraseState(
+                connectId,
+                { useEmptyPassphrase: true }
+              );
+            }
             if (!passphraseState.success) {
-              reject('getPassphraseState failed');
+              reject(
+                passphraseState.payload.error ?? 'getPassphraseState failed'
+              );
               return;
             }
-            this.passphraseState = passphraseState.payload;
+            // On V2 the standard-wallet session still returns a wallet id
+            // (btc_test_address). Passing it on a passphrase-off device makes
+            // the SDK throw DeviceNotOpenedPassphrase (113), so the standard
+            // wallet is represented by an empty passphraseState.
+            this.passphraseState = standardWallet
+              ? undefined
+              : passphraseState.payload || undefined;
             return this.bridge
               .evmGetPublicKey(connectId, deviceId, {
                 showOnOneKey: false,
                 chainId: 1,
                 path: hdPathString,
-                passphraseState: passphraseState.payload,
+                passphraseState: this.passphraseState,
+                useEmptyPassphrase: this._isEmptyPassphrase(
+                  this.passphraseState
+                ),
               })
               .then(async (res) => {
                 if (res.success) {
@@ -220,7 +285,7 @@ class OneKeyKeyring extends EventEmitter {
                   );
                   if (isManifestV3) {
                     const sessionState: OneKeySessionState = {
-                      passphraseState: passphraseState.payload,
+                      passphraseState: this.passphraseState,
                       publicKey: res.payload.pub,
                       chainCode: res.payload.node.chain_code,
                       deviceId,
@@ -232,7 +297,7 @@ class OneKeyKeyring extends EventEmitter {
                   }
                   resolve('just unlocked');
                 } else {
-                  reject('getPublicKey failed');
+                  reject(res.payload?.error || 'getPublicKey failed');
                 }
               });
           }
@@ -430,6 +495,7 @@ class OneKeyKeyring extends EventEmitter {
       .evmSignTransaction(this.connectId!, this.deviceId!, {
         path: this._pathFromAddress(address),
         passphraseState: this.passphraseState,
+        useEmptyPassphrase: this._isEmptyPassphrase(this.passphraseState),
         transaction: transaction as any,
       })
       .then((res) => {
@@ -476,6 +542,9 @@ class OneKeyKeyring extends EventEmitter {
                   path: this._pathFromAddress(withAccount),
                   messageHex: stripHexPrefix(message),
                   passphraseState: this.passphraseState,
+                  useEmptyPassphrase: this._isEmptyPassphrase(
+                    this.passphraseState
+                  ),
                 })
                 .then((response) => {
                   if (cancellationVersion !== this.cancellationVersion) {
@@ -578,6 +647,9 @@ class OneKeyKeyring extends EventEmitter {
                     path: this._pathFromAddress(address),
                     data: typedData,
                     passphraseState: this.passphraseState,
+                    useEmptyPassphrase: this._isEmptyPassphrase(
+                      this.passphraseState
+                    ),
                     metamaskV4Compat: isV4,
                     domainHash: domainSeparatorHex,
                     messageHash: hashStructMessageHex,
@@ -765,6 +837,14 @@ class OneKeyKeyring extends EventEmitter {
       hdPathType: LedgerHDPathType.BIP44,
       hdPathBasePublicKey: this.getPathBasePublicKey(),
     };
+  }
+
+  private _isEmptyPassphrase(passphraseState: string | undefined | null) {
+    return (
+      passphraseState === null ||
+      passphraseState === undefined ||
+      passphraseState === ''
+    );
   }
 }
 
