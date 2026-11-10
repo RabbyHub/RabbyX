@@ -262,7 +262,17 @@ describe('OneKey V1/V2 account import', () => {
       }),
       getPassphraseState: jest
         .fn()
-        .mockResolvedValue({ success: true, payload: passphraseState }),
+        .mockImplementation(
+          async (
+            _connectId: string,
+            params?: { useEmptyPassphrase?: boolean }
+          ) => ({
+            success: true,
+            payload: params?.useEmptyPassphrase
+              ? 'standard-wallet-id'
+              : passphraseState,
+          })
+        ),
       evmGetPublicKey: jest.fn().mockResolvedValue({
         success: true,
         payload: { pub: publicKey, node: { chain_code: '11'.repeat(32) } },
@@ -358,7 +368,9 @@ describe('OneKey V1/V2 account import', () => {
     expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
       mode: 'select-hidden',
     });
-    expect(bridge.getPassphraseState).not.toHaveBeenCalled();
+    expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+      useEmptyPassphrase: true,
+    });
     expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
       'usb-path',
       'authoritative-device-id',
@@ -367,6 +379,48 @@ describe('OneKey V1/V2 account import', () => {
         useEmptyPassphrase: false,
       })
     );
+    expect(keyring.passphraseState).toBe('hidden-wallet-token');
+  });
+
+  it('treats an empty passphrase in select-hidden as the standard wallet', async () => {
+    const { bridge, keyring } = setup('V2', 'standard-wallet-id', {
+      passphraseProtection: true,
+    });
+    await expect(keyring.unlock()).resolves.toBe('just unlocked');
+    expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
+      mode: 'select-hidden',
+    });
+    expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+      useEmptyPassphrase: true,
+    });
+    expect(keyring.passphraseState).toBeUndefined();
+    expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
+      'usb-path',
+      'authoritative-device-id',
+      expect.objectContaining({
+        passphraseState: undefined,
+        useEmptyPassphrase: true,
+      })
+    );
+  });
+
+  it('keeps a real hidden wallet whose passphraseState differs from the standard identity', async () => {
+    const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
+      passphraseProtection: true,
+    });
+    await expect(keyring.unlock()).resolves.toBe('just unlocked');
+    expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+      useEmptyPassphrase: true,
+    });
+    expect(keyring.passphraseState).toBe('hidden-wallet-token');
+  });
+
+  it('keeps the hidden wallet when the standard-identity probe fails', async () => {
+    const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
+      passphraseProtection: true,
+    });
+    bridge.getPassphraseState.mockRejectedValueOnce(new Error('probe failed'));
+    await expect(keyring.unlock()).resolves.toBe('just unlocked');
     expect(keyring.passphraseState).toBe('hidden-wallet-token');
   });
 
@@ -608,7 +662,17 @@ describe('OneKey passphrase recovery and signature address checks', () => {
       }),
       getPassphraseState: jest
         .fn()
-        .mockResolvedValue({ success: true, payload: passphraseState }),
+        .mockImplementation(
+          async (
+            _connectId: string,
+            params?: { useEmptyPassphrase?: boolean }
+          ) => ({
+            success: true,
+            payload: params?.useEmptyPassphrase
+              ? 'standard-wallet-id'
+              : passphraseState,
+          })
+        ),
       evmGetPublicKey: jest.fn().mockResolvedValue({
         success: true,
         payload: { pub: publicKey, node: { chain_code: '11'.repeat(32) } },
