@@ -71,5 +71,7 @@ export default class OneKeyBridge implements OneKeyBridgeInterface {
 
   getPassphraseState = HardwareWebSdk.getPassphraseState;
 
+  openWalletSession = HardwareWebSdk.openWalletSession;
+
   evmGetPublicKey = HardwareWebSdk.evmGetPublicKey;
 }

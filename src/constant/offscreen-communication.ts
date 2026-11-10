@@ -28,6 +28,7 @@ export enum OneKeyAction {
   searchDevices = 'onekey-search-devices',
   getDeviceState = 'onekey-get-device-state',
   getPassphraseState = 'onekey-get-passphrase-state',
+  openWalletSession = 'onekey-open-wallet-session',
   evmGetPublicKey = 'onekey-evm-get-public-key',
 }
 

@@ -4,6 +4,15 @@ import {
   OffscreenCommunicationTarget,
 } from '@/constant/offscreen-communication';
 
+// Errors (and Error subclasses such as hardware TypedErrors) are structured
+// cloned to `{}` across MV3 messaging, so send a plain, cloneable payload.
+export function serializeError(err: any) {
+  return {
+    error: err?.message ?? String(err),
+    code: err?.code ?? err?.errorCode,
+  };
+}
+
 export function initOneKey() {
   const bridge = new OneKeyBridge();
 
@@ -26,7 +35,7 @@ export function initOneKey() {
           Promise.resolve()
             .then(() => bridge.cancel(...(msg.params as [string?])))
             .then(() => sendResponse({ success: true }))
-            .catch((err) => sendResponse({ error: String(err) }));
+            .catch((err) => sendResponse(serializeError(err)));
           break;
 
         case OneKeyAction.init:
@@ -34,7 +43,7 @@ export function initOneKey() {
             .init()
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -43,7 +52,7 @@ export function initOneKey() {
             .searchDevices()
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -52,7 +61,7 @@ export function initOneKey() {
             .evmGetPublicKey(...(msg.params as [string, string, any]))
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -61,7 +70,7 @@ export function initOneKey() {
             .getDeviceState(...(msg.params as [string]))
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -70,7 +79,16 @@ export function initOneKey() {
             .getPassphraseState(...(msg.params as [string]))
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
+            });
+          break;
+
+        case OneKeyAction.openWalletSession:
+          bridge
+            .openWalletSession(...(msg.params as [string, any]))
+            .then(sendResponse)
+            .catch((err) => {
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -79,7 +97,7 @@ export function initOneKey() {
             .evmSignMessage(...(msg.params as [string, string, any]))
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -88,7 +106,7 @@ export function initOneKey() {
             .evmSignTransaction(...(msg.params as [string, string, any]))
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
@@ -97,7 +115,7 @@ export function initOneKey() {
             .evmSignTypedData(...(msg.params as [string, string, any]))
             .then(sendResponse)
             .catch((err) => {
-              sendResponse({ error: err });
+              sendResponse(serializeError(err));
             });
           break;
 
