@@ -73,17 +73,28 @@ export const CommonWaiting = ({ params }: { params: ApprovalParams }) => {
   >('SENDING');
   const [content, setContent] = React.useState('');
   const [description, setDescription] = React.useState('');
+  const oneKeySigningRef = React.useRef(true);
 
   const handleRetry = async () => {
     if (connectStatus === WALLETCONNECT_STATUS_MAP.SUBMITTING) {
       message.success(t('page.signFooterBar.ledger.resubmited'));
       return;
     }
-    const account = await wallet.syncGetCurrentAccount()!;
-    setConnectStatus(WALLETCONNECT_STATUS_MAP.WAITING);
-    await wallet.resendSign();
-    message.success(t('page.signFooterBar.ledger.resent'));
-    emitSignComponentAmounted();
+    const isOneKey = type === HARDWARE_KEYRING_TYPES.Onekey.type;
+    if (isOneKey && oneKeySigningRef.current) return;
+    if (isOneKey) oneKeySigningRef.current = true;
+    try {
+      await wallet.syncGetCurrentAccount();
+      setConnectStatus(WALLETCONNECT_STATUS_MAP.WAITING);
+      await wallet.resendSign();
+      message.success(t('page.signFooterBar.ledger.resent'));
+      emitSignComponentAmounted();
+    } catch (error) {
+      if (!isOneKey) throw error;
+      oneKeySigningRef.current = false;
+      setErrorMessage(error.message);
+      setConnectStatus(WALLETCONNECT_STATUS_MAP.FAILED);
+    }
   };
 
   const handleCancel = () => {
@@ -105,11 +116,15 @@ export const CommonWaiting = ({ params }: { params: ApprovalParams }) => {
     }
   }, [brandName]);
 
+  const mountedRef = React.useRef(false);
+  const subscriptionsRef = React.useRef<Array<() => void>>([]);
+
   const init = async () => {
     const account = params.isGnosis
       ? params.account!
       : (await wallet.syncGetCurrentAccount())!;
     const approval = await getApproval();
+    if (!mountedRef.current || !approval) return;
 
     const isSignText = params.isGnosis
       ? true
@@ -118,6 +133,7 @@ export const CommonWaiting = ({ params }: { params: ApprovalParams }) => {
       const signingTxId = approval.data.params.signingTxId;
       if (signingTxId) {
         const signingTx = await wallet.getSigningTx(signingTxId);
+        if (!mountedRef.current) return;
 
         if (!signingTx?.explain && chain && !chain?.isTestnet) {
           setErrorMessage(t('page.signFooterBar.qrcode.failedToGetExplain'));
@@ -149,15 +165,24 @@ export const CommonWaiting = ({ params }: { params: ApprovalParams }) => {
       });
     }
 
-    eventBus.addEventListener(EVENTS.COMMON_HARDWARE.REJECTED, async (data) => {
+    const subscribe = (event: string, listener: (data?: any) => void) => {
+      eventBus.addEventListener(event, listener);
+      subscriptionsRef.current.push(() =>
+        eventBus.removeEventListener(event, listener)
+      );
+    };
+
+    subscribe(EVENTS.COMMON_HARDWARE.REJECTED, async (data) => {
+      oneKeySigningRef.current = false;
       setErrorMessage(data);
       setConnectStatus(WALLETCONNECT_STATUS_MAP.FAILED);
     });
 
-    eventBus.addEventListener(EVENTS.TX_SUBMITTING, async () => {
+    subscribe(EVENTS.TX_SUBMITTING, async () => {
       setConnectStatus(WALLETCONNECT_STATUS_MAP.SUBMITTING);
     });
-    eventBus.addEventListener(EVENTS.SIGN_FINISHED, async (data) => {
+    subscribe(EVENTS.SIGN_FINISHED, async (data) => {
+      oneKeySigningRef.current = false;
       console.log('finished', data);
       if (data.success) {
         let sig = data.data;
@@ -211,10 +236,12 @@ export const CommonWaiting = ({ params }: { params: ApprovalParams }) => {
   };
 
   React.useEffect(() => {
+    mountedRef.current = true;
     (async () => {
       const account = params.isGnosis
         ? params.account!
         : (await wallet.syncGetCurrentAccount())!;
+      if (!mountedRef.current) return;
       setTitle(
         <div className="flex justify-center items-center">
           <img src={brandContent?.icon} className="w-20 mr-8" />
@@ -225,8 +252,13 @@ export const CommonWaiting = ({ params }: { params: ApprovalParams }) => {
           </span>
         </div>
       );
-      init();
-    })();
+      await init();
+    })().catch(console.error);
+    return () => {
+      mountedRef.current = false;
+      subscriptionsRef.current.forEach((unsubscribe) => unsubscribe());
+      subscriptionsRef.current = [];
+    };
   }, []);
 
   React.useEffect(() => {

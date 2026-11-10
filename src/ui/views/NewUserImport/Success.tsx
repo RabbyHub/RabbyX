@@ -194,15 +194,16 @@ export const ImportOrCreatedSuccess = () => {
 
   const closeConnect = React.useCallback(() => {
     if (store.clearKeyringId) {
-      wallet.requestKeyring(hd, 'cleanUp', store.clearKeyringId, true);
+      void wallet
+        .requestKeyring(hd, 'cleanUp', store.clearKeyringId, true)
+        .catch(console.error);
     }
   }, []);
 
   useEffect(() => {
-    window.addEventListener('beforeunload', () => {
-      closeConnect();
-    });
+    window.addEventListener('beforeunload', closeConnect);
     return () => {
+      window.removeEventListener('beforeunload', closeConnect);
       closeConnect();
     };
   }, []);

@@ -103,6 +103,11 @@ export const AddressesInHD: React.FC<Props> = ({ setting, ...props }) => {
         key: 'ledger-error',
       });
       exitRef.current = true;
+      if (keyring === KEYRING_CLASS.HARDWARE.ONEKEY) {
+        setLoading(false);
+        stoppedRef.current = true;
+        return;
+      }
     }
     stoppedRef.current = true;
     // maybe stop by manual, so we need restart

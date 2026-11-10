@@ -15,8 +15,77 @@ export const useHDWalletUnlockAndRedirect = (
   const wallet = useWallet();
   const idRef = React.useRef<number | null>(null);
   const history = useHistory();
+  const pendingRef = React.useRef<Promise<void>>();
+  const activeRef = React.useRef(false);
+  const generationRef = React.useRef(0);
+
+  React.useEffect(() => {
+    activeRef.current = true;
+    if (type !== KEYRING_CLASS.HARDWARE.ONEKEY) return;
+    const cancel = () => {
+      activeRef.current = false;
+      generationRef.current += 1;
+      const id = idRef.current;
+      idRef.current = null;
+      if (id !== null) {
+        void wallet
+          .requestKeyring(type, 'cleanUp', id, true)
+          .catch(console.error);
+      }
+    };
+    window.addEventListener('beforeunload', cancel);
+    return () => {
+      window.removeEventListener('beforeunload', cancel);
+      cancel();
+    };
+  }, [type]);
 
   return React.useCallback(async () => {
+    if (type === KEYRING_CLASS.HARDWARE.ONEKEY) {
+      if (pendingRef.current) return pendingRef.current;
+      pendingRef.current = (async () => {
+        const generation = generationRef.current;
+        const isActive = () =>
+          activeRef.current && generationRef.current === generation;
+        try {
+          // Obtain the id before PIN/passphrase interaction so closing can cancel it.
+          const id = await wallet.connectHardware({ type, isWebHID: true });
+          if (!isActive()) {
+            await wallet.requestKeyring(type, 'cleanUp', id, true);
+            return;
+          }
+          idRef.current = id;
+          const accounts = await wallet.requestKeyring(
+            type,
+            'getAddresses',
+            id,
+            0,
+            1
+          );
+          if (!isActive() || !accounts?.length) return;
+          setStore({ clearKeyringId: id });
+          // The address manager now owns this keyring and its cleanup.
+          idRef.current = null;
+          history.push({
+            pathname: '/new-user/import/select-address',
+            search: `?hd=${encodeURIComponent(
+              type
+            )}&keyringId=${id}&isLazyImport=true&isNewUserImport=true`,
+          });
+        } catch (error) {
+          if (isActive() && error?.name !== 'NotFoundError') {
+            message.error({
+              content:
+                error.message || t('page.newAddress.hd.tooltip.connectError'),
+              key: 'ledger-error',
+            });
+          }
+        }
+      })().finally(() => {
+        pendingRef.current = undefined;
+      });
+      return pendingRef.current;
+    }
     await wallet
       .connectHardware({
         type: type,
