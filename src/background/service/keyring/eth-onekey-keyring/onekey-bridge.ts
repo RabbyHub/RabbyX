@@ -1,6 +1,7 @@
 import { UI_EVENT, UI_REQUEST, UI_RESPONSE } from '@onekeyfe/hd-core';
 import { OneKeyBridgeInterface } from './onekey-bridge-interface';
 import HardwareSDK from '@onekeyfe/hd-web-sdk';
+import webSdkPackage from '@onekeyfe/hd-web-sdk/package.json';
 const { HardwareWebSdk } = HardwareSDK;
 let initPromise: Promise<void> | undefined;
 
@@ -20,7 +21,8 @@ export default class OneKeyBridge implements OneKeyBridgeInterface {
       debug: false,
       env: 'desktop-webusb',
       fetchConfig: true,
-      connectSrc: 'https://jssdk.onekey.so/1.2.7/',
+      // Keep the iframe in lockstep with the bundled SDK version.
+      connectSrc: `https://jssdk.onekey.so/${webSdkPackage.version}/`,
     });
     if (!initialized) {
       throw new Error('OneKey SDK initialization failed');

@@ -1180,7 +1180,7 @@ class OneKeyKeyring extends EventEmitter {
   }
 
   /**
-   * SDK 1.2.7 `openWalletSession({ mode: 'select-hidden' })` still reports
+   * SDK 1.2.7 / 1.2.8 `openWalletSession({ mode: 'select-hidden' })` still reports
    * walletType "hidden" when the user enters an empty passphrase on a Pro 2,
    * and the passphraseState is the standard wallet's btc_test_address. Compare
    * that identity with a useEmptyPassphrase probe and, if they match, treat the

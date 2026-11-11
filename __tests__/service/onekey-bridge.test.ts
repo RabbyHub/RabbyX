@@ -63,7 +63,7 @@ const accountAddress = toChecksumAddress(
   bufferToHex(publicToAddress(privateToPublic(privateKey), true))
 );
 
-describe('OneKey SDK 1.2.7 bridge', () => {
+describe('OneKey SDK bridge', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
@@ -87,7 +87,7 @@ describe('OneKey SDK 1.2.7 bridge', () => {
       expect.objectContaining({
         env: 'desktop-webusb',
         fetchConfig: true,
-        connectSrc: 'https://jssdk.onekey.so/1.2.7/',
+        connectSrc: 'https://jssdk.onekey.so/1.2.8/',
       })
     );
     expect(mockSdk.on).toHaveBeenCalledTimes(1);
