@@ -265,6 +265,10 @@ class OneKeyKeyring extends EventEmitter {
   private pendingSignings = 0;
   private unlockPromise?: Promise<string>;
 
+  // Set when the open wallet did not own the signing account: the next
+  // unlock asks the device to select a wallet instead of resuming it.
+  private forceWalletSelectionOnUnlock = false;
+
   cancel() {
     this.cancellationVersion += 1;
     return this.bridge.cancel(this.connectId || undefined);
@@ -476,10 +480,28 @@ class OneKeyKeyring extends EventEmitter {
             let walletSession:
               | Awaited<ReturnType<NonNullable<typeof openWalletSession>>>
               | undefined;
-            if (state.payload.protocol === 'V2' && openWalletSession) {
-              // Protocol V2 (Pro 2): openWalletSession selects the standard or
-              // a hidden wallet explicitly. The SDK rejects useEmptyPassphrase
-              // / passphraseState passed to this call.
+            // Follow Rabby's original flow on every device: getPassphraseState()
+            // resumes the wallet the device already has open and otherwise asks
+            // for the passphrase on the device. A Pro 2 uses openWalletSession
+            // only where that call cannot: passphrase off (standard wallet), a
+            // locked device or an attach-PIN session (the device must accept
+            // any PIN), and a forced re-selection after the open wallet did not
+            // own the signing account.
+            const forceWalletSelection = this.forceWalletSelectionOnUnlock;
+            this.forceWalletSelectionOnUnlock = false;
+            const deviceStatus = state.payload.status;
+            const mainWalletUnlocked =
+              deviceStatus?.unlocked === true &&
+              deviceStatus?.unlockedAttachPin === false;
+            if (
+              state.payload.protocol === 'V2' &&
+              openWalletSession &&
+              (passphraseProtectionOff ||
+                forceWalletSelection ||
+                !mainWalletUnlocked)
+            ) {
+              // The SDK rejects useEmptyPassphrase / passphraseState passed to
+              // this call.
               const mode = passphraseProtectionOff
                 ? 'standard'
                 : 'select-hidden';
@@ -535,7 +557,11 @@ class OneKeyKeyring extends EventEmitter {
               let standardWallet = passphraseProtectionOff;
               let passphraseState = await this.bridge.getPassphraseState(
                 connectId,
-                standardWallet ? { useEmptyPassphrase: true } : undefined
+                standardWallet
+                  ? { useEmptyPassphrase: true }
+                  : forceWalletSelection
+                  ? { initSession: true }
+                  : undefined
               );
               checkCancelled();
               if (
@@ -752,6 +778,8 @@ class OneKeyKeyring extends EventEmitter {
     const index = this.indexFromAddress(address);
     if (!isSameAddress(this._addressFromIndex(pathBase, index), address)) {
       this.hdk = new HDKey();
+      // Let the user pick the wallet again instead of resuming the same one.
+      this.forceWalletSelectionOnUnlock = true;
       status = await this.unlock();
       checkCancelled();
       if (!isSameAddress(this._addressFromIndex(pathBase, index), address)) {

@@ -287,7 +287,11 @@ describe('OneKey V1/V2 account import', () => {
   function setup(
     protocol: 'V1' | 'V2',
     passphraseState?: string,
-    status?: { passphraseProtection?: boolean },
+    status?: {
+      passphraseProtection?: boolean;
+      unlocked?: boolean;
+      unlockedAttachPin?: boolean;
+    },
     options: { openWalletSession?: boolean } = {}
   ) {
     const bridge: any = {
@@ -603,6 +607,58 @@ describe('OneKey V1/V2 account import', () => {
     expect(keyring.passphraseState).toBe('hidden-wallet-token');
   });
 
+  it('follows the original getPassphraseState flow on an unlocked V2 main wallet', async () => {
+    const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
+      passphraseProtection: true,
+      unlocked: true,
+      unlockedAttachPin: false,
+    });
+    await expect(keyring.unlock()).resolves.toBe('just unlocked');
+    expect(bridge.openWalletSession).not.toHaveBeenCalled();
+    expect(bridge.getPassphraseState).toHaveBeenNthCalledWith(
+      1,
+      'usb-path',
+      undefined
+    );
+    expect(keyring.passphraseState).toBe('hidden-wallet-token');
+  });
+
+  it('treats an empty passphrase from the original flow as the standard wallet on V2', async () => {
+    const { bridge, keyring } = setup('V2', 'standard-wallet-id', {
+      passphraseProtection: true,
+      unlocked: true,
+      unlockedAttachPin: false,
+    });
+    await expect(keyring.unlock()).resolves.toBe('just unlocked');
+    expect(bridge.openWalletSession).not.toHaveBeenCalled();
+    expect(keyring.passphraseState).toBeUndefined();
+  });
+
+  it.each([
+    ['locked', { unlocked: false }],
+    [
+      'unlocked with an attach PIN',
+      { unlocked: true, unlockedAttachPin: true },
+    ],
+    ['of unknown lock state', {}],
+  ])(
+    'opens the V2 wallet with select-hidden when the device is %s',
+    async (_label, lockStatus) => {
+      const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
+        passphraseProtection: true,
+        ...lockStatus,
+      });
+      await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
+        mode: 'select-hidden',
+      });
+      expect(bridge.getPassphraseState).not.toHaveBeenCalledWith(
+        'usb-path',
+        undefined
+      );
+    }
+  );
+
   it('treats an empty passphrase in select-hidden as the standard wallet', async () => {
     const { bridge, keyring } = setup('V2', 'standard-wallet-id', {
       passphraseProtection: true,
@@ -902,7 +958,11 @@ describe('OneKey passphrase recovery and signature address checks', () => {
   function setupSigning(
     protocol: 'V1' | 'V2' = 'V1',
     passphraseState?: string,
-    status?: { passphraseProtection?: boolean }
+    status?: {
+      passphraseProtection?: boolean;
+      unlocked?: boolean;
+      unlockedAttachPin?: boolean;
+    }
   ) {
     const bridge: any = {
       init: jest.fn().mockResolvedValue(undefined),
@@ -1293,6 +1353,55 @@ describe('OneKey passphrase recovery and signature address checks', () => {
       expect(bridge[kind]).not.toHaveBeenCalled();
     }
   );
+
+  it('forces wallet selection only after the open V2 wallet does not own the account', async () => {
+    const { keyring, bridge } = setupSigning('V2', 'matching-wallet', {
+      passphraseProtection: true,
+      unlocked: true,
+      unlockedAttachPin: false,
+    });
+    await keyring.unlock();
+    expect(bridge.openWalletSession).not.toHaveBeenCalled();
+    const other = new HDKey();
+    other.privateKey = Buffer.from('22'.repeat(32), 'hex');
+    other.chainCode = root.chainCode;
+    keyring.hdk = other;
+    bridge.evmSignMessage.mockResolvedValueOnce({
+      success: true,
+      payload: successPayload('evmSignMessage'),
+    });
+
+    await expect(signingCall(keyring, 'evmSignMessage')).resolves.toBeDefined();
+    expect(bridge.openWalletSession).toHaveBeenCalledTimes(1);
+    expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
+      mode: 'select-hidden',
+    });
+
+    // The next unlock goes back to the original flow.
+    keyring.hdk = new HDKey();
+    await keyring.unlock();
+    expect(bridge.openWalletSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks a V1 device to select the wallet again after an address mismatch', async () => {
+    const { keyring, bridge } = setupSigning('V1', 'matching-wallet', {
+      passphraseProtection: true,
+    });
+    await keyring.unlock();
+    const other = new HDKey();
+    other.privateKey = Buffer.from('22'.repeat(32), 'hex');
+    other.chainCode = root.chainCode;
+    keyring.hdk = other;
+    bridge.evmSignMessage.mockResolvedValueOnce({
+      success: true,
+      payload: successPayload('evmSignMessage'),
+    });
+
+    await expect(signingCall(keyring, 'evmSignMessage')).resolves.toBeDefined();
+    expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+      initSession: true,
+    });
+  });
 
   it('does not sign after cancellation during wallet reselection', async () => {
     const { keyring, bridge } = setupSigning('V2');
