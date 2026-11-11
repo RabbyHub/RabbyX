@@ -656,6 +656,10 @@ describe('OneKey V1/V2 account import', () => {
         'usb-path',
         undefined
       );
+      expect(bridge.getPassphraseState).toHaveBeenCalledTimes(2);
+      expect(bridge.getPassphraseState).toHaveBeenNthCalledWith(2, 'usb-path', {
+        useEmptyPassphrase: true,
+      });
       expect(keyring.passphraseState).toBe('hidden-wallet-token');
     }
   );
@@ -710,6 +714,7 @@ describe('OneKey V1/V2 account import', () => {
   it('treats an empty passphrase in select-hidden as the standard wallet', async () => {
     const { bridge, keyring } = setup('V2', 'standard-wallet-id', {
       passphraseProtection: true,
+      unlockedAttachPin: false,
     });
     await expect(keyring.unlock()).resolves.toBe('just unlocked');
     expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
@@ -865,6 +870,29 @@ describe('OneKey V1/V2 account import', () => {
     );
     expect(keyring.passphraseState).toBe('hidden-wallet-token');
   });
+
+  it.each(['pro2', 'neo'])(
+    'keeps the V2 %s attach-PIN state without a probe when openWalletSession is unavailable',
+    async (deviceType) => {
+      const { bridge, keyring } = setup(
+        'V2',
+        'attach-pin-session',
+        {
+          passphraseProtection: true,
+          unlocked: true,
+          unlockedAttachPin: true,
+        },
+        { openWalletSession: false, deviceType }
+      );
+      await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.getPassphraseState).toHaveBeenCalledTimes(1);
+      expect(bridge.getPassphraseState).toHaveBeenCalledWith(
+        'usb-path',
+        undefined
+      );
+      expect(keyring.passphraseState).toBe('attach-pin-session');
+    }
+  );
 
   it('rejects unlock failures with an Error that carries the device message', async () => {
     const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
@@ -1094,7 +1122,7 @@ describe('OneKey passphrase recovery and signature address checks', () => {
   const signatureWithoutPrefix = signature.replace(/^0x/, '');
 
   it.each(['pro2', 'neo'])(
-    'imports and signs a matching attach-PIN wallet on V2 %s without wallet reselection',
+    'imports and signs a matching attach-PIN wallet on V2 %s without a standard-wallet probe or wallet reselection',
     async (deviceType) => {
       const passphraseState = 'attach-pin-session';
       const { bridge, keyring } = setupSigning(
@@ -1141,10 +1169,7 @@ describe('OneKey passphrase recovery and signature address checks', () => {
       expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
         mode: 'select-hidden',
       });
-      expect(bridge.getPassphraseState).toHaveBeenCalledTimes(1);
-      expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
-        useEmptyPassphrase: true,
-      });
+      expect(bridge.getPassphraseState).not.toHaveBeenCalled();
       expect(bridge.evmGetPublicKey).toHaveBeenCalledTimes(1);
       expect(bridge.evmSignMessage).toHaveBeenCalledTimes(1);
       expect(bridge.evmSignMessage).toHaveBeenCalledWith(

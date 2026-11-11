@@ -550,6 +550,7 @@ class OneKeyKeyring extends EventEmitter {
                   protocol: state.payload.protocol,
                   walletType: walletSession.payload.walletType,
                   passphraseState: walletSession.payload.passphraseState,
+                  unlockedAttachPin: deviceStatus?.unlockedAttachPin,
                 }
               );
             } else {
@@ -591,6 +592,7 @@ class OneKeyKeyring extends EventEmitter {
                   passphraseState: standardWallet
                     ? undefined
                     : passphraseState.payload || undefined,
+                  unlockedAttachPin: deviceStatus?.unlockedAttachPin,
                 }
               );
             }
@@ -1264,19 +1266,22 @@ class OneKeyKeyring extends EventEmitter {
    * and the passphraseState is the standard wallet's btc_test_address. Compare
    * that identity with a useEmptyPassphrase probe and, if they match, treat the
    * session as the standard wallet so the id is never persisted. The probe runs
-   * only for an ambiguous V2 session (hidden type + non-empty state). A failed
-   * probe keeps the hidden id so import can still proceed.
+   * only for an ambiguous V2 session (hidden type + non-empty state). Skip it
+   * on attach-PIN sessions because it would request an extra Main PIN. A
+   * failed probe keeps the hidden id so import can still proceed.
    */
   private async _resolvePassphraseStateForImport({
     connectId,
     protocol,
     walletType,
     passphraseState,
+    unlockedAttachPin,
   }: {
     connectId: string;
     protocol?: string;
     walletType?: 'standard' | 'hidden';
     passphraseState?: string | null;
+    unlockedAttachPin?: boolean | null;
   }): Promise<string | undefined> {
     if (walletType === 'standard') {
       return undefined;
@@ -1285,7 +1290,7 @@ class OneKeyKeyring extends EventEmitter {
     if (this._isEmptyPassphrase(imported)) {
       return undefined;
     }
-    if (protocol !== 'V2') {
+    if (protocol !== 'V2' || unlockedAttachPin === true) {
       return imported;
     }
     const standardIdentity = await this._getStandardWalletIdentity(connectId);
