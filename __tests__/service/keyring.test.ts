@@ -42,6 +42,20 @@ describe('KeyringService setup', () => {
       expect(keyringService.keyrings).toHaveLength(0);
     });
 
+    it('cancels OneKey operations and cleans up pending unlocks on lock', async () => {
+      const oneKey = {
+        type: 'Onekey Hardware',
+        cancelPendingWork: jest.fn().mockResolvedValue(undefined),
+        cleanUp: jest.fn(),
+      };
+      const other = { type: 'Other Hardware', cleanUp: jest.fn() };
+      keyringService.keyrings = [oneKey, other];
+      await keyringService.setLocked();
+      expect(oneKey.cancelPendingWork).toHaveBeenCalledTimes(1);
+      expect(oneKey.cleanUp).toHaveBeenCalledWith();
+      expect(other.cleanUp).toHaveBeenCalledWith();
+    });
+
     it('emits "lock" event', async () => {
       const spy = sinon.spy();
       keyringService.on('lock', spy);

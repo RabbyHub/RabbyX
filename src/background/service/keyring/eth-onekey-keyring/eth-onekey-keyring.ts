@@ -37,6 +37,9 @@ function handleDeviceError(
 ) {
   let msg = errorMessage;
   switch (errorCode?.toString()) {
+    case DEVICE_NOT_OPENED_PASSPHRASE.toString():
+      msg = t('background.keyring.onekey.deviceNotOpenedPassphrase');
+      break;
     case HardwareErrorCode.DeviceNotFound.toString():
       msg = t('background.keyring.onekey.notFoundDevice');
       break;
@@ -267,11 +270,25 @@ class OneKeyKeyring extends EventEmitter {
     return this.bridge.cancel(this.connectId || undefined);
   }
 
+  /**
+   * Invalidate any in-flight unlock or signing (e.g. on wallet lock) and ask
+   * the device to stop only when something is actually pending.
+   */
+  cancelPendingWork() {
+    if (this.unlockPromise || this.pendingSignings) return this.cancel();
+    this.cancellationVersion += 1;
+  }
+
   cleanUp(cancelPending = false) {
+    // Import/manager pages call cleanUp(true) when they close. A signing on
+    // this shared keyring is owned (and cancelled) by its approval instead.
+    if (cancelPending && this.pendingSignings > 0) {
+      return;
+    }
     this.restoreSessionState = false;
     this.hdk = new HDKey();
     if (cancelPending) {
-      if (this.unlockPromise || this.pendingSignings) return this.cancel();
+      if (this.unlockPromise) return this.cancel();
       this.cancellationVersion += 1;
     }
   }
@@ -418,7 +435,10 @@ class OneKeyKeyring extends EventEmitter {
               );
               return;
             }
-            const device = result.payload[0];
+            const device =
+              result.payload.find(
+                (item) => item.connectId === this.connectId
+              ) || result.payload[0];
             const { connectId } = device;
             if (!connectId) {
               reject('no connectId');
@@ -718,12 +738,35 @@ class OneKeyKeyring extends EventEmitter {
     delete this.paths[checksummedAddress];
   }
 
+  private async _unlockForSigning(
+    address: string,
+    cancellationVersion: number
+  ) {
+    const checkCancelled = () => {
+      if (cancellationVersion !== this.cancellationVersion) {
+        throw new Error('OneKey signing cancelled');
+      }
+    };
+    let status = await this.unlock();
+    checkCancelled();
+    const index = this.indexFromAddress(address);
+    if (!isSameAddress(this._addressFromIndex(pathBase, index), address)) {
+      this.hdk = new HDKey();
+      status = await this.unlock();
+      checkCancelled();
+      if (!isSameAddress(this._addressFromIndex(pathBase, index), address)) {
+        throw new Error(t('background.keyring.onekey.walletAddressMismatch'));
+      }
+    }
+    return status;
+  }
+
   // tx is an instance of the ethereumjs-transaction class.
   signTransaction(address: string, tx: TypedTransaction): Promise<any> {
     this.pendingSignings += 1;
     const cancellationVersion = this.cancellationVersion;
     return new Promise((resolve, reject) => {
-      this.unlock()
+      this._unlockForSigning(address, cancellationVersion)
         .then((status) => {
           setTimeout(
             (_) => {
@@ -824,7 +867,7 @@ class OneKeyKeyring extends EventEmitter {
     this.pendingSignings += 1;
     const cancellationVersion = this.cancellationVersion;
     return new Promise((resolve, reject) => {
-      this.unlock()
+      this._unlockForSigning(withAccount, cancellationVersion)
         .then((status) => {
           setTimeout(
             (_) => {
@@ -946,7 +989,7 @@ class OneKeyKeyring extends EventEmitter {
         types,
         isV4
       ).toString('hex');
-      this.unlock()
+      this._unlockForSigning(address, cancellationVersion)
         .then((status) => {
           setTimeout(
             (_) => {
@@ -1067,12 +1110,20 @@ class OneKeyKeyring extends EventEmitter {
     return Promise.reject(new Error('Not supported on this device'));
   }
 
-  forgetDevice(): void {
+  async forgetDevice(): Promise<void> {
+    this.cancellationVersion += 1;
     this.accounts = [];
     this.cleanUp();
     this.page = 0;
     this.unlockedAccount = 0;
     this.paths = {};
+    this.accountDetails = {};
+    this.passphraseState = undefined;
+    this.deviceId = null;
+    this.connectId = null;
+    if (isManifestV3) {
+      await browser.storage.session.remove(ONEKEY_SESSION_STATE_KEY);
+    }
   }
 
   /* PRIVATE METHODS */
@@ -1095,7 +1146,7 @@ class OneKeyKeyring extends EventEmitter {
   indexFromAddress(address: string) {
     const checksummedAddress = toChecksumAddress(address);
     let index =
-      this.paths[checksummedAddress] ||
+      this.paths[checksummedAddress] ??
       this.accountDetails[checksummedAddress]?.index;
 
     if (typeof index === 'undefined') {
@@ -1219,10 +1270,17 @@ class OneKeyKeyring extends EventEmitter {
   private async _getStandardWalletIdentity(
     connectId: string
   ): Promise<string | undefined> {
+    const cancellationVersion = this.cancellationVersion;
     try {
       const result = await this.bridge.getPassphraseState(connectId, {
         useEmptyPassphrase: true,
       });
+      if (cancellationVersion !== this.cancellationVersion) {
+        throw new Error('OneKey signing cancelled');
+      }
+      if (!result.success) {
+        throw toError(result.payload);
+      }
       if (
         result?.success &&
         typeof result.payload === 'string' &&
@@ -1231,6 +1289,16 @@ class OneKeyKeyring extends EventEmitter {
         return result.payload;
       }
     } catch (e) {
+      const error = toError(e);
+      if (
+        cancellationVersion !== this.cancellationVersion ||
+        ['802', '803', '822', '107', '109'].includes(
+          String((error as any).code)
+        ) ||
+        /action cancelled/i.test(error.message)
+      ) {
+        throw error;
+      }
       console.log('failed to read OneKey standard wallet identity', e);
     }
     return undefined;

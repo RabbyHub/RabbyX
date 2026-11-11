@@ -2769,6 +2769,8 @@
   "background": {
     "keyring": {
       "onekey": {
+        "walletAddressMismatch": "The OneKey wallet opened on the device does not own this address. Select the matching wallet and try again.",
+        "deviceNotOpenedPassphrase": "Passphrase is turned off on your OneKey. Turn it on, or re-import this wallet.",
         "notFoundDevice": "Device not found",
         "deviceInitializeFailed": "Device error, please restart and try again",
         "needUpgradeFirmware": "Firmware must be upgraded to use the device",

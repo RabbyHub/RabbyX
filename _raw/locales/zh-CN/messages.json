@@ -2774,6 +2774,8 @@
   "background": {
     "keyring": {
       "onekey": {
+        "walletAddressMismatch": "OneKey 设备当前打开的钱包不包含该地址，请选择对应的钱包后重试。",
+        "deviceNotOpenedPassphrase": "OneKey 设备未开启 Passphrase。请在设备上开启，或重新导入该钱包。",
         "notFoundDevice": "未找到设备",
         "deviceInitializeFailed": "设备异常，请重启后重试",
         "needUpgradeFirmware": "必须升级固件才能使用设备",
