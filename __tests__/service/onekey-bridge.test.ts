@@ -138,22 +138,32 @@ describe('OneKey SDK bridge', () => {
     expect(mockSdk.uiResponse).not.toHaveBeenCalled();
   });
 
-  it('preserves correlation when selecting on-device passphrase input', async () => {
-    await createBridge().init();
-    const responseCorrelation = {
-      interactionId: 'interaction',
-      deviceId: 'device',
-    };
-    mockSdk.on.mock.calls[0][1]({
-      type: 'PASSPHRASE',
-      payload: { responseCorrelation },
-    });
-    expect(mockSdk.uiResponse).toHaveBeenCalledWith({
-      ...responseCorrelation,
-      type: 'PASSPHRASE_RESPONSE',
-      payload: { value: '', passphraseOnDevice: true, save: true },
-    });
-  });
+  it.each([
+    ['V1', 'classic'],
+    ['V2', 'pro2'],
+    ['V2', 'neo'],
+  ])(
+    'preserves correlation for on-device passphrase input on %s %s',
+    async (protocol, deviceType) => {
+      await createBridge().init();
+      const responseCorrelation = {
+        interactionId: 'interaction',
+        deviceId: 'device',
+      };
+      mockSdk.on.mock.calls[0][1]({
+        type: 'PASSPHRASE',
+        payload: {
+          responseCorrelation,
+          interaction: { protocol, deviceType },
+        },
+      });
+      expect(mockSdk.uiResponse).toHaveBeenCalledWith({
+        ...responseCorrelation,
+        type: 'PASSPHRASE_RESPONSE',
+        payload: { value: '', passphraseOnDevice: true, save: true },
+      });
+    }
+  );
 });
 
 describe('OneKey offscreen bridge relays', () => {
@@ -292,7 +302,7 @@ describe('OneKey V1/V2 account import', () => {
       unlocked?: boolean;
       unlockedAttachPin?: boolean;
     },
-    options: { openWalletSession?: boolean } = {}
+    options: { openWalletSession?: boolean; deviceType?: string } = {}
   ) {
     const bridge: any = {
       init: jest.fn().mockResolvedValue(undefined),
@@ -308,7 +318,10 @@ describe('OneKey V1/V2 account import', () => {
         success: true,
         payload: {
           protocol,
-          identity: { deviceId: 'authoritative-device-id' },
+          identity: {
+            deviceId: 'authoritative-device-id',
+            ...(options.deviceType ? { deviceType: options.deviceType } : {}),
+          },
           ...(status ? { status } : {}),
         },
       }),
@@ -481,26 +494,42 @@ describe('OneKey V1/V2 account import', () => {
     }
   });
 
-  it('selects the standard wallet on a V2 device with passphrase protection off', async () => {
-    const { bridge, keyring } = setup('V2', 'bc1q-standard-wallet-session', {
-      passphraseProtection: false,
-    });
-    await expect(keyring.unlock()).resolves.toBe('just unlocked');
-    expect(bridge.openWalletSession).toHaveBeenCalledTimes(1);
-    expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
-      mode: 'standard',
-    });
-    expect(bridge.getPassphraseState).not.toHaveBeenCalled();
-    expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
-      'usb-path',
-      'authoritative-device-id',
-      expect.objectContaining({
-        passphraseState: undefined,
-        useEmptyPassphrase: true,
-      })
-    );
-    expect(keyring.passphraseState).toBeUndefined();
-  });
+  it.each(['pro2', 'neo'])(
+    'selects the standard wallet and imports BIP44 accounts on V2 %s with passphrase protection off',
+    async (deviceType) => {
+      const { bridge, keyring } = setup(
+        'V2',
+        'bc1q-standard-wallet-session',
+        { passphraseProtection: false },
+        { deviceType }
+      );
+      await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.openWalletSession).toHaveBeenCalledTimes(1);
+      expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
+        mode: 'standard',
+      });
+      expect(bridge.getPassphraseState).not.toHaveBeenCalled();
+      expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
+        'usb-path',
+        'authoritative-device-id',
+        expect.objectContaining({
+          path: "m/44'/60'/0'/0",
+          passphraseState: undefined,
+          useEmptyPassphrase: true,
+        })
+      );
+      expect(keyring.passphraseState).toBeUndefined();
+      const addresses = await keyring.addAccounts(2);
+      expect(addresses).toHaveLength(2);
+      addresses.forEach((address: string, index: number) => {
+        expect(keyring.accountDetails[address]).toMatchObject({
+          hdPath: `m/44'/60'/0'/0/${index}`,
+          hdPathType: 'BIP44',
+          index,
+        });
+      });
+    }
+  );
 
   it('shares concurrent unlock and address imports', async () => {
     const { bridge, keyring } = setup('V2');
@@ -607,21 +636,29 @@ describe('OneKey V1/V2 account import', () => {
     expect(keyring.passphraseState).toBe('hidden-wallet-token');
   });
 
-  it('follows the original getPassphraseState flow on an unlocked V2 main wallet', async () => {
-    const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
-      passphraseProtection: true,
-      unlocked: true,
-      unlockedAttachPin: false,
-    });
-    await expect(keyring.unlock()).resolves.toBe('just unlocked');
-    expect(bridge.openWalletSession).not.toHaveBeenCalled();
-    expect(bridge.getPassphraseState).toHaveBeenNthCalledWith(
-      1,
-      'usb-path',
-      undefined
-    );
-    expect(keyring.passphraseState).toBe('hidden-wallet-token');
-  });
+  it.each(['pro2', 'neo'])(
+    'follows the original getPassphraseState flow on an unlocked V2 %s main wallet',
+    async (deviceType) => {
+      const { bridge, keyring } = setup(
+        'V2',
+        'hidden-wallet-token',
+        {
+          passphraseProtection: true,
+          unlocked: true,
+          unlockedAttachPin: false,
+        },
+        { deviceType }
+      );
+      await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.openWalletSession).not.toHaveBeenCalled();
+      expect(bridge.getPassphraseState).toHaveBeenNthCalledWith(
+        1,
+        'usb-path',
+        undefined
+      );
+      expect(keyring.passphraseState).toBe('hidden-wallet-token');
+    }
+  );
 
   it('treats an empty passphrase from the original flow as the standard wallet on V2', async () => {
     const { bridge, keyring } = setup('V2', 'standard-wallet-id', {
@@ -634,21 +671,32 @@ describe('OneKey V1/V2 account import', () => {
     expect(keyring.passphraseState).toBeUndefined();
   });
 
-  it.each([
-    ['locked', { unlocked: false }],
-    [
-      'unlocked with an attach PIN',
-      { unlocked: true, unlockedAttachPin: true },
-    ],
-    ['of unknown lock state', {}],
-  ])(
-    'opens the V2 wallet with select-hidden when the device is %s',
-    async (_label, lockStatus) => {
-      const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
-        passphraseProtection: true,
-        ...lockStatus,
-      });
+  it.each(
+    ['pro2', 'neo'].flatMap((deviceType) =>
+      ([
+        ['locked', { unlocked: false }],
+        [
+          'unlocked with an attach PIN',
+          { unlocked: true, unlockedAttachPin: true },
+        ],
+        ['of unknown lock state', {}],
+      ] as const).map(([label, lockStatus]) => ({
+        deviceType,
+        label,
+        lockStatus,
+      }))
+    )
+  )(
+    'opens the V2 $deviceType wallet with select-hidden when the device is $label',
+    async ({ deviceType, lockStatus }) => {
+      const { bridge, keyring } = setup(
+        'V2',
+        'hidden-wallet-token',
+        { passphraseProtection: true, ...lockStatus },
+        { deviceType }
+      );
       await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.openWalletSession).toHaveBeenCalledTimes(1);
       expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
         mode: 'select-hidden',
       });
@@ -962,7 +1010,8 @@ describe('OneKey passphrase recovery and signature address checks', () => {
       passphraseProtection?: boolean;
       unlocked?: boolean;
       unlockedAttachPin?: boolean;
-    }
+    },
+    deviceType?: string
   ) {
     const bridge: any = {
       init: jest.fn().mockResolvedValue(undefined),
@@ -978,7 +1027,10 @@ describe('OneKey passphrase recovery and signature address checks', () => {
         success: true,
         payload: {
           protocol,
-          identity: { deviceId: 'authoritative-device-id' },
+          identity: {
+            deviceId: 'authoritative-device-id',
+            ...(deviceType ? { deviceType } : {}),
+          },
           ...(status ? { status } : {}),
         },
       }),
@@ -1040,6 +1092,73 @@ describe('OneKey passphrase recovery and signature address checks', () => {
   const message = `0x${Buffer.from('hello onekey').toString('hex')}`;
   const signature = sigUtil.personalSign(privateKey, { data: message });
   const signatureWithoutPrefix = signature.replace(/^0x/, '');
+
+  it.each(['pro2', 'neo'])(
+    'imports and signs a matching attach-PIN wallet on V2 %s without wallet reselection',
+    async (deviceType) => {
+      const passphraseState = 'attach-pin-session';
+      const { bridge, keyring } = setupSigning(
+        'V2',
+        passphraseState,
+        {
+          passphraseProtection: true,
+          unlocked: true,
+          unlockedAttachPin: true,
+        },
+        deviceType
+      );
+      const addresses = await keyring.addAccounts(2);
+      expect(addresses[0]).toBe(accountAddress);
+      expect(bridge.evmGetPublicKey).toHaveBeenCalledTimes(1);
+      expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
+        'usb-path',
+        'authoritative-device-id',
+        expect.objectContaining({
+          path: "m/44'/60'/0'/0",
+          passphraseState,
+          useEmptyPassphrase: false,
+        })
+      );
+      addresses.forEach((address: string, index: number) => {
+        expect(keyring.accountDetails[address]).toMatchObject({
+          hdPath: `m/44'/60'/0'/0/${index}`,
+          hdPathType: 'BIP44',
+          index,
+        });
+      });
+      const unlock = jest.spyOn(keyring, 'unlock');
+      bridge.evmSignMessage.mockResolvedValueOnce({
+        success: true,
+        payload: { address: accountAddress, signature: signatureWithoutPrefix },
+      });
+
+      await expect(
+        keyring.signPersonalMessage(addresses[0], message)
+      ).resolves.toBe(signature);
+
+      expect(unlock).toHaveBeenCalledTimes(1);
+      expect(bridge.openWalletSession).toHaveBeenCalledTimes(1);
+      expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
+        mode: 'select-hidden',
+      });
+      expect(bridge.getPassphraseState).toHaveBeenCalledTimes(1);
+      expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+        useEmptyPassphrase: true,
+      });
+      expect(bridge.evmGetPublicKey).toHaveBeenCalledTimes(1);
+      expect(bridge.evmSignMessage).toHaveBeenCalledTimes(1);
+      expect(bridge.evmSignMessage).toHaveBeenCalledWith(
+        'usb-path',
+        'authoritative-device-id',
+        expect.objectContaining({
+          path: "m/44'/60'/0'/0/0",
+          passphraseState,
+          useEmptyPassphrase: false,
+        })
+      );
+      expect(keyring.passphraseState).toBe(passphraseState);
+    }
+  );
 
   it.each(['evmSignMessage', 'evmSignTypedData', 'evmSignTransaction'])(
     'preserves approval-owned %s during UI cleanup',
