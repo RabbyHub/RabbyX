@@ -1293,6 +1293,14 @@ class OneKeyKeyring extends EventEmitter {
     if (protocol !== 'V2' || unlockedAttachPin === true) {
       return imported;
     }
+    try {
+      const state = await this.bridge.getDeviceState(connectId);
+      if (state.success && state.payload.status?.unlockedAttachPin === true) {
+        return imported;
+      }
+    } catch {
+      // A failed status refresh still allows the probe and its existing error handling.
+    }
     const standardIdentity = await this._getStandardWalletIdentity(connectId);
     if (standardIdentity && standardIdentity === imported) {
       return undefined;

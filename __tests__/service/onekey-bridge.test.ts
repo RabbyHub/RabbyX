@@ -660,6 +660,97 @@ describe('OneKey V1/V2 account import', () => {
       expect(bridge.getPassphraseState).toHaveBeenNthCalledWith(2, 'usb-path', {
         useEmptyPassphrase: true,
       });
+      expect(bridge.getDeviceState).toHaveBeenCalledTimes(2);
+      expect(keyring.passphraseState).toBe('hidden-wallet-token');
+    }
+  );
+
+  it.each(
+    ['pro2', 'neo'].flatMap((deviceType) =>
+      [true, false].map((unlockedAttachPin) => ({
+        deviceType,
+        unlockedAttachPin,
+      }))
+    )
+  )(
+    'refreshes the just-opened V2 $deviceType session before probing (unlockedAttachPin=$unlockedAttachPin)',
+    async ({ deviceType, unlockedAttachPin }) => {
+      const passphraseState = 'hidden-wallet-token';
+      const { bridge, keyring } = setup(
+        'V2',
+        passphraseState,
+        { passphraseProtection: true, unlocked: false },
+        { deviceType }
+      );
+      bridge.openWalletSession.mockImplementationOnce(async () => {
+        bridge.getDeviceState.mockResolvedValue({
+          success: true,
+          payload: { status: { unlocked: true, unlockedAttachPin } },
+        });
+        return {
+          success: true,
+          payload: { walletType: 'hidden', passphraseState },
+        };
+      });
+
+      await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.openWalletSession).toHaveBeenCalledWith('usb-path', {
+        mode: 'select-hidden',
+      });
+      expect(bridge.getDeviceState).toHaveBeenCalledTimes(2);
+      expect(bridge.getDeviceState).toHaveBeenNthCalledWith(2, 'usb-path');
+      expect(bridge.getPassphraseState).toHaveBeenCalledTimes(
+        unlockedAttachPin ? 0 : 1
+      );
+      if (!unlockedAttachPin) {
+        expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+          useEmptyPassphrase: true,
+        });
+      }
+      expect(keyring.passphraseState).toBe(passphraseState);
+      expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
+        'usb-path',
+        'authoritative-device-id',
+        expect.objectContaining({ passphraseState, useEmptyPassphrase: false })
+      );
+    }
+  );
+
+  it.each(['returned', 'thrown'])(
+    'keeps the hidden wallet after a %s status refresh failure and a failed probe',
+    async (failure) => {
+      const { bridge, keyring } = setup('V2', 'hidden-wallet-token', {
+        passphraseProtection: true,
+        unlocked: false,
+      });
+      bridge.openWalletSession.mockImplementationOnce(async () => {
+        if (failure === 'returned') {
+          bridge.getDeviceState.mockResolvedValueOnce({
+            success: false,
+            payload: { error: 'status refresh failed' },
+          });
+        } else {
+          bridge.getDeviceState.mockRejectedValueOnce(
+            new Error('status refresh failed')
+          );
+        }
+        return {
+          success: true,
+          payload: {
+            walletType: 'hidden',
+            passphraseState: 'hidden-wallet-token',
+          },
+        };
+      });
+      bridge.getPassphraseState.mockRejectedValueOnce(
+        new Error('probe failed')
+      );
+
+      await expect(keyring.unlock()).resolves.toBe('just unlocked');
+      expect(bridge.getDeviceState).toHaveBeenCalledTimes(2);
+      expect(bridge.getPassphraseState).toHaveBeenCalledWith('usb-path', {
+        useEmptyPassphrase: true,
+      });
       expect(keyring.passphraseState).toBe('hidden-wallet-token');
     }
   );
@@ -890,6 +981,7 @@ describe('OneKey V1/V2 account import', () => {
         'usb-path',
         undefined
       );
+      expect(bridge.getDeviceState).toHaveBeenCalledTimes(1);
       expect(keyring.passphraseState).toBe('attach-pin-session');
     }
   );
@@ -1137,6 +1229,7 @@ describe('OneKey passphrase recovery and signature address checks', () => {
       );
       const addresses = await keyring.addAccounts(2);
       expect(addresses[0]).toBe(accountAddress);
+      expect(bridge.getDeviceState).toHaveBeenCalledTimes(1);
       expect(bridge.evmGetPublicKey).toHaveBeenCalledTimes(1);
       expect(bridge.evmGetPublicKey).toHaveBeenCalledWith(
         'usb-path',
