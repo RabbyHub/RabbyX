@@ -755,6 +755,59 @@ describe('OneKey V1/V2 account import', () => {
     }
   );
 
+  it.each(
+    ['pro2', 'neo'].flatMap((deviceType) =>
+      [802, 803, 822, 107, 109, 'action cancelled'].flatMap((code) =>
+        ['returned', 'thrown'].map((failure) => ({
+          deviceType,
+          code,
+          failure,
+        }))
+      )
+    )
+  )(
+    'rejects V2 $deviceType import when the status refresh is cancelled via $failure ($code)',
+    async ({ deviceType, code, failure }) => {
+      const { bridge, keyring } = setup(
+        'V2',
+        'hidden-wallet-token',
+        { passphraseProtection: true, unlocked: false },
+        { deviceType }
+      );
+      bridge.openWalletSession.mockImplementationOnce(async () => {
+        const payload =
+          typeof code === 'string'
+            ? { error: code }
+            : { code, error: 'SDK cancelled' };
+        if (failure === 'returned') {
+          bridge.getDeviceState.mockResolvedValueOnce({
+            success: false,
+            payload,
+          });
+        } else {
+          bridge.getDeviceState.mockRejectedValueOnce(
+            Object.assign(new Error(payload.error), { code: payload.code })
+          );
+        }
+        return {
+          success: true,
+          payload: {
+            walletType: 'hidden',
+            passphraseState: 'hidden-wallet-token',
+          },
+        };
+      });
+
+      await expect(keyring.unlock()).rejects.toThrow();
+      expect(bridge.getDeviceState).toHaveBeenCalledTimes(2);
+      expect(bridge.getPassphraseState).not.toHaveBeenCalledWith('usb-path', {
+        useEmptyPassphrase: true,
+      });
+      expect(bridge.evmGetPublicKey).not.toHaveBeenCalled();
+      expect(keyring.isUnlocked()).toBe(false);
+    }
+  );
+
   it('treats an empty passphrase from the original flow as the standard wallet on V2', async () => {
     const { bridge, keyring } = setup('V2', 'standard-wallet-id', {
       passphraseProtection: true,

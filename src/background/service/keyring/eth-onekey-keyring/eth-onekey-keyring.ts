@@ -1295,11 +1295,23 @@ class OneKeyKeyring extends EventEmitter {
     }
     try {
       const state = await this.bridge.getDeviceState(connectId);
+      if (!state.success) {
+        throw toError(state.payload);
+      }
       if (state.success && state.payload.status?.unlockedAttachPin === true) {
         return imported;
       }
-    } catch {
-      // A failed status refresh still allows the probe and its existing error handling.
+    } catch (e) {
+      const error = toError(e);
+      if (
+        ['802', '803', '822', '107', '109'].includes(
+          String((error as any).code)
+        ) ||
+        /action cancelled/i.test(error.message)
+      ) {
+        throw error;
+      }
+      // A non-cancel status refresh failure still allows the probe.
     }
     const standardIdentity = await this._getStandardWalletIdentity(connectId);
     if (standardIdentity && standardIdentity === imported) {
