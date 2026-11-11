@@ -270,7 +270,7 @@ const flowContext = flow
             })
           )
             .then((result) => {
-              if (isSignApproval(approvalType)) {
+              if (!oneKeyRequestCancelled && isSignApproval(approvalType)) {
                 eventBus.emit(EVENTS.broadcastToUI, {
                   method: EVENTS.SIGN_FINISHED,
                   params: {
@@ -296,7 +296,7 @@ const flowContext = flow
               }
 
               Sentry.captureException(e);
-              if (isSignApproval(approvalType)) {
+              if (!oneKeyRequestCancelled && isSignApproval(approvalType)) {
                 eventBus.emit(EVENTS.broadcastToUI, payload);
               }
             })
