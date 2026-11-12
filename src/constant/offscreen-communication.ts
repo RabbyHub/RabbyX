@@ -20,12 +20,15 @@ export enum ImKeyAction {
 }
 
 export enum OneKeyAction {
+  cancel = 'onekey-cancel',
   init = 'onekey-init',
   evmSignTransaction = 'onekey-evm-sign-transaction',
   evmSignMessage = 'onekey-evm-sign-message',
   evmSignTypedData = 'onekey-evm-sign-typed-data',
   searchDevices = 'onekey-search-devices',
+  getDeviceState = 'onekey-get-device-state',
   getPassphraseState = 'onekey-get-passphrase-state',
+  openWalletSession = 'onekey-open-wallet-session',
   evmGetPublicKey = 'onekey-evm-get-public-key',
 }
 

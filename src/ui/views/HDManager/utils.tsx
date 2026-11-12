@@ -93,31 +93,34 @@ const useGetCurrentAccounts = ({ keyringId, keyring }: StateProviderProps) => {
 
   const getCurrentAccounts = React.useCallback(async () => {
     setLoading(true);
-    const accounts: Account[] = [];
-    if (keyring === KEYRING_CLASS.MNEMONIC) {
-      const list = await dispatch.importMnemonics.getImportedAccounts({});
-      accounts.push(...list);
-    } else {
-      accounts.push(
-        ...(await wallet.requestKeyring(
-          keyring,
-          'getCurrentAccounts',
-          keyringId
-        ))
+    try {
+      const accounts: Account[] = [];
+      if (keyring === KEYRING_CLASS.MNEMONIC) {
+        const list = await dispatch.importMnemonics.getImportedAccounts({});
+        accounts.push(...list);
+      } else {
+        accounts.push(
+          ...(await wallet.requestKeyring(
+            keyring,
+            'getCurrentAccounts',
+            keyringId
+          ))
+        );
+      }
+
+      // fetch aliasName
+      const accountsWithAliasName = await Promise.all(
+        accounts.map(async (account) => {
+          const aliasName = await wallet.getAlianName(account.address);
+          account.aliasName = aliasName;
+          return account;
+        })
       );
+
+      setAccounts(accountsWithAliasName);
+    } finally {
+      setLoading(false);
     }
-
-    // fetch aliasName
-    const accountsWithAliasName = await Promise.all(
-      accounts.map(async (account) => {
-        const aliasName = await wallet.getAlianName(account.address);
-        account.aliasName = aliasName;
-        return account;
-      })
-    );
-
-    setAccounts(accountsWithAliasName);
-    setLoading(false);
   }, []);
 
   const removeCurrentAccount = React.useCallback((address: string) => {
@@ -198,7 +201,10 @@ const useTaskQueue = ({ keyring }) => {
       console.error(e);
       Sentry.captureException(e);
       message.error({
-        content: t('page.newAddress.hd.tooltip.disconnected'),
+        content:
+          keyring === KEYRING_CLASS.HARDWARE.ONEKEY
+            ? e.message || t('page.newAddress.hd.tooltip.connectError')
+            : t('page.newAddress.hd.tooltip.disconnected'),
         key: 'ledger-error',
       });
       if (keyring !== KEYRING_CLASS.HARDWARE.GRIDPLUS) {

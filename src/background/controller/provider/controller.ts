@@ -494,6 +494,9 @@ class ProviderController extends BaseController {
         typeof e === 'object'
           ? { message: e.message }
           : ({ message: e } as any);
+      if (keyring.type === 'Onekey Hardware' && e?.code !== undefined) {
+        errObj.code = e.code;
+      }
       errObj.method = EVENTS.COMMON_HARDWARE.REJECTED;
 
       throw errObj;

@@ -7,6 +7,9 @@ import {
   bufferToHex,
 } from '@ethereumjs/util';
 import * as sigUtil from 'eth-sig-util';
+import type { Response } from '@onekeyfe/hd-core';
+import { HardwareErrorCode } from '@onekeyfe/hd-shared';
+import { t } from 'i18next';
 import {
   FeeMarketEIP1559Transaction,
   Transaction,
@@ -25,9 +28,126 @@ const pathBase = 'm';
 const MAX_INDEX = 1000;
 const DELAY_BETWEEN_POPUPS = 1000;
 const ONEKEY_SESSION_STATE_KEY = 'onekeySessionState';
+// HardwareErrorCode.DeviceNotOpenedPassphrase from @onekeyfe/hd-shared
+const DEVICE_NOT_OPENED_PASSPHRASE = 113;
+
+function handleDeviceError(
+  errorCode: string | number | undefined,
+  errorMessage: string
+) {
+  let msg = errorMessage;
+  switch (errorCode?.toString()) {
+    case DEVICE_NOT_OPENED_PASSPHRASE.toString():
+      msg = t('background.keyring.onekey.deviceNotOpenedPassphrase');
+      break;
+    case HardwareErrorCode.DeviceNotFound.toString():
+      msg = t('background.keyring.onekey.notFoundDevice');
+      break;
+    case HardwareErrorCode.WebDeviceNotFoundOrNeedsPermission.toString():
+      msg = t('background.keyring.onekey.deviceNeedsWebHIDPermission');
+      break;
+    case HardwareErrorCode.DeviceInterruptedFromOutside.toString():
+    case HardwareErrorCode.DeviceInterruptedFromUser.toString():
+      msg = t('background.keyring.onekey.deviceInterrupted');
+      break;
+    case HardwareErrorCode.PinInvalid.toString():
+      msg = t('background.keyring.onekey.pinInvalid');
+      break;
+    case HardwareErrorCode.DeviceBusy.toString():
+      msg = t('background.keyring.onekey.deviceBusy');
+      break;
+    case HardwareErrorCode.CallQueueActionCancelled.toString():
+    case HardwareErrorCode.ActionCancelled.toString():
+    case HardwareErrorCode.PinCancelled.toString():
+      msg = t('background.keyring.onekey.actionCancel');
+      break;
+    case HardwareErrorCode.DeviceInitializeFailed.toString():
+      msg = t('background.keyring.onekey.deviceInitializeFailed');
+      break;
+    case HardwareErrorCode.NewFirmwareForceUpdate.toString():
+      msg = t('background.keyring.onekey.needUpgradeFirmware');
+      break;
+    case HardwareErrorCode.CallMethodNeedUpgradeFirmware.toString():
+      msg = t('background.keyring.onekey.thisMethodNeedUpgradeFirmware');
+      break;
+    case HardwareErrorCode.DeviceDetectInBootloaderMode.toString():
+    case HardwareErrorCode.NotAllowInBootloaderMode.toString():
+      msg = t('background.keyring.onekey.notAllowInBootloaderMode');
+      break;
+    case HardwareErrorCode.DeviceCheckPassphraseStateError.toString():
+    case HardwareErrorCode.DeviceCheckUnlockTypeError.toString():
+      msg = t('background.keyring.onekey.deviceCheckPassphraseStateError');
+      break;
+    default:
+      msg = errorMessage;
+  }
+
+  return Object.assign(new Error(`${errorCode}: ${msg}`), {
+    code:
+      errorCode !== undefined && Number.isFinite(Number(errorCode))
+        ? Number(errorCode)
+        : errorCode,
+  });
+}
+
+function toError(e: unknown): Error {
+  if (e instanceof Error) {
+    const code = (e as any).code ?? (e as any).errorCode;
+    if (code !== undefined) Object.assign(e, { code });
+    return e;
+  }
+  if (typeof e === 'string') {
+    return new Error(e);
+  }
+  const payload = e as {
+    message?: unknown;
+    error?: unknown;
+    code?: unknown;
+    errorCode?: unknown;
+  } | null;
+  const message = payload?.message ?? payload?.error;
+  const code = payload?.code ?? payload?.errorCode;
+  if (code !== undefined) {
+    return handleDeviceError(
+      code as string | number,
+      String(message ?? 'Unknown error')
+    );
+  }
+  if (typeof message === 'string' && message) {
+    return Object.assign(new Error(message), {
+      code: payload?.code ?? payload?.errorCode,
+    });
+  }
+  try {
+    return new Error(JSON.stringify(e) ?? 'Unknown error');
+  } catch {
+    return new Error('Unknown error');
+  }
+}
+
+function isPassphraseDisabledError(payload?: {
+  code?: unknown;
+  error?: unknown;
+}) {
+  return (
+    payload?.code === DEVICE_NOT_OPENED_PASSPHRASE ||
+    /passphrase disabled/i.test(String(payload?.error ?? ''))
+  );
+}
+
+function isUnsupportedWalletSessionError(payload: any) {
+  const code = String(payload?.code ?? payload?.errorCode);
+  return (
+    code === '-32601' ||
+    /^method[ _-]?not[ _-]?(allowed|found)$/i.test(code) ||
+    /(?:action|method).*(?:not supported|unsupported|not found|not allowed)|(?:unsupported|unknown) (?:action|method)/i.test(
+      String(payload?.error ?? payload?.message ?? payload ?? '')
+    )
+  );
+}
 
 interface OneKeySessionState {
-  passphraseState: string;
+  passphraseState: string | undefined;
   deviceId: string;
   connectId: string;
   publicKey: string;
@@ -52,6 +172,7 @@ interface AccountDetail {
   hdPath: string;
   hdPathType: HDPathType;
   index: number;
+  passphraseState?: string;
 }
 
 class OneKeyKeyring extends EventEmitter {
@@ -83,16 +204,28 @@ class OneKeyKeyring extends EventEmitter {
     this.bridge = opts.bridge;
     this.accountDetails = {};
     this.deserialize(opts);
-    this.init();
   }
 
+  private sessionStatePromise?: Promise<void>;
+  private restoreSessionState = true;
+
   async init() {
-    this.bridge.init();
+    await this.bridge.init();
+    if (!this.sessionStatePromise) {
+      this.sessionStatePromise = this.restoreStoredSession().catch((error) => {
+        this.sessionStatePromise = undefined;
+        throw error;
+      });
+    }
+    return this.sessionStatePromise;
+  }
+
+  private async restoreStoredSession() {
     if (isManifestV3) {
       // resume passphrase state from session after sw inactive
       const value = await browser.storage.session.get(ONEKEY_SESSION_STATE_KEY);
       const state: OneKeySessionState = value[ONEKEY_SESSION_STATE_KEY];
-      if (state) {
+      if (state && this.restoreSessionState) {
         this.passphraseState = state.passphraseState;
         this.deviceId = state.deviceId;
         this.connectId = state.connectId;
@@ -128,27 +261,202 @@ class OneKeyKeyring extends EventEmitter {
     return Boolean(this.hdk && this.hdk.publicKey);
   }
 
-  cleanUp() {
+  private cancellationVersion = 0;
+  private pendingSignings = 0;
+  private unlockPromise?: Promise<string>;
+
+  // Set when the open wallet did not own the signing account: the next
+  // unlock asks the device to select a wallet instead of resuming it.
+  private forceWalletSelectionOnUnlock = false;
+
+  cancel() {
+    this.cancellationVersion += 1;
+    return this.bridge.cancel(this.connectId || undefined);
+  }
+
+  /**
+   * Invalidate any in-flight unlock or signing (e.g. on wallet lock) and ask
+   * the device to stop only when something is actually pending.
+   */
+  cancelPendingWork() {
+    if (this.unlockPromise || this.pendingSignings) return this.cancel();
+    this.cancellationVersion += 1;
+  }
+
+  cleanUp(cancelPending = false) {
+    // Import/manager pages call cleanUp(true) when they close. A signing on
+    // this shared keyring is owned (and cancelled) by its approval instead.
+    if (cancelPending && this.pendingSignings > 0) {
+      return;
+    }
+    this.restoreSessionState = false;
     this.hdk = new HDKey();
+    if (cancelPending) {
+      if (this.unlockPromise) return this.cancel();
+      this.cancellationVersion += 1;
+    }
+  }
+
+  private async persistSessionPassphraseState() {
+    if (!isManifestV3) {
+      return;
+    }
+    const value = await browser.storage.session.get(ONEKEY_SESSION_STATE_KEY);
+    const state: OneKeySessionState | undefined =
+      value[ONEKEY_SESSION_STATE_KEY];
+    if (!state) {
+      return;
+    }
+    await browser.storage.session.set({
+      [ONEKEY_SESSION_STATE_KEY]: {
+        ...state,
+        passphraseState: this.passphraseState,
+      },
+    });
+  }
+
+  /**
+   * The device can reject a signature with DeviceNotOpenedPassphrase (113)
+   * when passphrase protection was turned off after this wallet was imported,
+   * leaving a stale passphraseState. If the standard wallet provably owns the
+   * account, drop the stale state and retry the same call once.
+   */
+  private async _withPassphraseRecovery<T>(
+    address: string,
+    params: Record<string, any>,
+    call: (params: Record<string, any>) => Response<T>
+  ): Response<T> {
+    const cancellationVersion = this.cancellationVersion;
+    const response = await call(params);
+    if (
+      response.success ||
+      !isPassphraseDisabledError(response.payload) ||
+      this._isEmptyPassphrase(params.passphraseState) ||
+      cancellationVersion !== this.cancellationVersion
+    ) {
+      return response;
+    }
+
+    // Signing passes the same (possibly unset) ids: a single plugged-in
+    // device signs fine without them, so the address check must too.
+    const connectId = this.connectId!;
+    const deviceId = this.deviceId!;
+    const path = params.path;
+    if (path === undefined) {
+      return response;
+    }
+
+    let derivedAddress: string;
+    try {
+      const publicKey = await this.bridge.evmGetPublicKey(connectId, deviceId, {
+        path,
+        showOnOneKey: false,
+        chainId: 1,
+        useEmptyPassphrase: true,
+      });
+      if (
+        !publicKey.success ||
+        cancellationVersion !== this.cancellationVersion
+      ) {
+        return response;
+      }
+      derivedAddress = toChecksumAddress(
+        bufferToHex(
+          publicToAddress(Buffer.from(publicKey.payload.pub, 'hex'), true)
+        )
+      );
+    } catch {
+      return response;
+    }
+    if (!isSameAddress(derivedAddress, address)) {
+      // A genuinely hidden wallet: surface the original error unchanged.
+      return response;
+    }
+
+    const checksummedAddress = toChecksumAddress(address);
+    const detail = this.accountDetails[checksummedAddress];
+    if (detail) {
+      detail.passphraseState = undefined;
+    }
+    if (this.passphraseState === params.passphraseState) {
+      this.passphraseState = undefined;
+      await this.persistSessionPassphraseState();
+    }
+
+    if (cancellationVersion !== this.cancellationVersion) {
+      return response;
+    }
+
+    return call({
+      ...params,
+      passphraseState: undefined,
+      useEmptyPassphrase: true,
+    });
   }
 
   unlock(): Promise<string> {
+    if (!this.unlockPromise) {
+      this.unlockPromise = this.unlockDevice().finally(() => {
+        this.unlockPromise = undefined;
+      });
+    }
+    return this.unlockPromise;
+  }
+
+  private unlockDevice(): Promise<string> {
+    const cancellationVersion = this.cancellationVersion;
+    const checkCancelled = () => {
+      if (cancellationVersion !== this.cancellationVersion) {
+        throw new Error('OneKey signing cancelled');
+      }
+    };
     // if (this.isUnlocked()) {
     //   return Promise.resolve('already unlocked');
     // }
-    return new Promise((resolve, reject) => {
-      this.bridge
-        .searchDevices()
+    return new Promise((resolve, rejectRaw) => {
+      // Reject with real Errors: the UI<->background channel only forwards
+      // error.message, so string rejections reached the UI as `{}`.
+      const reject = (e: any) => {
+        rejectRaw(toError(e));
+      };
+      this.init()
+        .then(() => {
+          checkCancelled();
+          return this.bridge.searchDevices();
+        })
         .then(async (result) => {
+          checkCancelled();
           if (!result.success) {
-            reject('searchDevices failed');
+            reject(result.payload);
             return;
           } else {
             if (result.payload.length <= 0) {
-              reject('No OneKey Device found');
+              reject(
+                handleDeviceError(
+                  HardwareErrorCode.DeviceNotFound,
+                  'No OneKey Device found'
+                )
+              );
+              return;
             }
-            const device = result.payload[0];
-            const { deviceId, connectId } = device;
+            const device =
+              result.payload.find(
+                (item) => item.connectId === this.connectId
+              ) || result.payload[0];
+            const { connectId } = device;
+            if (!connectId) {
+              reject('no connectId');
+              return;
+            }
+            const previousConnectId = this.connectId;
+            this.connectId = connectId;
+            const state = await this.bridge.getDeviceState(connectId);
+            checkCancelled();
+            if (!state.success) {
+              reject(state.payload);
+              return;
+            }
+            const deviceId = state.payload.identity.deviceId;
             if (!deviceId || !connectId) {
               reject('no deviceId or connectId');
               return;
@@ -158,42 +466,160 @@ class OneKeyKeyring extends EventEmitter {
               this.connectId &&
               this.isUnlocked() &&
               this.deviceId === deviceId &&
-              this.connectId === connectId
+              previousConnectId === connectId
             ) {
               resolve('already unlocked');
               return;
             }
             this.deviceId = deviceId;
             this.connectId = connectId;
-            const passphraseState = await this.bridge.getPassphraseState(
-              connectId
-            );
-            if (!passphraseState.success) {
-              reject('getPassphraseState failed');
-              return;
+            const passphraseProtectionOff =
+              state.payload.status?.passphraseProtection === false;
+            let importedPassphraseState: string | undefined;
+            const openWalletSession = this.bridge.openWalletSession;
+            let walletSession:
+              | Awaited<ReturnType<NonNullable<typeof openWalletSession>>>
+              | undefined;
+            // Follow Rabby's original flow on every device: getPassphraseState()
+            // resumes the wallet the device already has open and otherwise asks
+            // for the passphrase on the device. A Pro 2 uses openWalletSession
+            // only where that call cannot: passphrase off (standard wallet), a
+            // locked device or an attach-PIN session (the device must accept
+            // any PIN), and a forced re-selection after the open wallet did not
+            // own the signing account.
+            const forceWalletSelection = this.forceWalletSelectionOnUnlock;
+            this.forceWalletSelectionOnUnlock = false;
+            const deviceStatus = state.payload.status;
+            const mainWalletUnlocked =
+              deviceStatus?.unlocked === true &&
+              deviceStatus?.unlockedAttachPin === false;
+            if (
+              state.payload.protocol === 'V2' &&
+              openWalletSession &&
+              (passphraseProtectionOff ||
+                forceWalletSelection ||
+                !mainWalletUnlocked)
+            ) {
+              // The SDK rejects useEmptyPassphrase / passphraseState passed to
+              // this call.
+              const mode = passphraseProtectionOff
+                ? 'standard'
+                : 'select-hidden';
+              try {
+                walletSession = await openWalletSession.call(
+                  this.bridge,
+                  connectId,
+                  { mode }
+                );
+                checkCancelled();
+                if (
+                  !walletSession.success &&
+                  mode === 'select-hidden' &&
+                  isPassphraseDisabledError(walletSession.payload)
+                ) {
+                  walletSession = await openWalletSession.call(
+                    this.bridge,
+                    connectId,
+                    { mode: 'standard' }
+                  );
+                  checkCancelled();
+                }
+              } catch (error) {
+                if (!isUnsupportedWalletSessionError(error)) {
+                  throw error;
+                }
+                walletSession = undefined;
+              }
+              if (
+                walletSession &&
+                !walletSession.success &&
+                isUnsupportedWalletSessionError(walletSession.payload)
+              ) {
+                walletSession = undefined;
+              }
             }
-            this.passphraseState = passphraseState.payload;
-            this.bridge
+            checkCancelled();
+            if (walletSession) {
+              if (!walletSession.success) {
+                reject(walletSession.payload);
+                return;
+              }
+              importedPassphraseState = await this._resolvePassphraseStateForImport(
+                {
+                  connectId,
+                  protocol: state.payload.protocol,
+                  walletType: walletSession.payload.walletType,
+                  passphraseState: walletSession.payload.passphraseState,
+                  unlockedAttachPin: deviceStatus?.unlockedAttachPin,
+                }
+              );
+            } else {
+              // Legacy / Protocol V1 path.
+              let standardWallet = passphraseProtectionOff;
+              let passphraseState = await this.bridge.getPassphraseState(
+                connectId,
+                standardWallet
+                  ? { useEmptyPassphrase: true }
+                  : forceWalletSelection
+                  ? { initSession: true }
+                  : undefined
+              );
+              checkCancelled();
+              if (
+                !passphraseState.success &&
+                !standardWallet &&
+                isPassphraseDisabledError(passphraseState.payload)
+              ) {
+                standardWallet = true;
+                passphraseState = await this.bridge.getPassphraseState(
+                  connectId,
+                  { useEmptyPassphrase: true }
+                );
+                checkCancelled();
+              }
+              if (!passphraseState.success) {
+                reject(passphraseState.payload);
+                return;
+              }
+              // On V2 the standard-wallet session still returns a wallet id
+              // (btc_test_address). Passing it on a passphrase-off device makes
+              // the SDK throw DeviceNotOpenedPassphrase (113), so the standard
+              // wallet is represented by an empty passphraseState.
+              importedPassphraseState = await this._resolvePassphraseStateForImport(
+                {
+                  connectId,
+                  protocol: state.payload.protocol,
+                  passphraseState: standardWallet
+                    ? undefined
+                    : passphraseState.payload || undefined,
+                  unlockedAttachPin: deviceStatus?.unlockedAttachPin,
+                }
+              );
+            }
+            checkCancelled();
+            this.passphraseState = importedPassphraseState;
+            return this.bridge
               .evmGetPublicKey(connectId, deviceId, {
                 showOnOneKey: false,
                 chainId: 1,
                 path: hdPathString,
-                passphraseState: passphraseState.payload,
+                passphraseState: this.passphraseState,
+                useEmptyPassphrase: this._isEmptyPassphrase(
+                  this.passphraseState
+                ),
               })
               .then(async (res) => {
+                checkCancelled();
                 if (res.success) {
-                  this.hdk.publicKey = Buffer.from(
-                    res.payload.publicKey,
-                    'hex'
-                  );
+                  this.hdk.publicKey = Buffer.from(res.payload.pub, 'hex');
                   this.hdk.chainCode = Buffer.from(
                     res.payload.node.chain_code,
                     'hex'
                   );
                   if (isManifestV3) {
                     const sessionState: OneKeySessionState = {
-                      passphraseState: passphraseState.payload,
-                      publicKey: res.payload.publicKey,
+                      passphraseState: this.passphraseState,
+                      publicKey: res.payload.pub,
                       chainCode: res.payload.node.chain_code,
                       deviceId,
                       connectId,
@@ -202,15 +628,18 @@ class OneKeyKeyring extends EventEmitter {
                       [ONEKEY_SESSION_STATE_KEY]: sessionState,
                     });
                   }
+                  checkCancelled();
                   resolve('just unlocked');
                 } else {
-                  reject('getPublicKey failed');
+                  reject(res.payload);
+                  return;
                 }
               });
           }
         })
         .catch((e) => {
-          reject(new Error((e && e.toString()) || 'Unknown error'));
+          reject(toError(e));
+          return;
         });
     });
   }
@@ -243,6 +672,7 @@ class OneKeyKeyring extends EventEmitter {
         })
         .catch((e) => {
           reject(e);
+          return;
         });
     });
   }
@@ -281,6 +711,7 @@ class OneKeyKeyring extends EventEmitter {
         })
         .catch((e) => {
           reject(e);
+          return;
         });
     });
   }
@@ -312,6 +743,7 @@ class OneKeyKeyring extends EventEmitter {
         })
         .catch((e) => {
           reject(e);
+          return;
         });
     });
   }
@@ -334,13 +766,44 @@ class OneKeyKeyring extends EventEmitter {
     delete this.paths[checksummedAddress];
   }
 
+  private async _unlockForSigning(
+    address: string,
+    cancellationVersion: number
+  ) {
+    const checkCancelled = () => {
+      if (cancellationVersion !== this.cancellationVersion) {
+        throw new Error('OneKey signing cancelled');
+      }
+    };
+    let status = await this.unlock();
+    checkCancelled();
+    const index = this.indexFromAddress(address);
+    if (!isSameAddress(this._addressFromIndex(pathBase, index), address)) {
+      this.hdk = new HDKey();
+      // Let the user pick the wallet again instead of resuming the same one.
+      this.forceWalletSelectionOnUnlock = true;
+      status = await this.unlock();
+      checkCancelled();
+      if (!isSameAddress(this._addressFromIndex(pathBase, index), address)) {
+        throw new Error(t('background.keyring.onekey.walletAddressMismatch'));
+      }
+    }
+    return status;
+  }
+
   // tx is an instance of the ethereumjs-transaction class.
   signTransaction(address: string, tx: TypedTransaction): Promise<any> {
+    this.pendingSignings += 1;
+    const cancellationVersion = this.cancellationVersion;
     return new Promise((resolve, reject) => {
-      this.unlock()
+      this._unlockForSigning(address, cancellationVersion)
         .then((status) => {
           setTimeout(
             (_) => {
+              if (cancellationVersion !== this.cancellationVersion) {
+                reject(new Error('OneKey signing cancelled'));
+                return;
+              }
               this._signTransaction(
                 address,
                 Number(tx.common.chainId()),
@@ -374,8 +837,11 @@ class OneKeyKeyring extends EventEmitter {
           );
         })
         .catch((e) => {
-          reject(new Error((e && e.toString()) || 'Unknown error'));
+          reject(toError(e));
+          return;
         });
+    }).finally(() => {
+      this.pendingSignings -= 1;
     });
   }
 
@@ -385,6 +851,7 @@ class OneKeyKeyring extends EventEmitter {
     tx: TypedTransaction,
     handleSigning
   ) {
+    const cancellationVersion = this.cancellationVersion;
     // new-style transaction from @ethereumjs/tx package
     // we can just copy tx.toJSON() for everything except chainId, which must be a number
     const transaction = {
@@ -392,30 +859,33 @@ class OneKeyKeyring extends EventEmitter {
       chainId,
       to: tx.to?.toString(),
     };
-    return this.bridge
-      .evmSignTransaction(this.connectId!, this.deviceId!, {
-        path: this._pathFromAddress(address),
-        passphraseState: this.passphraseState,
-        transaction: transaction as any,
-      })
-      .then((res) => {
-        if (res.success) {
-          const newOrMutatedTx: TypedTransaction = handleSigning(res.payload);
-          const addressSignedWith = toChecksumAddress(
-            addHexPrefix(newOrMutatedTx.getSenderAddress().toString())
-          );
-          const correctAddress = toChecksumAddress(address);
-          if (addressSignedWith !== correctAddress) {
-            throw new Error('signature doesnt match the right address');
-          }
-
-          return newOrMutatedTx;
-        } else {
-          throw new Error(
-            (res.payload && res.payload.error) || 'Unknown error'
-          );
+    const params = {
+      path: this._pathFromAddress(address),
+      passphraseState: this.passphraseState,
+      useEmptyPassphrase: this._isEmptyPassphrase(this.passphraseState),
+      transaction: transaction as any,
+    };
+    return this._withPassphraseRecovery(address, params, (p) =>
+      this.bridge.evmSignTransaction(this.connectId!, this.deviceId!, p as any)
+    ).then((res) => {
+      if (cancellationVersion !== this.cancellationVersion) {
+        throw new Error('OneKey signing cancelled');
+      }
+      if (res.success) {
+        const newOrMutatedTx: TypedTransaction = handleSigning(res.payload);
+        const addressSignedWith = toChecksumAddress(
+          addHexPrefix(newOrMutatedTx.getSenderAddress().toString())
+        );
+        const correctAddress = toChecksumAddress(address);
+        if (addressSignedWith !== correctAddress) {
+          throw new Error('signature doesnt match the right address');
         }
-      });
+
+        return newOrMutatedTx;
+      } else {
+        throw toError(res.payload);
+      }
+    });
   }
 
   signMessage(withAccount: string, data: string): Promise<any> {
@@ -424,41 +894,68 @@ class OneKeyKeyring extends EventEmitter {
 
   // For personal_sign, we need to prefix the message:
   signPersonalMessage(withAccount: string, message: string): Promise<any> {
+    this.pendingSignings += 1;
+    const cancellationVersion = this.cancellationVersion;
     return new Promise((resolve, reject) => {
-      this.unlock()
+      this._unlockForSigning(withAccount, cancellationVersion)
         .then((status) => {
           setTimeout(
             (_) => {
-              this.bridge
-                .evmSignMessage(this.connectId!, this.deviceId!, {
-                  path: this._pathFromAddress(withAccount),
-                  messageHex: stripHexPrefix(message),
-                  passphraseState: this.passphraseState,
-                })
+              if (cancellationVersion !== this.cancellationVersion) {
+                reject(new Error('OneKey signing cancelled'));
+                return;
+              }
+              const params = {
+                path: this._pathFromAddress(withAccount),
+                messageHex: stripHexPrefix(message),
+                passphraseState: this.passphraseState,
+                useEmptyPassphrase: this._isEmptyPassphrase(
+                  this.passphraseState
+                ),
+              };
+              this._withPassphraseRecovery(withAccount, params, (p) =>
+                this.bridge.evmSignMessage(
+                  this.connectId!,
+                  this.deviceId!,
+                  p as any
+                )
+              )
                 .then((response) => {
+                  if (cancellationVersion !== this.cancellationVersion) {
+                    reject(new Error('OneKey signing cancelled'));
+                    return;
+                  }
                   if (response.success) {
-                    if (
-                      response.payload.address !==
-                      toChecksumAddress(withAccount)
-                    ) {
+                    const signature = `0x${response.payload.signature}`;
+                    let recovered: string;
+                    try {
+                      recovered = sigUtil.recoverPersonalSignature({
+                        // Recover over the exact bytes sent to the device.
+                        data: addHexPrefix(stripHexPrefix(message)),
+                        sig: signature,
+                      });
+                    } catch (e) {
+                      this.cleanUp();
+                      reject(toError(e));
+                      return;
+                    }
+                    if (!isSameAddress(recovered, withAccount)) {
+                      this.cleanUp();
                       reject(
                         new Error('signature doesnt match the right address')
                       );
+                      return;
                     }
-                    const signature = `0x${response.payload.signature}`;
                     resolve(signature);
                   } else {
-                    reject(
-                      new Error(
-                        (response.payload && response.payload.error) ||
-                          'Unknown error'
-                      )
-                    );
+                    reject(toError(response.payload));
+                    return;
                   }
                 })
                 .catch((e) => {
                   console.log('Error while trying to sign a message ', e);
-                  reject(new Error((e && e.toString()) || 'Unknown error'));
+                  reject(toError(e));
+                  return;
                 });
               // This is necessary to avoid popup collision
               // between the unlock & sign trezor popups
@@ -468,8 +965,11 @@ class OneKeyKeyring extends EventEmitter {
         })
         .catch((e) => {
           console.log('Error while trying to sign a message ', e);
-          reject(new Error((e && e.toString()) || 'Unknown error'));
+          reject(toError(e));
+          return;
         });
+    }).finally(() => {
+      this.pendingSignings -= 1;
     });
   }
 
@@ -497,6 +997,8 @@ class OneKeyKeyring extends EventEmitter {
     typedData,
     opts: { version?: 'V3' | 'V4' } = {}
   ) {
+    this.pendingSignings += 1;
+    const cancellationVersion = this.cancellationVersion;
     return new Promise((resolve, reject) => {
       const isV4 = opts.version === 'V4';
       const {
@@ -517,33 +1019,64 @@ class OneKeyKeyring extends EventEmitter {
         types,
         isV4
       ).toString('hex');
-      this.unlock()
+      this._unlockForSigning(address, cancellationVersion)
         .then((status) => {
           setTimeout(
             (_) => {
+              if (cancellationVersion !== this.cancellationVersion) {
+                reject(new Error('OneKey signing cancelled'));
+                return;
+              }
               try {
-                this.bridge
-                  .evmSignTypedData(this.connectId!, this.deviceId!, {
-                    path: this._pathFromAddress(address),
-                    data: typedData,
-                    passphraseState: this.passphraseState,
-                    metamaskV4Compat: isV4,
-                    domainHash: domainSeparatorHex,
-                    messageHash: hashStructMessageHex,
-                    chainId: domain.chainId
-                      ? Number(domain.chainId)
-                      : undefined,
-                  })
+                const params = {
+                  path: this._pathFromAddress(address),
+                  data: typedData,
+                  passphraseState: this.passphraseState,
+                  useEmptyPassphrase: this._isEmptyPassphrase(
+                    this.passphraseState
+                  ),
+                  metamaskV4Compat: isV4,
+                  domainHash: domainSeparatorHex,
+                  messageHash: hashStructMessageHex,
+                  chainId: domain.chainId ? Number(domain.chainId) : undefined,
+                };
+                this._withPassphraseRecovery(address, params, (p) =>
+                  this.bridge.evmSignTypedData(
+                    this.connectId!,
+                    this.deviceId!,
+                    p as any
+                  )
+                )
                   .then((response) => {
+                    if (cancellationVersion !== this.cancellationVersion) {
+                      reject(new Error('OneKey signing cancelled'));
+                      return;
+                    }
                     if (response.success) {
-                      if (
-                        response.payload.address !== toChecksumAddress(address)
-                      ) {
+                      const signature = `0x${response.payload.signature}`;
+                      let recovered: string;
+                      try {
+                        recovered = isV4
+                          ? sigUtil.recoverTypedSignature_v4({
+                              data: typedData,
+                              sig: signature,
+                            })
+                          : sigUtil.recoverTypedSignature({
+                              data: typedData,
+                              sig: signature,
+                            });
+                      } catch (e) {
+                        this.cleanUp();
+                        reject(toError(e));
+                        return;
+                      }
+                      if (!isSameAddress(recovered, address)) {
+                        this.cleanUp();
                         reject(
                           new Error('signature doesnt match the right address')
                         );
+                        return;
                       }
-                      const signature = `0x${response.payload.signature}`;
                       resolve(signature);
                     } else {
                       let code =
@@ -567,21 +1100,25 @@ class OneKeyKeyring extends EventEmitter {
                         errorMsg = 'Not supported on this device';
                       }
 
-                      const error = new Error(
-                        JSON.stringify({
-                          code,
-                          errorMsg,
-                        })
-                      );
+                      const error =
+                        typeof code === 'string' && code.startsWith('EIP712_')
+                          ? Object.assign(
+                              new Error(JSON.stringify({ code, errorMsg })),
+                              { code: response.payload.code }
+                            )
+                          : toError(response.payload);
                       reject(error);
+                      return;
                     }
                   })
                   .catch((e) => {
                     console.log('Error while trying to sign a message ', e);
-                    reject(new Error((e && e.toString()) || 'Unknown error'));
+                    reject(toError(e));
+                    return;
                   });
               } catch (e) {
-                reject(new Error((e && e.toString()) || 'Unknown error'));
+                reject(toError(e));
+                return;
               }
               // This is necessary to avoid popup collision
               // between the unlock & sign trezor popups
@@ -591,8 +1128,11 @@ class OneKeyKeyring extends EventEmitter {
         })
         .catch((e) => {
           console.log('Error while trying to sign a message ', e);
-          reject(new Error((e && e.toString()) || 'Unknown error'));
+          reject(toError(e));
+          return;
         });
+    }).finally(() => {
+      this.pendingSignings -= 1;
     });
   }
 
@@ -600,12 +1140,20 @@ class OneKeyKeyring extends EventEmitter {
     return Promise.reject(new Error('Not supported on this device'));
   }
 
-  forgetDevice(): void {
+  async forgetDevice(): Promise<void> {
+    this.cancellationVersion += 1;
     this.accounts = [];
-    this.hdk = new HDKey();
+    this.cleanUp();
     this.page = 0;
     this.unlockedAccount = 0;
     this.paths = {};
+    this.accountDetails = {};
+    this.passphraseState = undefined;
+    this.deviceId = null;
+    this.connectId = null;
+    if (isManifestV3) {
+      await browser.storage.session.remove(ONEKEY_SESSION_STATE_KEY);
+    }
   }
 
   /* PRIVATE METHODS */
@@ -628,7 +1176,7 @@ class OneKeyKeyring extends EventEmitter {
   indexFromAddress(address: string) {
     const checksummedAddress = toChecksumAddress(address);
     let index =
-      this.paths[checksummedAddress] ||
+      this.paths[checksummedAddress] ??
       this.accountDetails[checksummedAddress]?.index;
 
     if (typeof index === 'undefined') {
@@ -710,6 +1258,111 @@ class OneKeyKeyring extends EventEmitter {
       hdPathType: LedgerHDPathType.BIP44,
       hdPathBasePublicKey: this.getPathBasePublicKey(),
     };
+  }
+
+  /**
+   * SDK 1.2.7 / 1.2.8 `openWalletSession({ mode: 'select-hidden' })` still reports
+   * walletType "hidden" when the user enters an empty passphrase on a Pro 2,
+   * and the passphraseState is the standard wallet's btc_test_address. Compare
+   * that identity with a useEmptyPassphrase probe and, if they match, treat the
+   * session as the standard wallet so the id is never persisted. The probe runs
+   * only for an ambiguous V2 session (hidden type + non-empty state). Skip it
+   * on attach-PIN sessions because it would request an extra Main PIN. A
+   * failed probe keeps the hidden id so import can still proceed.
+   */
+  private async _resolvePassphraseStateForImport({
+    connectId,
+    protocol,
+    walletType,
+    passphraseState,
+    unlockedAttachPin,
+  }: {
+    connectId: string;
+    protocol?: string;
+    walletType?: 'standard' | 'hidden';
+    passphraseState?: string | null;
+    unlockedAttachPin?: boolean | null;
+  }): Promise<string | undefined> {
+    if (walletType === 'standard') {
+      return undefined;
+    }
+    const imported = passphraseState || undefined;
+    if (this._isEmptyPassphrase(imported)) {
+      return undefined;
+    }
+    if (protocol !== 'V2' || unlockedAttachPin === true) {
+      return imported;
+    }
+    try {
+      const state = await this.bridge.getDeviceState(connectId);
+      if (!state.success) {
+        throw toError(state.payload);
+      }
+      if (state.success && state.payload.status?.unlockedAttachPin === true) {
+        return imported;
+      }
+    } catch (e) {
+      const error = toError(e);
+      if (
+        ['802', '803', '822', '107', '109'].includes(
+          String((error as any).code)
+        ) ||
+        /action cancelled/i.test(error.message)
+      ) {
+        throw error;
+      }
+      // A non-cancel status refresh failure still allows the probe.
+    }
+    const standardIdentity = await this._getStandardWalletIdentity(connectId);
+    if (standardIdentity && standardIdentity === imported) {
+      return undefined;
+    }
+    return imported;
+  }
+
+  private async _getStandardWalletIdentity(
+    connectId: string
+  ): Promise<string | undefined> {
+    const cancellationVersion = this.cancellationVersion;
+    try {
+      const result = await this.bridge.getPassphraseState(connectId, {
+        useEmptyPassphrase: true,
+      });
+      if (cancellationVersion !== this.cancellationVersion) {
+        throw new Error('OneKey signing cancelled');
+      }
+      if (!result.success) {
+        throw toError(result.payload);
+      }
+      if (
+        result?.success &&
+        typeof result.payload === 'string' &&
+        result.payload
+      ) {
+        return result.payload;
+      }
+    } catch (e) {
+      const error = toError(e);
+      if (
+        cancellationVersion !== this.cancellationVersion ||
+        ['802', '803', '822', '107', '109'].includes(
+          String((error as any).code)
+        ) ||
+        /action cancelled/i.test(error.message)
+      ) {
+        throw error;
+      }
+      console.log('failed to read OneKey standard wallet identity', e);
+    }
+    return undefined;
+  }
+
+  private _isEmptyPassphrase(passphraseState: string | undefined | null) {
+    return (
+      passphraseState === null ||
+      passphraseState === undefined ||
+      passphraseState === ''
+    );
   }
 }
 

@@ -35,12 +35,15 @@ export const OneKeyManager: React.FC = () => {
 
   const fetchCurrentAccounts = React.useCallback(async () => {
     setLoading(true);
-    await getCurrentAccounts();
-    setSetting({
-      ...setting,
-      type: HDPathType.BIP44,
-    });
-    setLoading(false);
+    try {
+      await getCurrentAccounts();
+      setSetting({
+        ...setting,
+        type: HDPathType.BIP44,
+      });
+    } finally {
+      setLoading(false);
+    }
   }, []);
   const fetchCurrentAccountsRetry = useAsyncRetry(fetchCurrentAccounts);
 
@@ -76,9 +79,7 @@ export const OneKeyManager: React.FC = () => {
       Sentry.captureException(fetchCurrentAccountsRetry.error);
 
       modal.error({
-        content: t('page.newAddress.hd.trezor.message.disconnected', [
-          'OneKey',
-        ]),
+        content: errMessage,
         okText: t('global.refresh'),
         centered: true,
         onOk() {

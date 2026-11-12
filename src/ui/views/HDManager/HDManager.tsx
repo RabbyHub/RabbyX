@@ -86,7 +86,14 @@ export const HDManager: React.FC<StateProviderProps> = ({
   const idRef = React.useRef<number | null>(null);
   const { t } = useTranslation();
   const closeConnect = React.useCallback(() => {
-    wallet.requestKeyring(keyring, 'cleanUp', idRef.current, true);
+    if (
+      keyring === HARDWARE_KEYRING_TYPES.Onekey.type &&
+      idRef.current === null
+    )
+      return;
+    void wallet
+      .requestKeyring(keyring, 'cleanUp', idRef.current, true)
+      .catch(console.error);
   }, []);
 
   const LOGO_NAME_MAP = {
@@ -116,9 +123,11 @@ export const HDManager: React.FC<StateProviderProps> = ({
   };
 
   React.useEffect(() => {
+    let disposed = false;
     if (
       keyring === KEYRING_CLASS.MNEMONIC ||
-      keyring === KEYRING_CLASS.HARDWARE.KEYSTONE
+      keyring === KEYRING_CLASS.HARDWARE.KEYSTONE ||
+      (keyring === HARDWARE_KEYRING_TYPES.Onekey.type && keyringId != null)
     ) {
       idRef.current = keyringId;
       setInitialed(true);
@@ -131,6 +140,10 @@ export const HDManager: React.FC<StateProviderProps> = ({
         })
         .then((id) => {
           idRef.current = id;
+          if (disposed && keyring === HARDWARE_KEYRING_TYPES.Onekey.type) {
+            closeConnect();
+            return;
+          }
           setInitialed(true);
         })
         .catch((e) => {
@@ -142,14 +155,14 @@ export const HDManager: React.FC<StateProviderProps> = ({
           });
         });
     }
-    if (!isNewUserImport) {
-      window.addEventListener('beforeunload', () => {
-        closeConnect();
-      });
+    if (!isNewUserImport || keyring === HARDWARE_KEYRING_TYPES.Onekey.type) {
+      window.addEventListener('beforeunload', closeConnect);
     }
 
     return () => {
-      if (!isNewUserImport) {
+      disposed = true;
+      window.removeEventListener('beforeunload', closeConnect);
+      if (!isNewUserImport || keyring === HARDWARE_KEYRING_TYPES.Onekey.type) {
         closeConnect();
       }
     };

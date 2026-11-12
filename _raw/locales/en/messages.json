@@ -2767,6 +2767,23 @@
     "notSupportTesntnet": "Not supported for custom network"
   },
   "background": {
+    "keyring": {
+      "onekey": {
+        "walletAddressMismatch": "The OneKey wallet opened on the device does not own this address. Select the matching wallet and try again.",
+        "deviceNotOpenedPassphrase": "Passphrase is turned off on your OneKey. Turn it on, or re-import this wallet.",
+        "notFoundDevice": "Device not found",
+        "deviceInitializeFailed": "Device error, please restart and try again",
+        "needUpgradeFirmware": "Firmware must be upgraded to use the device",
+        "thisMethodNeedUpgradeFirmware": "This feature requires firmware upgrade, please upgrade firmware in OneKey app",
+        "notAllowInBootloaderMode": "Please use in normal mode",
+        "deviceCheckPassphraseStateError": "Account does not match the current device unlock address. Please confirm the device and account address are consistent and try again",
+        "actionCancel": "Operation cancelled",
+        "deviceNeedsWebHIDPermission": "Device not found or needs WebUSB permission",
+        "pinInvalid": "Incorrect PIN. Please try again on your OneKey.",
+        "deviceBusy": "OneKey is busy. Finish or cancel the current operation and try again.",
+        "deviceInterrupted": "OneKey connection was interrupted. Reconnect the device and try again."
+      }
+    },
     "error": {
       "noCurrentAccount": "No current account",
       "invalidChainId": "Invalid chain id",

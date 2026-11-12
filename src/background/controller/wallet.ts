@@ -3738,7 +3738,24 @@ export class WalletController extends BaseController {
   ) => {
     const fn = () =>
       waitSignComponentAmounted().then(() => {
-        this.signTypedData(type, from, data as any, options);
+        const signing = this.signTypedData(type, from, data as any, options);
+        if (type !== KEYRING_CLASS.HARDWARE.ONEKEY) {
+          return;
+        }
+        // Report OneKey failures like rpcFlow does, so CommonWaiting leaves
+        // the waiting state and allows Retry.
+        return signing.then(
+          () => undefined,
+          (e) => {
+            eventBus.emit(EVENTS.broadcastToUI, {
+              method: EVENTS.SIGN_FINISHED,
+              params: {
+                success: false,
+                errorMsg: e?.message || JSON.stringify(e),
+              },
+            });
+          }
+        );
       });
 
     notificationService.setCurrentRequestDeferFn(fn);
